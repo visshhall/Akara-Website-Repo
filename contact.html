@@ -1,145 +1,1033 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact Us - Atelier Ākāra</title>
-    <link rel="stylesheet" href="/auth-styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Get in touch with Atelier Ākāra — we'd love to hear from you.">
+  <meta property="og:title" content="Contact — Atelier Ākāra">
+  <meta property="og:url" content="https://akaraonline.co.in/contact.html">
+  <link rel="icon" type="image/png" href="assets/images/favicon.png">
+  <title>Contact — Atelier Ākāra</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    /* ─── Variables ─────────────────────────────────── */
+    :root {
+      --teal:       #002b2b;
+      --teal-mid:   #004040;
+      --teal-light: #005f5f;
+      --cream:      #fff8e7;
+      --gold:       #c9a96e;
+      --gold-light: #e2c99a;
+      --text-main:  #fff8e7;
+      --text-muted: rgba(255,248,231,0.55);
+      --border:     rgba(201,169,110,0.25);
+      --input-bg:   rgba(255,248,231,0.05);
+      --error:      #e07070;
+      --success:    #70c9a0;
+    }
+
+    /* ─── Reset ─────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Josefin Sans', sans-serif;
+      background: var(--teal);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    /* ─── Background ────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 15% 5%,  rgba(0,95,95,0.3)  0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 85% 90%,  rgba(0,64,64,0.35) 0%, transparent 55%);
+      pointer-events: none; z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,169,110,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,169,110,0.035) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ─── Header ────────────────────────────────────── */
+    .site-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(0,43,43,0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      height: 64px;
+    }
+    .nav-left, .nav-right {
+      display: flex; align-items: center;
+      gap: 2rem; min-width: 180px;
+    }
+    .nav-right { justify-content: flex-end; }
+    .nav-links { display: flex; gap: 2rem; }
+    .nav-links a, .nav-link {
+      font-size: 0.7rem; font-weight: 400;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text-muted); transition: color 0.2s;
+    }
+    .nav-links a:hover, .nav-link:hover { color: var(--gold); }
+    .nav-links a.active-page { color: var(--gold); }
+    .brand-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; font-weight: 300;
+      letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--cream); white-space: nowrap;
+    }
+    .cart-link, #userLink {
+      font-size: 0.75rem; letter-spacing: 0.1em;
+      color: var(--text-muted); transition: color 0.2s; cursor: pointer;
+    }
+    .cart-link:hover, #userLink:hover { color: var(--gold); }
+    .menu-toggle {
+      display: none; background: none; border: none;
+      color: var(--text-main); font-size: 1.2rem; cursor: pointer;
+    }
+    .mobile-nav {
+      display: none; position: fixed;
+      top: 64px; left: 0; right: 0;
+      background: rgba(0,43,43,0.97);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 1.5rem 2rem; z-index: 99;
+      flex-direction: column; gap: 1.2rem;
+    }
+    .mobile-nav.open { display: flex; }
+    .mobile-nav a {
+      font-size: 0.75rem; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--text-muted);
+      padding: 0.4rem 0;
+      border-bottom: 1px solid rgba(201,169,110,0.1);
+    }
+    .mobile-nav a:hover { color: var(--gold); }
+
+    /* ─── Breadcrumb ────────────────────────────────── */
+    .breadcrumbs {
+      position: relative; z-index: 1;
+      max-width: 1280px; margin: 0 auto;
+      padding: 84px 2rem 0;
+      font-size: 0.62rem; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--text-muted);
+    }
+    .breadcrumbs a { color: var(--gold); opacity: 0.7; transition: opacity 0.2s; }
+    .breadcrumbs a:hover { opacity: 1; }
+    .breadcrumbs span { opacity: 0.45; margin: 0 0.5rem; }
+
+    /* ─── Contact Page ──────────────────────────────── */
+    .contact-page {
+      position: relative; z-index: 1;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 3rem 2rem 6rem;
+    }
+
+    /* ─── Page Header ───────────────────────────────── */
+    .contact-header {
+      text-align: center;
+      padding: 3rem 0 4rem;
+      position: relative;
+    }
+    .contact-header::after {
+      content: 'CONTACT';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(5rem, 15vw, 12rem);
+      font-weight: 300;
+      color: rgba(201,169,110,0.04);
+      letter-spacing: 0.3em;
+      white-space: nowrap;
+      pointer-events: none;
+      user-select: none;
+    }
+    .contact-header .eyebrow {
+      position: relative; z-index: 1;
+      font-size: 0.62rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0.8;
+      margin-bottom: 1rem;
+    }
+    .contact-header h1 {
+      position: relative; z-index: 1;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 300;
+      letter-spacing: 0.12em;
+      color: var(--cream);
+      line-height: 1.05;
+      margin-bottom: 1.2rem;
+    }
+    .header-divider {
+      width: 50px; height: 1px;
+      background: var(--gold);
+      margin: 0 auto 1.2rem;
+      opacity: 0.5;
+      position: relative; z-index: 1;
+    }
+    .contact-header p {
+      position: relative; z-index: 1;
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      line-height: 1.8;
+      color: var(--text-muted);
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* ─── Main Grid ─────────────────────────────────── */
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.6fr;
+      gap: 4rem;
+      align-items: start;
+    }
+
+    /* ─── Info Panel ────────────────────────────────── */
+    .contact-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .info-block {
+      padding: 2rem;
+      border: 1px solid var(--border);
+      border-bottom: none;
+      background: rgba(255,248,231,0.03);
+      transition: background 0.3s;
+    }
+    .info-block:last-child { border-bottom: 1px solid var(--border); }
+    .info-block:hover { background: rgba(201,169,110,0.04); }
+
+    .info-block-label {
+      font-size: 0.58rem;
+      letter-spacing: 0.38em;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0.75;
+      margin-bottom: 0.6rem;
+    }
+    .info-block h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      color: var(--cream);
+      margin-bottom: 0.4rem;
+    }
+    .info-block p, .info-block a {
+      font-size: 0.75rem;
+      letter-spacing: 0.06em;
+      line-height: 1.75;
+      color: var(--text-muted);
+      display: block;
+    }
+    .info-block a:hover { color: var(--gold); }
+
+    .info-block .icon {
+      display: inline-block;
+      margin-right: 0.4rem;
+      opacity: 0.6;
+    }
+
+    /* Social row */
+    .social-row {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+    .social-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 0.9rem;
+      border: 1px solid var(--border);
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+    .social-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* Hours table */
+    .hours-table {
+      width: 100%;
+      margin-top: 0.25rem;
+    }
+    .hours-table tr td {
+      font-size: 0.72rem;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      padding: 0.2rem 0;
+    }
+    .hours-table tr td:last-child {
+      text-align: right;
+      color: var(--gold-light);
+      opacity: 0.8;
+    }
+
+    /* ─── Form Panel ────────────────────────────────── */
+    .contact-form-wrap {
+      background: rgba(255,248,231,0.03);
+      border: 1px solid var(--border);
+      padding: 3rem;
+    }
+
+    .form-heading {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.6rem;
+      font-weight: 300;
+      letter-spacing: 0.1em;
+      color: var(--cream);
+      margin-bottom: 0.4rem;
+    }
+    .form-subheading {
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 2.5rem;
+    }
+
+    /* Field groups */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-bottom: 1.25rem;
+    }
+    .form-field:last-of-type { margin-bottom: 0; }
+
+    .form-field label {
+      font-size: 0.6rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0.8;
+    }
+
+    .form-field input,
+    .form-field select,
+    .form-field textarea {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      padding: 0.75rem 1rem;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+      width: 100%;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .form-field input::placeholder,
+    .form-field textarea::placeholder { color: var(--text-muted); }
+
+    .form-field input:focus,
+    .form-field select:focus,
+    .form-field textarea:focus {
+      border-color: rgba(201,169,110,0.55);
+      background: rgba(255,248,231,0.07);
+    }
+
+    /* Error state */
+    .form-field input.invalid,
+    .form-field select.invalid,
+    .form-field textarea.invalid {
+      border-color: var(--error);
+    }
+    .field-error {
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      color: var(--error);
+      display: none;
+    }
+    .form-field.has-error .field-error { display: block; }
+
+    .form-field select option { background: var(--teal); }
+
+    .form-field textarea {
+      resize: vertical;
+      min-height: 130px;
+      line-height: 1.7;
+    }
+
+    /* Character counter */
+    .char-count {
+      font-size: 0.58rem;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      text-align: right;
+      opacity: 0.5;
+    }
+
+    /* Submit area */
+    .form-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .form-note {
+      font-size: 0.62rem;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      opacity: 0.6;
+      max-width: 220px;
+      line-height: 1.6;
+    }
+
+    .btn-submit {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.85rem 2.8rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.65rem; font-weight: 400;
+      letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--teal); background: var(--gold);
+      border: 1px solid var(--gold);
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .btn-submit:hover { background: transparent; color: var(--gold); }
+    .btn-submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background: var(--gold);
+      color: var(--teal);
+    }
+
+    /* ─── Success State ──────────────────────────────── */
+    .success-message {
+      display: none;
+      text-align: center;
+      padding: 3rem 2rem;
+      animation: fadeUp 0.5s ease both;
+    }
+    .success-message.visible { display: block; }
+    .success-icon {
+      width: 56px; height: 56px;
+      border: 1px solid var(--gold);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.5rem;
+      font-size: 1.4rem;
+    }
+    .success-message h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.6rem; font-weight: 300;
+      letter-spacing: 0.1em;
+      color: var(--cream);
+      margin-bottom: 0.6rem;
+    }
+    .success-message p {
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      line-height: 1.8;
+    }
+
+    /* ─── FAQ Section ───────────────────────────────── */
+    .faq-section {
+      margin-top: 5rem;
+      border-top: 1px solid var(--border);
+      padding-top: 4rem;
+    }
+    .faq-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    .section-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0.7;
+      margin-bottom: 0.75rem;
+    }
+    .faq-header h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 300;
+      letter-spacing: 0.1em;
+      color: var(--cream);
+    }
+
+    .faq-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+    .faq-item {
+      border: 1px solid var(--border);
+      border-right: none;
+      border-bottom: none;
+      padding: 0;
+      cursor: pointer;
+    }
+    .faq-item:nth-child(even) { border-right: 1px solid var(--border); }
+    .faq-item:nth-last-child(-n+2) { border-bottom: 1px solid var(--border); }
+
+    .faq-question {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.4rem 1.75rem;
+      gap: 1rem;
+    }
+    .faq-question span:first-child {
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      color: var(--cream);
+      line-height: 1.5;
+    }
+    .faq-toggle {
+      font-size: 1rem;
+      color: var(--gold);
+      opacity: 0.7;
+      flex-shrink: 0;
+      transition: transform 0.25s;
+    }
+    .faq-item.open .faq-toggle { transform: rotate(45deg); }
+
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+      padding: 0 1.75rem;
+    }
+    .faq-item.open .faq-answer {
+      max-height: 200px;
+      padding: 0 1.75rem 1.4rem;
+    }
+    .faq-answer p {
+      font-size: 0.72rem;
+      letter-spacing: 0.05em;
+      line-height: 1.85;
+      color: var(--text-muted);
+    }
+
+    /* ─── Footer ────────────────────────────────────── */
+    .site-footer {
+      background: rgba(0,20,20,0.6);
+      border-top: 1px solid var(--border);
+      padding: 4rem 2rem 2rem;
+      position: relative; z-index: 1;
+    }
+    .footer-content { max-width: 1280px; margin: 0 auto; }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem; margin-bottom: 3rem;
+    }
+    .footer-section h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; font-weight: 400;
+      letter-spacing: 0.2em; color: var(--cream);
+      margin-bottom: 0.5rem;
+    }
+    .footer-section > p { font-size: 0.7rem; letter-spacing: 0.12em; color: var(--text-muted); }
+    .footer-section h4 {
+      font-size: 0.6rem; letter-spacing: 0.35em;
+      text-transform: uppercase; color: var(--gold);
+      opacity: 0.75; margin-bottom: 1.2rem;
+    }
+    .footer-section a {
+      display: block; font-size: 0.72rem;
+      letter-spacing: 0.08em; color: var(--text-muted);
+      margin-bottom: 0.6rem; transition: color 0.2s;
+    }
+    .footer-section a:hover { color: var(--gold); }
+    .footer-bottom {
+      border-top: 1px solid var(--border);
+      padding-top: 1.5rem;
+      display: flex; justify-content: space-between;
+      align-items: center; flex-wrap: wrap; gap: 0.5rem;
+    }
+    .footer-bottom p { font-size: 0.62rem; letter-spacing: 0.12em; color: var(--text-muted); opacity: 0.6; }
+
+    /* ─── Animations ────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .contact-grid, .faq-section {
+      animation: fadeUp 0.8s ease both;
+    }
+
+    /* ─── Responsive ────────────────────────────────── */
+    @media (max-width: 960px) {
+      .contact-grid  { grid-template-columns: 1fr; gap: 2.5rem; }
+      .faq-grid      { grid-template-columns: 1fr; }
+      .faq-item      { border-right: 1px solid var(--border) !important; border-bottom: none !important; }
+      .faq-item:last-child { border-bottom: 1px solid var(--border) !important; }
+      .footer-grid   { grid-template-columns: 1fr 1fr; gap: 2rem; }
+    }
+    @media (max-width: 768px) {
+      .desktop-only { display: none; }
+      .menu-toggle  { display: block; }
+      .nav-left, .nav-right { min-width: auto; }
+      .contact-form-wrap { padding: 2rem 1.5rem; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .footer-grid   { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+      .form-footer   { flex-direction: column; align-items: stretch; }
+      .btn-submit    { justify-content: center; }
+    }
+  </style>
 </head>
+
 <body>
-    <header class="site-header">
-        <nav class="nav-container">
-            <div class="nav-left">
-                <button class="menu-toggle" id="menuToggle">☰</button>
-                <div class="nav-links desktop-only">
-                    <a href="/catalog.html">Catalog</a>
-                    <a href="/about.html">About</a>
-                </div>
-            </div>
-            <div class="nav-center">
-                <a href="/" class="brand-logo">ATELIER ĀKĀRA</a>
-            </div>
-            <div class="nav-right">
-                <a href="/contact.html" class="nav-link desktop-only">Contact</a>
-                <a href="/user/cart.html" class="cart-link">🛒 <span id="cartCount">0</span></a>
-                <a href="/user/profile.html">👤</a>
-            </div>
-        </nav>
-    </header>
-    
-    <main class="contact-page">
-        <h1>Get in Touch</h1>
-        
-        <div class="contact-grid">
-            <div class="contact-info">
-                <h2>Contact Information</h2>
-                
-                <div class="info-block">
-                    <h3>📧 Email</h3>
-                    <p><a href="mailto:support@akaraonline.co.in">support@akaraonline.co.in</a></p>
-                    <p class="note">Response time: Within 24 hours</p>
-                </div>
-                
-                <div class="info-block">
-                    <h3>📱 WhatsApp</h3>
-                    <p><a href="https://wa.me/919XXXXXXXXX" target="_blank">+91-XXXXXXXXXX</a></p>
-                    <p class="note">Monday - Saturday, 10 AM - 6 PM</p>
-                </div>
-                
-                <div class="info-block">
-                    <h3>📍 Address</h3>
-                    <p>Precision Forge Labs<br>
-                    Mumbai, Maharashtra<br>
-                    India</p>
-                </div>
-                
-                <div class="info-block">
-                    <h3>🔖 GST</h3>
-                    <p>27GZCPS9353H1ZQ</p>
-                </div>
-            </div>
-            
-            <div class="contact-form-container">
-                <h2>Send Us a Message</h2>
-                
-                <form id="contactForm" class="contact-form">
-                    <div class="form-group">
-                        <label for="name">Name *</label>
-                        <input type="text" id="name" name="name" required maxlength="100">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="email">Email *</label>
-                        <input type="email" id="email" name="email" required maxlength="254">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="subject">Subject *</label>
-                        <input type="text" id="subject" name="subject" required maxlength="100">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="message">Message *</label>
-                        <textarea id="message" name="message" rows="5" required maxlength="1000"></textarea>
-                        <small id="charCount">0 / 1000 characters</small>
-                    </div>
-                    
-                    <!-- Honeypot -->
-                    <input type="text" name="website" style="position:absolute;left:-9999px;" tabindex="-1">
-                    
-                    <button type="submit" class="btn-primary">Send Message</button>
-                </form>
-                
-                <div id="formMessage" style="display:none;"></div>
-            </div>
+
+  <!-- ─── Header ─────────────────────────────────── -->
+  <header class="site-header">
+    <nav class="nav-container">
+      <div class="nav-left">
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">☰</button>
+        <div class="nav-links desktop-only">
+          <a href="catalog.html">Catalog</a>
+          <a href="about.html">About</a>
         </div>
-    </main>
-    
-    <footer class="site-footer">
-        <p>© 2024 Atelier Ākāra</p>
-    </footer>
-    
-    <script>
-        // Character counter
-        document.getElementById('message').addEventListener('input', function() {
-            document.getElementById('charCount').textContent = this.value.length + ' / 1000 characters';
-        });
-        
-        // Form submission
-        document.getElementById('contactForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            // Check honeypot
-            if (document.querySelector('input[name="website"]').value) {
-                console.log('Bot detected');
-                return;
-            }
-            
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData);
-            
-            try {
-                // Send via Netlify function
-                const response = await fetch('/.netlify/functions/contact-form', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                
-                if (response.ok) {
-                    document.getElementById('formMessage').style.display = 'block';
-                    document.getElementById('formMessage').className = 'success';
-                    document.getElementById('formMessage').textContent = 'Message sent successfully! We\'ll respond within 24 hours.';
-                    e.target.reset();
-                } else {
-                    throw new Error('Failed to send');
-                }
-            } catch (error) {
-                document.getElementById('formMessage').style.display = 'block';
-                document.getElementById('formMessage').className = 'error';
-                document.getElementById('formMessage').textContent = 'Error sending message. Please email us directly.';
-            }
-        });
-    </script>
+      </div>
+      <div class="nav-center">
+        <a href="index.html" class="brand-logo">ATELIER ĀKĀRA</a>
+      </div>
+      <div class="nav-right">
+        <a href="contact.html" class="nav-link desktop-only active-page">Contact</a>
+        <a href="user/cart.html" class="cart-link">🛒 <span id="cartCount">0</span></a>
+        <a href="user/profile.html" id="userLink">👤</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Mobile Nav Drawer -->
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="catalog.html">Catalog</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="user/cart.html">Cart</a>
+    <a href="user/profile.html">My Profile</a>
+  </nav>
+
+  <!-- ─── Breadcrumb ──────────────────────────────── -->
+  <div class="breadcrumbs">
+    <a href="index.html">Home</a>
+    <span>/</span>
+    Contact
+  </div>
+
+  <!-- ─── Page ───────────────────────────────────── -->
+  <main class="contact-page">
+
+    <!-- Header -->
+    <div class="contact-header">
+      <p class="eyebrow">We'd love to hear from you</p>
+      <h1>Get In Touch</h1>
+      <div class="header-divider"></div>
+      <p>Whether you have a question about a product, need help with an order, or simply want to say hello — we're here and we read every message.</p>
+    </div>
+
+    <!-- Grid: Info + Form -->
+    <div class="contact-grid">
+
+      <!-- ── Info Panel ── -->
+      <div class="contact-info">
+
+        <div class="info-block">
+          <p class="info-block-label">Email Us</p>
+          <h3>Direct Line</h3>
+          <a href="mailto:support@akaraonline.co.in">
+            <span class="icon">✉</span>support@akaraonline.co.in
+          </a>
+          <p style="margin-top:0.4rem;font-size:0.68rem;opacity:0.5;">We respond within 1–2 business days.</p>
+        </div>
+
+        <div class="info-block">
+          <p class="info-block-label">Follow Along</p>
+          <h3>Social</h3>
+          <div class="social-row">
+            <a href="https://instagram.com/atelier.akara" target="_blank" class="social-btn">
+              ⬡ Instagram
+            </a>
+          </div>
+        </div>
+
+        <div class="info-block">
+          <p class="info-block-label">Our Studio</p>
+          <h3>Location</h3>
+          <p>Mumbai, Maharashtra</p>
+          <p>India — 400 001</p>
+          <p style="margin-top:0.5rem;font-size:0.68rem;opacity:0.5;">Studio visits by appointment only.</p>
+        </div>
+
+        <div class="info-block">
+          <p class="info-block-label">Response Times</p>
+          <h3>Hours</h3>
+          <table class="hours-table">
+            <tr><td>Monday – Friday</td><td>10 am – 6 pm IST</td></tr>
+            <tr><td>Saturday</td><td>11 am – 4 pm IST</td></tr>
+            <tr><td>Sunday</td><td>Closed</td></tr>
+          </table>
+        </div>
+
+        <div class="info-block">
+          <p class="info-block-label">Business</p>
+          <h3>Precision Forge Labs</h3>
+          <p>GST: 27GZCPS9353H1ZQ</p>
+        </div>
+
+      </div>
+
+      <!-- ── Form Panel ── -->
+      <div class="contact-form-wrap">
+
+        <!-- The form itself -->
+        <div id="formContent">
+          <h2 class="form-heading">Send a Message</h2>
+          <p class="form-subheading">Fill in the details below and we'll get back to you shortly.</p>
+
+          <div class="form-row">
+            <div class="form-field" id="field-name">
+              <label for="inputName">Your Name</label>
+              <input type="text" id="inputName" placeholder="Priya Sharma" maxlength="80" autocomplete="name">
+              <span class="field-error">Please enter your name.</span>
+            </div>
+            <div class="form-field" id="field-email">
+              <label for="inputEmail">Email Address</label>
+              <input type="email" id="inputEmail" placeholder="priya@example.com" maxlength="120" autocomplete="email">
+              <span class="field-error">Please enter a valid email.</span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-field" id="field-phone">
+              <label for="inputPhone">Phone <span style="opacity:0.45;font-size:0.55rem;">(Optional)</span></label>
+              <input type="tel" id="inputPhone" placeholder="+91 98765 43210" maxlength="20" autocomplete="tel">
+            </div>
+            <div class="form-field" id="field-subject">
+              <label for="inputSubject">Subject</label>
+              <select id="inputSubject">
+                <option value="" disabled selected>Select a topic…</option>
+                <option value="order">Order Enquiry</option>
+                <option value="product">Product Question</option>
+                <option value="shipping">Shipping & Delivery</option>
+                <option value="return">Returns & Exchanges</option>
+                <option value="wholesale">Wholesale / B2B</option>
+                <option value="other">Other</option>
+              </select>
+              <span class="field-error">Please select a subject.</span>
+            </div>
+          </div>
+
+          <div class="form-field" id="field-message">
+            <label for="inputMessage">Message</label>
+            <textarea id="inputMessage" placeholder="Tell us how we can help…" maxlength="1000"></textarea>
+            <span class="char-count"><span id="charLeft">1000</span> characters remaining</span>
+            <span class="field-error">Please write a message (at least 10 characters).</span>
+          </div>
+
+          <div class="form-footer">
+            <p class="form-note">Your information is never shared with third parties.</p>
+            <button class="btn-submit" id="submitBtn" onclick="submitForm()">
+              <span id="submitLabel">Send Message</span>
+              <span id="submitArrow">→</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Success state -->
+        <div class="success-message" id="successMessage">
+          <div class="success-icon">✓</div>
+          <h3>Message Received</h3>
+          <p>Thank you for reaching out. We'll respond to <strong id="successEmail"></strong> within 1–2 business days.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── FAQ Section ── -->
+    <div class="faq-section">
+      <div class="faq-header">
+        <p class="section-label">Quick Answers</p>
+        <h2>Frequently Asked</h2>
+      </div>
+      <div class="faq-grid" id="faqGrid">
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>Do you ship across India?</span>
+            <span class="faq-toggle">+</span>
+          </div>
+          <div class="faq-answer">
+            <p>Yes — we ship pan-India through trusted courier partners. Delivery typically takes 5–8 business days depending on your location. Shipping charges are calculated at checkout.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>What materials are your products made from?</span>
+            <span class="faq-toggle">+</span>
+          </div>
+          <div class="faq-answer">
+            <p>Our pieces are made from high-grade concrete, powder-coated metal, and natural materials. Each product page lists the exact material composition. We believe in full transparency about what goes into our work.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>Can I return or exchange a product?</span>
+            <span class="faq-toggle">+</span>
+          </div>
+          <div class="faq-answer">
+            <p>We accept returns within 7 days of delivery for items in original, unused condition. Please email us with your order number and photos of the item to initiate a return.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>Do you offer bulk or wholesale pricing?</span>
+            <span class="faq-toggle">+</span>
+          </div>
+          <div class="faq-answer">
+            <p>Yes — we work with interior designers, hospitality businesses, and retail partners. Select "Wholesale / B2B" in the contact form above and tell us about your project.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>How do I track my order?</span>
+            <span class="faq-toggle">+</span>
+          </div>
+          <div class="faq-answer">
+            <p>Once your order ships, you'll receive a tracking link via email. You can also log in to your account and view live tracking from the My Orders section.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>Are products available for studio viewing?</span>
+            <span class="faq-toggle">+</span>
+          </div>
+          <div class="faq-answer">
+            <p>Studio visits are available by appointment in Mumbai. Drop us a message through the form above or email us directly, and we'll arrange a convenient time for you.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ─── Footer ─────────────────────────────────── -->
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-grid">
+        <div class="footer-section">
+          <h3>ATELIER ĀKĀRA</h3>
+          <p>Artifacts for the Modern Spaces</p>
+        </div>
+        <div class="footer-section">
+          <h4>Shop</h4>
+          <a href="catalog.html">All Products</a>
+          <a href="catalog.html?category=planters">Planters</a>
+          <a href="catalog.html?category=vases">Vases</a>
+          <a href="catalog.html?category=lighting">Lighting</a>
+        </div>
+        <div class="footer-section">
+          <h4>Information</h4>
+          <a href="about.html">About Us</a>
+          <a href="contact.html">Contact</a>
+          <a href="privacy.html">Privacy Policy</a>
+          <a href="terms.html">Terms of Service</a>
+        </div>
+        <div class="footer-section">
+          <h4>Connect</h4>
+          <a href="https://instagram.com/atelier.akara" target="_blank">Instagram</a>
+          <a href="mailto:support@akaraonline.co.in">Email Us</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>Precision Forge Labs &nbsp;|&nbsp; GST: 27GZCPS9353H1ZQ</p>
+        <p>© 2024 Atelier Ākāra. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ─── Scripts ─────────────────────────────────── -->
+  <script>
+    // ─── Mobile menu ──────────────────────────────────
+    document.getElementById('menuToggle').addEventListener('click', () => {
+      document.getElementById('mobileNav').classList.toggle('open');
+    });
+
+    // ─── Cart count ───────────────────────────────────
+    function updateCartCount() {
+      const cart  = JSON.parse(localStorage.getItem('akara_cart') || '[]');
+      const total = cart.reduce((s, i) => s + (i.qty || 1), 0);
+      document.getElementById('cartCount').textContent = total;
+    }
+    updateCartCount();
+
+    // ─── Character counter ────────────────────────────
+    const msgInput = document.getElementById('inputMessage');
+    const charLeft = document.getElementById('charLeft');
+    msgInput.addEventListener('input', () => {
+      charLeft.textContent = 1000 - msgInput.value.length;
+    });
+
+    // ─── FAQ accordion ────────────────────────────────
+    document.querySelectorAll('.faq-item').forEach(item => {
+      item.querySelector('.faq-question').addEventListener('click', () => {
+        const isOpen = item.classList.contains('open');
+        // Close all
+        document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+        // Toggle clicked
+        if (!isOpen) item.classList.add('open');
+      });
+    });
+
+    // ─── Form validation & submit ─────────────────────
+    function validate() {
+      let valid = true;
+
+      const fields = [
+        {
+          id: 'inputName',
+          wrap: 'field-name',
+          check: v => v.trim().length >= 2,
+        },
+        {
+          id: 'inputEmail',
+          wrap: 'field-email',
+          check: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()),
+        },
+        {
+          id: 'inputSubject',
+          wrap: 'field-subject',
+          check: v => v !== '',
+        },
+        {
+          id: 'inputMessage',
+          wrap: 'field-message',
+          check: v => v.trim().length >= 10,
+        },
+      ];
+
+      fields.forEach(({ id, wrap, check }) => {
+        const el      = document.getElementById(id);
+        const wrapper = document.getElementById(wrap);
+        if (!check(el.value)) {
+          wrapper.classList.add('has-error');
+          el.classList.add('invalid');
+          valid = false;
+        } else {
+          wrapper.classList.remove('has-error');
+          el.classList.remove('invalid');
+        }
+      });
+
+      return valid;
+    }
+
+    // Clear error on input
+    ['inputName','inputEmail','inputSubject','inputMessage'].forEach(id => {
+      const el = document.getElementById(id);
+      el.addEventListener('input', () => {
+        el.classList.remove('invalid');
+        el.closest('.form-field').classList.remove('has-error');
+      });
+      el.addEventListener('change', () => {
+        el.classList.remove('invalid');
+        el.closest('.form-field').classList.remove('has-error');
+      });
+    });
+
+    async function submitForm() {
+      if (!validate()) return;
+
+      const btn   = document.getElementById('submitBtn');
+      const label = document.getElementById('submitLabel');
+      const arrow = document.getElementById('submitArrow');
+
+      // Loading state
+      btn.disabled  = true;
+      label.textContent = 'Sending…';
+      arrow.textContent = '⟳';
+
+      const name    = document.getElementById('inputName').value.trim();
+      const email   = document.getElementById('inputEmail').value.trim();
+      const phone   = document.getElementById('inputPhone').value.trim();
+      const subject = document.getElementById('inputSubject').value;
+      const message = document.getElementById('inputMessage').value.trim();
+
+      // ─────────────────────────────────────────────────────────
+      // TODO: Replace this with your real form submission logic.
+      // Options:
+      //   A) Formspree: POST to https://formspree.io/f/YOUR_ID
+      //   B) EmailJS:   emailjs.send(...)
+      //   C) Supabase:  insert into a 'contact_messages' table
+      //
+      // Example using Formspree (free, no backend needed):
+      //
+      //   const res = await fetch('https://formspree.io/f/YOUR_FORM_ID', {
+      //     method: 'POST',
+      //     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      //     body: JSON.stringify({ name, email, phone, subject, message })
+      //   });
+      //   if (!res.ok) throw new Error('Failed');
+      //
+      // ─────────────────────────────────────────────────────────
+
+      // Simulated delay (remove once real submission is wired up)
+      await new Promise(r => setTimeout(r, 1200));
+
+      // Show success
+      document.getElementById('successEmail').textContent = email;
+      document.getElementById('formContent').style.display  = 'none';
+      document.getElementById('successMessage').classList.add('visible');
+    }
+  </script>
+
 </body>
 </html>
