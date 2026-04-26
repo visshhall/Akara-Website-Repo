@@ -1,89 +1,863 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catalog - Atelier Ākāra</title>
-    <link rel="stylesheet" href="/auth-styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Browse our full collection of geometric planters, vases, and lighting for modern Indian homes.">
+  <meta property="og:title" content="Catalog - Atelier Ākāra">
+  <meta property="og:url" content="https://akaraonline.co.in/catalog.html">
+  <link rel="icon" type="image/png" href="assets/images/favicon.png">
+  <title>Catalog — Atelier Ākāra</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    /* ─── Variables ─────────────────────────────────── */
+    :root {
+      --teal:         #002b2b;
+      --teal-mid:     #004040;
+      --teal-light:   #005f5f;
+      --cream:        #fff8e7;
+      --cream-dim:    #f0e8d4;
+      --gold:         #c9a96e;
+      --gold-light:   #e2c99a;
+      --text-main:    #fff8e7;
+      --text-muted:   rgba(255,248,231,0.55);
+      --border:       rgba(201,169,110,0.25);
+      --card-bg:      rgba(255,248,231,0.04);
+    }
+
+    /* ─── Reset ─────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Josefin Sans', sans-serif;
+      background: var(--teal);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* ─── Background ────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 15% 5%,  rgba(0,95,95,0.3)  0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 85% 90%,  rgba(0,64,64,0.35) 0%, transparent 55%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(201,169,110,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,169,110,0.035) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ─── Header ────────────────────────────────────── */
+    .site-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(0,43,43,0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      height: 64px;
+    }
+
+    .nav-left, .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      min-width: 180px;
+    }
+    .nav-right { justify-content: flex-end; }
+
+    .nav-links { display: flex; gap: 2rem; }
+
+    .nav-links a, .nav-link {
+      font-size: 0.7rem;
+      font-weight: 400;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      transition: color 0.2s;
+    }
+    .nav-links a:hover, .nav-link:hover { color: var(--gold); }
+    .nav-links a.active-page { color: var(--gold); }
+
+    .brand-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      font-weight: 300;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--cream);
+      white-space: nowrap;
+    }
+
+    .cart-link, #userLink {
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      transition: color 0.2s;
+      cursor: pointer;
+    }
+    .cart-link:hover, #userLink:hover { color: var(--gold); }
+
+    .menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text-main);
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    /* Mobile nav */
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      top: 64px; left: 0; right: 0;
+      background: rgba(0,43,43,0.97);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 1.5rem 2rem;
+      z-index: 99;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+    .mobile-nav.open { display: flex; }
+    .mobile-nav a {
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 0.4rem 0;
+      border-bottom: 1px solid rgba(201,169,110,0.1);
+    }
+    .mobile-nav a:hover { color: var(--gold); }
+
+    /* ─── Page Wrapper ──────────────────────────────── */
+    .catalog-page {
+      position: relative;
+      z-index: 1;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 100px 2rem 4rem;
+    }
+
+    /* ─── Breadcrumb ────────────────────────────────── */
+    .breadcrumbs {
+      font-size: 0.62rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 2.5rem;
+    }
+    .breadcrumbs a { color: var(--gold); opacity: 0.7; transition: opacity 0.2s; }
+    .breadcrumbs a:hover { opacity: 1; }
+    .breadcrumbs span { opacity: 0.45; margin: 0 0.5rem; }
+
+    /* ─── Page Header ───────────────────────────────── */
+    .catalog-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 2.5rem;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+
+    .catalog-header-left h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 300;
+      letter-spacing: 0.12em;
+      color: var(--cream);
+      line-height: 1;
+    }
+
+    .catalog-header-left .result-count {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+    }
+
+    /* ─── Search ────────────────────────────────────── */
+    .search-container {
+      position: relative;
+    }
+    .search-container input {
+      background: rgba(255,248,231,0.05);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      padding: 0.6rem 1rem 0.6rem 2.4rem;
+      width: 240px;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .search-container input::placeholder { color: var(--text-muted); }
+    .search-container input:focus {
+      border-color: rgba(201,169,110,0.5);
+      background: rgba(255,248,231,0.07);
+    }
+    .search-icon {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      pointer-events: none;
+    }
+
+    /* ─── Filters ───────────────────────────────────── */
+    .filters-bar {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 3rem;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-muted);
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 400;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      padding: 0.8rem 1.5rem;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+      margin-bottom: -1px;
+    }
+    .filter-btn:hover { color: var(--gold-light); }
+    .filter-btn.active {
+      color: var(--gold);
+      border-bottom-color: var(--gold);
+    }
+
+    /* ─── Sort Bar ──────────────────────────────────── */
+    .sort-bar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      margin-bottom: 2rem;
+      gap: 0.75rem;
+    }
+    .sort-bar label {
+      font-size: 0.62rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .sort-bar select {
+      background: rgba(255,248,231,0.05);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      padding: 0.4rem 0.8rem;
+      outline: none;
+      cursor: pointer;
+    }
+    .sort-bar select option { background: var(--teal); }
+
+    /* ─── Product Grid ──────────────────────────────── */
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 1.5rem;
+    }
+
+    /* Loading / empty states */
+    .state-message {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 5rem 2rem;
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+    }
+
+    /* ─── Product Card ──────────────────────────────── */
+    .product-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+      animation: fadeUp 0.5s ease both;
+    }
+    .product-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(201,169,110,0.5);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.3);
+    }
+
+    .card-img-wrap {
+      position: relative;
+      aspect-ratio: 1;
+      overflow: hidden;
+      background: rgba(0,64,64,0.4);
+    }
+    .card-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+    .product-card:hover .card-img-wrap img { transform: scale(1.04); }
+
+    .card-img-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gold);
+      opacity: 0.25;
+      font-size: 0.6rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+    }
+
+    /* Quick-add overlay */
+    .card-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,43,43,0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .product-card:hover .card-overlay { opacity: 1; }
+
+    .btn-quickadd {
+      background: var(--gold);
+      color: var(--teal);
+      border: none;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.6rem;
+      font-weight: 500;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      padding: 0.65rem 1.5rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-quickadd:hover { background: var(--gold-light); }
+
+    .card-body {
+      padding: 1.25rem;
+    }
+    .card-category {
+      font-size: 0.58rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0.7;
+      margin-bottom: 0.35rem;
+    }
+    .card-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem;
+      font-weight: 400;
+      color: var(--cream);
+      margin-bottom: 0.5rem;
+      line-height: 1.2;
+    }
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 0.75rem;
+    }
+    .card-price {
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      color: var(--gold-light);
+    }
+    .card-stock {
+      font-size: 0.58rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      opacity: 0.6;
+    }
+    .card-stock.low { color: #e2a96e; opacity: 0.85; }
+
+    /* ─── Empty State ───────────────────────────────── */
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 5rem 2rem;
+    }
+    .empty-state p {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.3rem;
+      font-weight: 300;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ─── Footer ────────────────────────────────────── */
+    .site-footer {
+      background: rgba(0,20,20,0.6);
+      border-top: 1px solid var(--border);
+      padding: 4rem 2rem 2rem;
+      position: relative;
+      z-index: 1;
+    }
+    .footer-content { max-width: 1280px; margin: 0 auto; }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem;
+      margin-bottom: 3rem;
+    }
+    .footer-section h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      font-weight: 400;
+      letter-spacing: 0.2em;
+      color: var(--cream);
+      margin-bottom: 0.5rem;
+    }
+    .footer-section > p {
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+    }
+    .footer-section h4 {
+      font-size: 0.6rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0.75;
+      margin-bottom: 1.2rem;
+    }
+    .footer-section a {
+      display: block;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 0.6rem;
+      transition: color 0.2s;
+    }
+    .footer-section a:hover { color: var(--gold); }
+    .footer-bottom {
+      border-top: 1px solid var(--border);
+      padding-top: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .footer-bottom p {
+      font-size: 0.62rem;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      opacity: 0.6;
+    }
+
+    /* ─── Animations ────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── Responsive ────────────────────────────────── */
+    @media (max-width: 900px) {
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+    }
+
+    @media (max-width: 768px) {
+      .desktop-only { display: none; }
+      .menu-toggle  { display: block; }
+      .nav-left, .nav-right { min-width: auto; }
+
+      .catalog-header { flex-direction: column; align-items: flex-start; }
+      .search-container input { width: 100%; }
+
+      .product-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+
+      .sort-bar { display: none; }
+    }
+
+    @media (max-width: 480px) {
+      .product-grid { grid-template-columns: 1fr; }
+      .filter-btn { padding: 0.7rem 1rem; font-size: 0.6rem; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+    }
+  </style>
 </head>
+
 <body>
-    <header class="site-header">
-        <nav class="nav-container">
-            <div class="nav-left">
-                <button class="menu-toggle" id="menuToggle">☰</button>
-                <div class="nav-links desktop-only">
-                    <a href="/catalog.html">Catalog</a>
-                    <a href="/about.html">About</a>
-                </div>
-            </div>
-            <div class="nav-center">
-                <a href="/" class="brand-logo">ATELIER ĀKĀRA</a>
-            </div>
-            <div class="nav-right">
-                <a href="/contact.html" class="nav-link desktop-only">Contact</a>
-                <a href="/user/cart.html" class="cart-link">🛒 <span id="cartCount">0</span></a>
-                <a href="/user/profile.html" id="userLink">👤</a>
-            </div>
-        </nav>
-    </header>
-    
-    <main class="catalog-page">
-        <nav class="breadcrumbs">
-            <a href="/">Home</a> / <span>Catalog</span>
-        </nav>
-        
+
+  <!-- ─── Header ─────────────────────────────────── -->
+  <header class="site-header">
+    <nav class="nav-container">
+      <div class="nav-left">
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">☰</button>
+        <div class="nav-links desktop-only">
+          <a href="catalog.html" class="active-page">Catalog</a>
+          <a href="about.html">About</a>
+        </div>
+      </div>
+      <div class="nav-center">
+        <a href="index.html" class="brand-logo">ATELIER ĀKĀRA</a>
+      </div>
+      <div class="nav-right">
+        <a href="contact.html" class="nav-link desktop-only">Contact</a>
+        <a href="user/cart.html" class="cart-link">🛒 <span id="cartCount">0</span></a>
+        <a href="user/profile.html" id="userLink">👤</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Mobile Nav Drawer -->
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="catalog.html">Catalog</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="user/cart.html">Cart</a>
+    <a href="user/profile.html">My Profile</a>
+  </nav>
+
+  <!-- ─── Main ───────────────────────────────────── -->
+  <main class="catalog-page">
+
+    <!-- Breadcrumb -->
+    <nav class="breadcrumbs">
+      <a href="index.html">Home</a>
+      <span>/</span>
+      Catalog
+    </nav>
+
+    <!-- Page Header -->
+    <div class="catalog-header">
+      <div class="catalog-header-left">
         <h1>Our Collection</h1>
-        
-        <!-- Filters -->
-        <div class="filters">
-            <button class="filter-btn active" data-category="all">All</button>
-            <button class="filter-btn" data-category="planters">Planters</button>
-            <button class="filter-btn" data-category="vases">Vases</button>
-            <button class="filter-btn" data-category="lighting">Lighting</button>
+        <p class="result-count" id="resultCount">Loading…</p>
+      </div>
+      <div class="search-container">
+        <span class="search-icon">⌕</span>
+        <input type="text" id="searchInput" placeholder="Search products…" maxlength="100" autocomplete="off">
+      </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="filters-bar">
+      <button class="filter-btn active" data-category="all">All</button>
+      <button class="filter-btn" data-category="planters">Planters</button>
+      <button class="filter-btn" data-category="vases">Vases</button>
+      <button class="filter-btn" data-category="lighting">Lighting</button>
+    </div>
+
+    <!-- Sort -->
+    <div class="sort-bar">
+      <label for="sortSelect">Sort by</label>
+      <select id="sortSelect">
+        <option value="default">Featured</option>
+        <option value="price_asc">Price: Low to High</option>
+        <option value="price_desc">Price: High to Low</option>
+        <option value="newest">Newest</option>
+      </select>
+    </div>
+
+    <!-- Products -->
+    <div class="product-grid" id="productGrid">
+      <div class="state-message">Loading products…</div>
+    </div>
+
+  </main>
+
+  <!-- ─── Footer ─────────────────────────────────── -->
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-grid">
+        <div class="footer-section">
+          <h3>ATELIER ĀKĀRA</h3>
+          <p>Artifacts for the Modern Spaces</p>
         </div>
-        
-        <!-- Search -->
-        <div class="search-container">
-            <input type="text" id="searchInput" placeholder="Search products..." maxlength="100">
+        <div class="footer-section">
+          <h4>Shop</h4>
+          <a href="catalog.html">All Products</a>
+          <a href="catalog.html?category=planters">Planters</a>
+          <a href="catalog.html?category=vases">Vases</a>
+          <a href="catalog.html?category=lighting">Lighting</a>
         </div>
-        
-        <!-- Products Grid -->
-        <div class="product-grid" id="productGrid">
-            <div class="loading">Loading products...</div>
+        <div class="footer-section">
+          <h4>Information</h4>
+          <a href="about.html">About Us</a>
+          <a href="contact.html">Contact</a>
+          <a href="privacy.html">Privacy Policy</a>
+          <a href="terms.html">Terms of Service</a>
         </div>
-    </main>
-    
-    <footer class="site-footer">
-        <div class="footer-content">
-            <p>Precision Forge Labs | GST: 27GZCPS9353H1ZQ</p>
-            <p>© 2024 Atelier Ākāra</p>
+        <div class="footer-section">
+          <h4>Connect</h4>
+          <a href="https://instagram.com/atelier.akara" target="_blank">Instagram</a>
+          <a href="mailto:support@akaraonline.co.in">Email Us</a>
         </div>
-    </footer>
-    
-    <script type="module">
-        import { supabaseConfig } from './config.js';
-        
-        async function loadProducts(category = 'all', search = '') {
-            console.log('Loading products:', category, search);
-            // Implementation with Supabase
-        }
-        
-        // Filter buttons
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                loadProducts(e.target.dataset.category);
-            });
-        });
-        
-        // Search
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            const category = document.querySelector('.filter-btn.active').dataset.category;
-            loadProducts(category, e.target.value);
-        });
-        
-        loadProducts();
-    </script>
+      </div>
+      <div class="footer-bottom">
+        <p>Precision Forge Labs &nbsp;|&nbsp; GST: 27GZCPS9353H1ZQ</p>
+        <p>© 2024 Atelier Ākāra. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ─── Scripts ─────────────────────────────────── -->
+  <script>
+    // ─────────────────────────────────────────────────
+    // IMPORTANT: Paste your Supabase credentials here
+    // ─────────────────────────────────────────────────
+    const SUPABASE_URL      = '';   // ← your Supabase project URL
+    const SUPABASE_ANON_KEY = '';   // ← your anon/public key
+
+    // ─── State ───────────────────────────────────────
+    let allProducts   = [];
+    let activeCategory = 'all';
+    let searchQuery    = '';
+    let sortOrder      = 'default';
+
+    // ─── Mobile menu ─────────────────────────────────
+    document.getElementById('menuToggle').addEventListener('click', () => {
+      document.getElementById('mobileNav').classList.toggle('open');
+    });
+
+    // ─── Read ?category= from URL ────────────────────
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlCategory = urlParams.get('category');
+    if (urlCategory) {
+      activeCategory = urlCategory;
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.category === urlCategory);
+      });
+    }
+
+    // ─── Filter buttons ───────────────────────────────
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeCategory = btn.dataset.category;
+        renderProducts();
+      });
+    });
+
+    // ─── Search ───────────────────────────────────────
+    document.getElementById('searchInput').addEventListener('input', e => {
+      searchQuery = e.target.value.toLowerCase().trim();
+      renderProducts();
+    });
+
+    // ─── Sort ─────────────────────────────────────────
+    document.getElementById('sortSelect').addEventListener('change', e => {
+      sortOrder = e.target.value;
+      renderProducts();
+    });
+
+    // ─── Fetch products ───────────────────────────────
+    async function fetchProducts() {
+      // No credentials → use placeholder data
+      if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+        allProducts = getPlaceholderData();
+        renderProducts();
+        return;
+      }
+
+      try {
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/products?select=*`,
+          {
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        if (!res.ok) throw new Error('Fetch failed');
+        allProducts = await res.json();
+        renderProducts();
+      } catch (err) {
+        console.error('Product fetch error:', err);
+        allProducts = getPlaceholderData();
+        renderProducts();
+      }
+    }
+
+    // ─── Render ───────────────────────────────────────
+    function renderProducts() {
+      const grid = document.getElementById('productGrid');
+
+      // Filter
+      let filtered = allProducts.filter(p => {
+        const matchCat    = activeCategory === 'all' || (p.category || '').toLowerCase() === activeCategory;
+        const matchSearch = !searchQuery ||
+          (p.name  || '').toLowerCase().includes(searchQuery) ||
+          (p.description || '').toLowerCase().includes(searchQuery);
+        return matchCat && matchSearch;
+      });
+
+      // Sort
+      if (sortOrder === 'price_asc')  filtered.sort((a,b) => a.price - b.price);
+      if (sortOrder === 'price_desc') filtered.sort((a,b) => b.price - a.price);
+      if (sortOrder === 'newest')     filtered.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+
+      // Result count
+      document.getElementById('resultCount').textContent =
+        filtered.length === 1 ? '1 product' : `${filtered.length} products`;
+
+      // Empty state
+      if (!filtered.length) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <p>No products found</p>
+            <button class="filter-btn active" onclick="clearFilters()" style="margin:0 auto;display:block;">
+              Clear Filters
+            </button>
+          </div>`;
+        return;
+      }
+
+      // Cards
+      grid.innerHTML = filtered.map((p, i) => `
+        <div class="product-card" style="animation-delay:${i * 0.06}s"
+             onclick="window.location='product/${p.id}.html'">
+          <div class="card-img-wrap">
+            ${p.image_url
+              ? `<img src="${p.image_url}" alt="${p.name}" loading="lazy">`
+              : `<div class="card-img-placeholder">Image</div>`
+            }
+            <div class="card-overlay">
+              <button class="btn-quickadd" onclick="addToCart(event, '${p.id}')">Add to Cart</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <p class="card-category">${p.category || ''}</p>
+            <p class="card-name">${p.name}</p>
+            <div class="card-footer">
+              <p class="card-price">₹${Number(p.price).toLocaleString('en-IN')}</p>
+              ${p.stock != null
+                ? `<p class="card-stock${p.stock < 5 ? ' low' : ''}">${p.stock < 5 ? 'Only ' + p.stock + ' left' : 'In Stock'}</p>`
+                : ''}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ─── Cart ─────────────────────────────────────────
+    function addToCart(event, productId) {
+      event.stopPropagation();
+      const cart = JSON.parse(localStorage.getItem('akara_cart') || '[]');
+      const existing = cart.find(i => i.id === productId);
+      if (existing) {
+        existing.qty = (existing.qty || 1) + 1;
+      } else {
+        cart.push({ id: productId, qty: 1 });
+      }
+      localStorage.setItem('akara_cart', JSON.stringify(cart));
+      updateCartCount();
+      showToast('Added to cart');
+    }
+
+    function updateCartCount() {
+      const cart  = JSON.parse(localStorage.getItem('akara_cart') || '[]');
+      const total = cart.reduce((s, i) => s + (i.qty || 1), 0);
+      document.getElementById('cartCount').textContent = total;
+    }
+
+    function showToast(msg) {
+      let toast = document.getElementById('toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast';
+        toast.style.cssText = `
+          position:fixed; bottom:2rem; right:2rem; z-index:999;
+          background:var(--gold); color:var(--teal);
+          font-family:'Josefin Sans',sans-serif; font-size:0.65rem;
+          letter-spacing:0.2em; text-transform:uppercase;
+          padding:0.75rem 1.5rem; opacity:0;
+          transition:opacity 0.3s;
+        `;
+        document.body.appendChild(toast);
+      }
+      toast.textContent = msg;
+      toast.style.opacity = '1';
+      setTimeout(() => { toast.style.opacity = '0'; }, 2000);
+    }
+
+    function clearFilters() {
+      searchQuery = '';
+      activeCategory = 'all';
+      document.getElementById('searchInput').value = '';
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      document.querySelector('[data-category="all"]').classList.add('active');
+      renderProducts();
+    }
+
+    // ─── Placeholder data (shown when Supabase not configured) ───
+    function getPlaceholderData() {
+      return [
+        { id: '1', name: 'Geodesic Planter',    category: 'Planters', price: 2400, stock: 8  },
+        { id: '2', name: 'Prism Vase',           category: 'Vases',    price: 1800, stock: 4  },
+        { id: '3', name: 'Hexagonal Planter',    category: 'Planters', price: 3200, stock: 12 },
+        { id: '4', name: 'Faceted Pendant',      category: 'Lighting', price: 4800, stock: 3  },
+        { id: '5', name: 'Angular Bud Vase',     category: 'Vases',    price: 1200, stock: 15 },
+        { id: '6', name: 'Geometric Table Lamp', category: 'Lighting', price: 5600, stock: 6  },
+        { id: '7', name: 'Terracotta Planter',   category: 'Planters', price: 1900, stock: 9  },
+        { id: '8', name: 'Sculptural Vase',      category: 'Vases',    price: 2800, stock: 2  },
+      ];
+    }
+
+    // ─── Init ─────────────────────────────────────────
+    updateCartCount();
+    fetchProducts();
+  </script>
+
 </body>
 </html>
