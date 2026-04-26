@@ -1,61 +1,836 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Us - Atelier Ākāra</title>
-    <link rel="stylesheet" href="/auth-styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Learn about Atelier Ākāra — precision-crafted geometric home décor for the modern Indian home.">
+  <meta property="og:title" content="About — Atelier Ākāra">
+  <meta property="og:url" content="https://akaraonline.co.in/about.html">
+  <link rel="icon" type="image/png" href="assets/images/favicon.png">
+  <title>About — Atelier Ākāra</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    /* ─── Variables ─────────────────────────────────── */
+    :root {
+      --teal:       #002b2b;
+      --teal-mid:   #004040;
+      --teal-light: #005f5f;
+      --cream:      #fff8e7;
+      --gold:       #c9a96e;
+      --gold-light: #e2c99a;
+      --text-main:  #fff8e7;
+      --text-muted: rgba(255,248,231,0.55);
+      --border:     rgba(201,169,110,0.25);
+    }
+
+    /* ─── Reset ─────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Josefin Sans', sans-serif;
+      background: var(--teal);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    /* ─── Background ────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 15% 5%,  rgba(0,95,95,0.3)  0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 85% 90%,  rgba(0,64,64,0.35) 0%, transparent 55%);
+      pointer-events: none; z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,169,110,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,169,110,0.035) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ─── Header ────────────────────────────────────── */
+    .site-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(0,43,43,0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      height: 64px;
+    }
+    .nav-left, .nav-right {
+      display: flex; align-items: center;
+      gap: 2rem; min-width: 180px;
+    }
+    .nav-right { justify-content: flex-end; }
+    .nav-links { display: flex; gap: 2rem; }
+    .nav-links a, .nav-link {
+      font-size: 0.7rem; font-weight: 400;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text-muted); transition: color 0.2s;
+    }
+    .nav-links a:hover, .nav-link:hover { color: var(--gold); }
+    .nav-links a.active-page { color: var(--gold); }
+    .brand-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; font-weight: 300;
+      letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--cream); white-space: nowrap;
+    }
+    .cart-link, #userLink {
+      font-size: 0.75rem; letter-spacing: 0.1em;
+      color: var(--text-muted); transition: color 0.2s; cursor: pointer;
+    }
+    .cart-link:hover, #userLink:hover { color: var(--gold); }
+    .menu-toggle {
+      display: none; background: none; border: none;
+      color: var(--text-main); font-size: 1.2rem; cursor: pointer;
+    }
+    .mobile-nav {
+      display: none; position: fixed;
+      top: 64px; left: 0; right: 0;
+      background: rgba(0,43,43,0.97);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 1.5rem 2rem; z-index: 99;
+      flex-direction: column; gap: 1.2rem;
+    }
+    .mobile-nav.open { display: flex; }
+    .mobile-nav a {
+      font-size: 0.75rem; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--text-muted);
+      padding: 0.4rem 0;
+      border-bottom: 1px solid rgba(201,169,110,0.1);
+    }
+    .mobile-nav a:hover { color: var(--gold); }
+
+    /* ─── Page ──────────────────────────────────────── */
+    .about-page {
+      position: relative; z-index: 1;
+    }
+
+    /* ─── Breadcrumb ────────────────────────────────── */
+    .breadcrumbs {
+      max-width: 1280px; margin: 0 auto;
+      padding: 84px 2rem 0;
+      font-size: 0.62rem; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--text-muted);
+    }
+    .breadcrumbs a { color: var(--gold); opacity: 0.7; transition: opacity 0.2s; }
+    .breadcrumbs a:hover { opacity: 1; }
+    .breadcrumbs span { opacity: 0.45; margin: 0 0.5rem; }
+
+    /* ─── Hero Banner ───────────────────────────────── */
+    .about-hero {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 7rem 2rem 6rem;
+      overflow: hidden;
+    }
+
+    /* Large watermark word */
+    .about-hero::before {
+      content: 'ĀKĀRA';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(7rem, 22vw, 18rem);
+      font-weight: 300;
+      color: rgba(201,169,110,0.045);
+      letter-spacing: 0.2em;
+      white-space: nowrap;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    /* Corner brackets */
+    .about-hero::after {
+      content: '';
+      position: absolute;
+      top: 40px; left: 40px;
+      width: 80px; height: 80px;
+      border-top: 1px solid rgba(201,169,110,0.3);
+      border-left: 1px solid rgba(201,169,110,0.3);
+    }
+
+    .corner-br {
+      position: absolute;
+      bottom: 40px; right: 40px;
+      width: 80px; height: 80px;
+      border-bottom: 1px solid rgba(201,169,110,0.3);
+      border-right: 1px solid rgba(201,169,110,0.3);
+      pointer-events: none;
+    }
+
+    .about-hero-content {
+      position: relative;
+      max-width: 640px;
+      animation: fadeUp 1s ease both;
+    }
+    .eyebrow {
+      font-size: 0.62rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0.8;
+      margin-bottom: 1.5rem;
+    }
+    .about-hero-content h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.5rem, 6vw, 5rem);
+      font-weight: 300;
+      letter-spacing: 0.12em;
+      color: var(--cream);
+      line-height: 1.05;
+      margin-bottom: 1.5rem;
+    }
+    .hero-divider {
+      width: 50px; height: 1px;
+      background: var(--gold);
+      margin: 0 auto 1.5rem;
+      opacity: 0.5;
+    }
+    .about-hero-content p {
+      font-size: 0.82rem;
+      line-height: 1.95;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+    }
+
+    /* ─── Shared Section Styles ─────────────────────── */
+    section { position: relative; z-index: 1; }
+
+    .section-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 5rem 2rem;
+    }
+
+    .section-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0.7;
+      margin-bottom: 0.75rem;
+    }
+
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      font-weight: 300;
+      letter-spacing: 0.1em;
+      color: var(--cream);
+      margin-bottom: 1.5rem;
+      line-height: 1.1;
+    }
+
+    .section-body {
+      font-size: 0.82rem;
+      line-height: 1.95;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+    .section-body p + p { margin-top: 1rem; }
+
+    /* ─── Story Section ─────────────────────────────── */
+    .story-section {
+      border-top: 1px solid var(--border);
+      background: rgba(0,64,64,0.15);
+    }
+    .story-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: center;
+    }
+    .story-visual {
+      position: relative;
+      aspect-ratio: 1;
+      background: rgba(0,64,64,0.4);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* Geometric SVG illustration placeholder */
+    .story-visual svg {
+      width: 60%;
+      height: 60%;
+      opacity: 0.4;
+    }
+    /* Offset frame accent */
+    .story-visual::before {
+      content: '';
+      position: absolute;
+      top: -12px; left: -12px;
+      right: 12px; bottom: 12px;
+      border: 1px solid rgba(201,169,110,0.2);
+      pointer-events: none;
+    }
+
+    /* ─── Values Section ────────────────────────────── */
+    .values-section {
+      border-top: 1px solid var(--border);
+    }
+    .values-header { text-align: center; margin-bottom: 4rem; }
+
+    .values-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+    }
+
+    .value-card {
+      background: rgba(255,248,231,0.03);
+      border: 1px solid var(--border);
+      padding: 2.5rem 2rem;
+      text-align: center;
+      transition: background 0.3s;
+      animation: fadeUp 0.6s ease both;
+    }
+    .value-card:hover { background: rgba(201,169,110,0.05); }
+
+    .value-icon {
+      width: 48px; height: 48px;
+      margin: 0 auto 1.5rem;
+      opacity: 0.6;
+    }
+
+    .value-card h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.3rem;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      color: var(--cream);
+      margin-bottom: 0.75rem;
+    }
+    .value-card p {
+      font-size: 0.75rem;
+      line-height: 1.85;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    /* ─── Process Section ───────────────────────────── */
+    .process-section {
+      border-top: 1px solid var(--border);
+      background: rgba(0,64,64,0.15);
+    }
+    .process-header { text-align: center; margin-bottom: 4rem; }
+
+    .process-steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+      position: relative;
+    }
+
+    /* Connecting line */
+    .process-steps::before {
+      content: '';
+      position: absolute;
+      top: 24px; left: calc(12.5% + 12px); right: calc(12.5% + 12px);
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), var(--gold), transparent);
+      opacity: 0.3;
+    }
+
+    .process-step {
+      text-align: center;
+      padding: 0 1.5rem 0;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .step-number {
+      width: 48px; height: 48px;
+      border: 1px solid var(--border);
+      background: var(--teal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      font-weight: 300;
+      color: var(--gold);
+      letter-spacing: 0.1em;
+      position: relative;
+      z-index: 1;
+    }
+
+    .process-step h4 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      color: var(--cream);
+      margin-bottom: 0.6rem;
+    }
+    .process-step p {
+      font-size: 0.72rem;
+      line-height: 1.8;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    /* ─── Stats Bar ─────────────────────────────────── */
+    .stats-section {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      divide-x: 1px solid var(--border);
+    }
+    .stat-item {
+      text-align: center;
+      padding: 3rem 1.5rem;
+      border-right: 1px solid var(--border);
+    }
+    .stat-item:last-child { border-right: none; }
+
+    .stat-number {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.2rem, 4vw, 3.5rem);
+      font-weight: 300;
+      color: var(--gold);
+      letter-spacing: 0.05em;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+    .stat-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    /* ─── CTA Section ───────────────────────────────── */
+    .cta-section {
+      text-align: center;
+      padding: 6rem 2rem;
+      position: relative; z-index: 1;
+    }
+    .cta-section h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 300;
+      letter-spacing: 0.12em;
+      color: var(--cream);
+      margin-bottom: 1rem;
+    }
+    .cta-section p {
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 2.5rem;
+    }
+    .cta-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+    /* ─── Buttons ───────────────────────────────────── */
+    .btn-primary {
+      display: inline-block;
+      padding: 0.85rem 2.8rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.65rem; font-weight: 400;
+      letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--teal); background: var(--gold);
+      border: 1px solid var(--gold);
+      transition: all 0.25s ease; cursor: pointer;
+    }
+    .btn-primary:hover { background: transparent; color: var(--gold); }
+
+    .btn-secondary {
+      display: inline-block;
+      padding: 0.85rem 2.2rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.65rem; font-weight: 400;
+      letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--gold);
+      border: 1px solid var(--border);
+      transition: all 0.25s ease; cursor: pointer;
+    }
+    .btn-secondary:hover { border-color: var(--gold); background: rgba(201,169,110,0.06); }
+
+    /* ─── Footer ────────────────────────────────────── */
+    .site-footer {
+      background: rgba(0,20,20,0.6);
+      border-top: 1px solid var(--border);
+      padding: 4rem 2rem 2rem;
+      position: relative; z-index: 1;
+    }
+    .footer-content { max-width: 1280px; margin: 0 auto; }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem; margin-bottom: 3rem;
+    }
+    .footer-section h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; font-weight: 400;
+      letter-spacing: 0.2em; color: var(--cream);
+      margin-bottom: 0.5rem;
+    }
+    .footer-section > p { font-size: 0.7rem; letter-spacing: 0.12em; color: var(--text-muted); }
+    .footer-section h4 {
+      font-size: 0.6rem; letter-spacing: 0.35em;
+      text-transform: uppercase; color: var(--gold);
+      opacity: 0.75; margin-bottom: 1.2rem;
+    }
+    .footer-section a {
+      display: block; font-size: 0.72rem;
+      letter-spacing: 0.08em; color: var(--text-muted);
+      margin-bottom: 0.6rem; transition: color 0.2s;
+    }
+    .footer-section a:hover { color: var(--gold); }
+    .footer-bottom {
+      border-top: 1px solid var(--border);
+      padding-top: 1.5rem;
+      display: flex; justify-content: space-between;
+      align-items: center; flex-wrap: wrap; gap: 0.5rem;
+    }
+    .footer-bottom p { font-size: 0.62rem; letter-spacing: 0.12em; color: var(--text-muted); opacity: 0.6; }
+
+    /* ─── Animations ────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .story-section .section-inner,
+    .values-section .section-inner,
+    .process-section .section-inner,
+    .stats-section .section-inner,
+    .cta-section {
+      animation: fadeUp 0.8s ease both;
+    }
+
+    /* Stagger value cards */
+    .value-card:nth-child(1) { animation-delay: 0.05s; }
+    .value-card:nth-child(2) { animation-delay: 0.15s; }
+    .value-card:nth-child(3) { animation-delay: 0.25s; }
+
+    /* Stagger process steps */
+    .process-step:nth-child(1) { animation-delay: 0.05s; }
+    .process-step:nth-child(2) { animation-delay: 0.15s; }
+    .process-step:nth-child(3) { animation-delay: 0.25s; }
+    .process-step:nth-child(4) { animation-delay: 0.35s; }
+
+    /* ─── Responsive ────────────────────────────────── */
+    @media (max-width: 900px) {
+      .story-grid    { grid-template-columns: 1fr; gap: 3rem; }
+      .story-visual  { max-width: 400px; margin: 0 auto; }
+      .values-grid   { grid-template-columns: 1fr 1fr; }
+      .process-steps { grid-template-columns: 1fr 1fr; gap: 2.5rem; }
+      .process-steps::before { display: none; }
+      .stats-grid    { grid-template-columns: 1fr 1fr; }
+      .stat-item:nth-child(2) { border-right: none; }
+      .footer-grid   { grid-template-columns: 1fr 1fr; gap: 2rem; }
+    }
+
+    @media (max-width: 768px) {
+      .desktop-only  { display: none; }
+      .menu-toggle   { display: block; }
+      .nav-left, .nav-right { min-width: auto; }
+      .about-hero::after { display: none; }
+      .corner-br { display: none; }
+    }
+
+    @media (max-width: 520px) {
+      .values-grid   { grid-template-columns: 1fr; }
+      .process-steps { grid-template-columns: 1fr; }
+      .stats-grid    { grid-template-columns: 1fr 1fr; }
+      .footer-grid   { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+    }
+  </style>
 </head>
+
 <body>
-    <header class="site-header">
-        <nav class="nav-container">
-            <div class="nav-left">
-                <button class="menu-toggle" id="menuToggle">☰</button>
-                <div class="nav-links desktop-only">
-                    <a href="/catalog.html">Catalog</a>
-                    <a href="/about.html">About</a>
-                </div>
+
+  <!-- ─── Header ─────────────────────────────────── -->
+  <header class="site-header">
+    <nav class="nav-container">
+      <div class="nav-left">
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">☰</button>
+        <div class="nav-links desktop-only">
+          <a href="catalog.html">Catalog</a>
+          <a href="about.html" class="active-page">About</a>
+        </div>
+      </div>
+      <div class="nav-center">
+        <a href="index.html" class="brand-logo">ATELIER ĀKĀRA</a>
+      </div>
+      <div class="nav-right">
+        <a href="contact.html" class="nav-link desktop-only">Contact</a>
+        <a href="user/cart.html" class="cart-link">🛒 <span id="cartCount">0</span></a>
+        <a href="user/profile.html" id="userLink">👤</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Mobile Nav Drawer -->
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="catalog.html">Catalog</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="user/cart.html">Cart</a>
+    <a href="user/profile.html">My Profile</a>
+  </nav>
+
+  <!-- ─── Page ───────────────────────────────────── -->
+  <div class="about-page">
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumbs">
+      <a href="index.html">Home</a>
+      <span>/</span>
+      About
+    </div>
+
+    <!-- Hero -->
+    <section class="about-hero">
+      <div class="corner-br"></div>
+      <div class="about-hero-content">
+        <p class="eyebrow">Est. 2024 &nbsp;·&nbsp; Mumbai, India</p>
+        <h1>Where Geometry<br>Meets Craft</h1>
+        <div class="hero-divider"></div>
+        <p>Atelier Ākāra was born from a simple belief — that the objects we surround ourselves with should be as considered and intentional as the lives we lead. We design artifacts that are precise in form, honest in material, and quietly extraordinary in the spaces they inhabit.</p>
+      </div>
+    </section>
+
+    <!-- Story -->
+    <section class="story-section">
+      <div class="section-inner">
+        <div class="story-grid">
+          <!-- Visual -->
+          <div class="story-visual">
+            <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Geometric composition — nested polygons + lines -->
+              <polygon points="100,10 190,55 190,145 100,190 10,145 10,55" stroke="#c9a96e" stroke-width="1"/>
+              <polygon points="100,35 165,68 165,132 100,165 35,132 35,68" stroke="#c9a96e" stroke-width="0.8" opacity="0.6"/>
+              <polygon points="100,60 140,80 140,120 100,140 60,120 60,80" stroke="#c9a96e" stroke-width="0.6" opacity="0.4"/>
+              <line x1="10"  y1="55"  x2="190" y2="145" stroke="#c9a96e" stroke-width="0.4" opacity="0.25"/>
+              <line x1="10"  y1="145" x2="190" y2="55"  stroke="#c9a96e" stroke-width="0.4" opacity="0.25"/>
+              <line x1="100" y1="10"  x2="100" y2="190" stroke="#c9a96e" stroke-width="0.4" opacity="0.25"/>
+              <circle cx="100" cy="100" r="5" fill="#c9a96e" opacity="0.5"/>
+              <circle cx="100" cy="100" r="18" stroke="#c9a96e" stroke-width="0.6" opacity="0.3"/>
+            </svg>
+          </div>
+          <!-- Text -->
+          <div>
+            <p class="section-label">Our Story</p>
+            <h2 class="section-title">Precision Forge Labs</h2>
+            <div class="section-body">
+              <p>Founded in 2024 under the umbrella of Precision Forge Labs, Atelier Ākāra set out to redefine how contemporary Indian homes think about decorative objects. The name itself — Ākāra, Sanskrit for "form" — speaks to our obsession with shape, proportion, and the grammar of geometry.</p>
+              <p>Every piece in our collection is conceived through a rigorous design process that begins with mathematical principles and ends with handcrafted finishing. We believe that the most enduring objects are those where nothing is accidental — every edge, every angle, every surface tells a deliberate story.</p>
+              <p>From our studio in Mumbai, we ship across India, bringing geometric precision to living rooms, dining spaces, and private gardens from Delhi to Bengaluru.</p>
             </div>
-            <div class="nav-center">
-                <a href="/" class="brand-logo">ATELIER ĀKĀRA</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Values -->
+    <section class="values-section">
+      <div class="section-inner">
+        <div class="values-header">
+          <p class="section-label">What We Stand For</p>
+          <h2 class="section-title">Our Values</h2>
+        </div>
+        <div class="values-grid">
+
+          <div class="value-card">
+            <div class="value-icon">
+              <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="24,4 44,14 44,34 24,44 4,34 4,14" stroke="#c9a96e" stroke-width="1.5"/>
+                <polygon points="24,14 34,19 34,29 24,34 14,29 14,19" stroke="#c9a96e" stroke-width="1"/>
+                <circle cx="24" cy="24" r="3" fill="#c9a96e"/>
+              </svg>
             </div>
-            <div class="nav-right">
-                <a href="/contact.html" class="nav-link desktop-only">Contact</a>
-                <a href="/user/cart.html" class="cart-link">🛒 <span id="cartCount">0</span></a>
-                <a href="/user/profile.html">👤</a>
+            <h3>Geometric Precision</h3>
+            <p>Every form begins as a mathematical idea. We translate angles, ratios, and symmetries into objects that feel inevitable — as though they could not have been any other shape.</p>
+          </div>
+
+          <div class="value-card">
+            <div class="value-icon">
+              <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="8" y="8" width="32" height="32" stroke="#c9a96e" stroke-width="1.5"/>
+                <rect x="16" y="16" width="16" height="16" stroke="#c9a96e" stroke-width="1"/>
+                <line x1="8" y1="8" x2="40" y2="40" stroke="#c9a96e" stroke-width="0.8"/>
+                <line x1="40" y1="8" x2="8" y2="40" stroke="#c9a96e" stroke-width="0.8"/>
+              </svg>
             </div>
-        </nav>
-    </header>
-    
-    <main class="about-page">
-        <section class="about-hero">
-            <h1>ATELIER ĀKĀRA</h1>
-            <p class="tagline">Where Geometry Meets Craft</p>
-        </section>
-        
-        <section class="about-content">
-            <h2>Our Story</h2>
-            <p>Atelier Ākāra was born from a vision to bring contemporary design to modern Indian homes. Each piece is precision-crafted with geometric patterns that blend traditional craftsmanship with modern aesthetics.</p>
-            
-            <h2>Our Philosophy</h2>
-            <p>We believe that home décor should be both functional and beautiful. Every product is designed to add elegance to your modern spaces while serving a practical purpose.</p>
-            
-            <h2>Craftsmanship</h2>
-            <p>Each piece is carefully crafted using advanced 3D printing technology, ensuring precision and consistency. Our geometric patterns are designed to catch light and create visual interest from every angle.</p>
-            
-            <h2>Made in India</h2>
-            <p>We're proud to design and manufacture all our products in India, supporting local craftsmanship and sustainable practices.</p>
-        </section>
-        
-        <section class="about-cta">
-            <h2>Explore Our Collection</h2>
-            <a href="/catalog.html" class="btn-primary">Shop Now</a>
-        </section>
-    </main>
-    
-    <footer class="site-footer">
-        <p>Precision Forge Labs | GST: 27GZCPS9353H1ZQ</p>
-        <p>© 2024 Atelier Ākāra</p>
-    </footer>
+            <h3>Material Honesty</h3>
+            <p>We work with materials that are true to themselves — concrete that looks like concrete, metal that bears the marks of its making. No veneer, no artifice, no apology.</p>
+          </div>
+
+          <div class="value-card">
+            <div class="value-icon">
+              <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="24" cy="24" r="18" stroke="#c9a96e" stroke-width="1.5"/>
+                <polygon points="24,10 38,32 10,32" stroke="#c9a96e" stroke-width="1" fill="none"/>
+                <circle cx="24" cy="24" r="4" stroke="#c9a96e" stroke-width="1"/>
+              </svg>
+            </div>
+            <h3>Considered Living</h3>
+            <p>We believe the objects in our homes shape how we think and feel within them. Our designs are made to be lived with — improving with time, rewarding close attention.</p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Process -->
+    <section class="process-section">
+      <div class="section-inner">
+        <div class="process-header">
+          <p class="section-label">How We Work</p>
+          <h2 class="section-title">From Concept to Collection</h2>
+        </div>
+        <div class="process-steps">
+
+          <div class="process-step">
+            <div class="step-number">01</div>
+            <h4>Research</h4>
+            <p>We study geometry, architecture, and the proportional systems of the natural world to find the forms worth making.</p>
+          </div>
+
+          <div class="process-step">
+            <div class="step-number">02</div>
+            <h4>Design</h4>
+            <p>Concepts are developed as precise technical drawings and scaled models, refined until every dimension feels right.</p>
+          </div>
+
+          <div class="process-step">
+            <div class="step-number">03</div>
+            <h4>Prototype</h4>
+            <p>Physical prototypes are built and tested in real spaces. We iterate until form and function are in complete harmony.</p>
+          </div>
+
+          <div class="process-step">
+            <div class="step-number">04</div>
+            <h4>Craft</h4>
+            <p>Final pieces are produced with meticulous hand-finishing, inspected individually before they leave our studio.</p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="stats-section">
+      <div class="section-inner" style="padding: 0;">
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-number">2024</div>
+            <div class="stat-label">Founded</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">Mumbai</div>
+            <div class="stat-label">Studio Location</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">Pan&#8209;India</div>
+            <div class="stat-label">Shipping</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">100%</div>
+            <div class="stat-label">Handfinished</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+      <p class="section-label" style="display:block;margin-bottom:1rem;">Ready to explore?</p>
+      <h2>Bring Ākāra Home</h2>
+      <p>Browse the full collection and find the piece that belongs in your space.</p>
+      <div class="cta-buttons">
+        <a href="catalog.html" class="btn-primary">Shop the Collection</a>
+        <a href="contact.html" class="btn-secondary">Get in Touch</a>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ─── Footer ─────────────────────────────────── -->
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-grid">
+        <div class="footer-section">
+          <h3>ATELIER ĀKĀRA</h3>
+          <p>Artifacts for the Modern Spaces</p>
+        </div>
+        <div class="footer-section">
+          <h4>Shop</h4>
+          <a href="catalog.html">All Products</a>
+          <a href="catalog.html?category=planters">Planters</a>
+          <a href="catalog.html?category=vases">Vases</a>
+          <a href="catalog.html?category=lighting">Lighting</a>
+        </div>
+        <div class="footer-section">
+          <h4>Information</h4>
+          <a href="about.html">About Us</a>
+          <a href="contact.html">Contact</a>
+          <a href="privacy.html">Privacy Policy</a>
+          <a href="terms.html">Terms of Service</a>
+        </div>
+        <div class="footer-section">
+          <h4>Connect</h4>
+          <a href="https://instagram.com/atelier.akara" target="_blank">Instagram</a>
+          <a href="mailto:support@akaraonline.co.in">Email Us</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>Precision Forge Labs &nbsp;|&nbsp; GST: 27GZCPS9353H1ZQ</p>
+        <p>© 2024 Atelier Ākāra. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ─── Scripts ─────────────────────────────────── -->
+  <script>
+    // Mobile menu
+    document.getElementById('menuToggle').addEventListener('click', () => {
+      document.getElementById('mobileNav').classList.toggle('open');
+    });
+
+    // Cart count from localStorage
+    function updateCartCount() {
+      const cart  = JSON.parse(localStorage.getItem('akara_cart') || '[]');
+      const total = cart.reduce((s, i) => s + (i.qty || 1), 0);
+      document.getElementById('cartCount').textContent = total;
+    }
+    updateCartCount();
+  </script>
+
 </body>
 </html>
