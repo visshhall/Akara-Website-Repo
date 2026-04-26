@@ -1,326 +1,1057 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orders - Atelier Ākāra</title>
-    <link rel="stylesheet" href="../auth-styles.css">
-    <style>
-        .orders-container {
-            min-height: 100vh;
-            padding: 2rem;
-            padding-top: 100px;
-        }
-        
-        .orders-content {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-        
-        .orders-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-        
-        .nav-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: rgba(0, 43, 43, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 1rem 2rem;
-            z-index: 1000;
-            border-bottom: 1px solid var(--glass-border);
-        }
-        
-        .nav-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .nav-logo {
-            font-family: var(--font-secondary);
-            font-size: 1.2rem;
-            letter-spacing: 2px;
-            color: var(--archival-cream);
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-        }
-        
-        .nav-link {
-            color: var(--archival-cream);
-            text-decoration: none;
-            font-size: 0.9rem;
-            opacity: 0.8;
-            transition: opacity 0.3s;
-        }
-        
-        .nav-link:hover {
-            opacity: 1;
-        }
-        
-        .order-card {
-            padding: 2rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .order-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--glass-border);
-        }
-        
-        .order-number {
-            font-family: 'Courier New', monospace;
-            font-size: 1.1rem;
-            color: var(--archival-cream);
-        }
-        
-        .order-status {
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .status-pending {
-            background: rgba(251, 191, 36, 0.2);
-            color: #fcd34d;
-        }
-        
-        .status-confirmed {
-            background: rgba(59, 130, 246, 0.2);
-            color: #93c5fd;
-        }
-        
-        .status-shipped {
-            background: rgba(139, 92, 246, 0.2);
-            color: #c4b5fd;
-        }
-        
-        .status-delivered {
-            background: rgba(34, 197, 94, 0.2);
-            color: #86efac;
-        }
-        
-        .order-items {
-            margin: 1rem 0;
-        }
-        
-        .order-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.75rem 0;
-            color: var(--archival-cream);
-            opacity: 0.9;
-        }
-        
-        .order-meta {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--glass-border);
-        }
-        
-        .meta-item {
-            font-size: 0.9rem;
-        }
-        
-        .meta-label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--archival-cream);
-            opacity: 0.6;
-            margin-bottom: 0.25rem;
-        }
-        
-        .meta-value {
-            color: var(--archival-cream);
-            opacity: 0.9;
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 5rem 2rem;
-        }
-        
-        .empty-state p {
-            color: var(--archival-cream);
-            opacity: 0.6;
-            margin-bottom: 2rem;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Checkout — Atelier Ākāra">
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+  <title>Checkout — Atelier Ākāra</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --teal:       #002b2b;
+      --teal-mid:   #004040;
+      --cream:      #fff8e7;
+      --gold:       #c9a96e;
+      --gold-light: #e2c99a;
+      --text-main:  #fff8e7;
+      --text-muted: rgba(255,248,231,0.55);
+      --border:     rgba(201,169,110,0.25);
+      --input-bg:   rgba(255,248,231,0.05);
+      --error:      #e07070;
+      --success:    #70c9a0;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Josefin Sans', sans-serif;
+      background: var(--teal);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 15% 5%,  rgba(0,95,95,0.3)  0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 85% 90%,  rgba(0,64,64,0.35) 0%, transparent 55%);
+      pointer-events: none; z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,169,110,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,169,110,0.035) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ─── Header ──────────────────────────────────── */
+    .site-header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(0,43,43,0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-container {
+      display: flex; align-items: center; justify-content: space-between;
+      max-width: 1280px; margin: 0 auto; padding: 0 2rem; height: 64px;
+    }
+    .nav-left, .nav-right {
+      display: flex; align-items: center; gap: 2rem; min-width: 180px;
+    }
+    .nav-right { justify-content: flex-end; }
+    .nav-links { display: flex; gap: 2rem; }
+    .nav-links a, .nav-link {
+      font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text-muted); transition: color 0.2s;
+    }
+    .nav-links a:hover, .nav-link:hover { color: var(--gold); }
+    .brand-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; font-weight: 300;
+      letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--cream); white-space: nowrap;
+    }
+    .cart-link {
+      font-size: 0.75rem; color: var(--text-muted); transition: color 0.2s;
+    }
+    .cart-link:hover { color: var(--gold); }
+    .menu-toggle {
+      display: none; background: none; border: none;
+      color: var(--text-main); font-size: 1.2rem; cursor: pointer;
+    }
+    .mobile-nav {
+      display: none; position: fixed; top: 64px; left: 0; right: 0;
+      background: rgba(0,43,43,0.97); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border); padding: 1.5rem 2rem;
+      z-index: 99; flex-direction: column; gap: 1.2rem;
+    }
+    .mobile-nav.open { display: flex; }
+    .mobile-nav a {
+      font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text-muted); padding: 0.4rem 0;
+      border-bottom: 1px solid rgba(201,169,110,0.1);
+    }
+    .mobile-nav a:hover { color: var(--gold); }
+
+    /* ─── Page ────────────────────────────────────── */
+    .checkout-page {
+      position: relative; z-index: 1;
+      max-width: 1280px; margin: 0 auto;
+      padding: 84px 2rem 6rem;
+    }
+
+    .breadcrumbs {
+      font-size: 0.62rem; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--text-muted);
+      padding: 1.5rem 0 0;
+    }
+    .breadcrumbs a { color: var(--gold); opacity: 0.7; transition: opacity 0.2s; }
+    .breadcrumbs a:hover { opacity: 1; }
+    .breadcrumbs span { opacity: 0.45; margin: 0 0.5rem; }
+
+    /* ─── Progress Steps ──────────────────────────── */
+    .checkout-progress {
+      display: flex; align-items: center;
+      gap: 0; margin: 2.5rem 0 3rem;
+      max-width: 500px;
+    }
+    .progress-step {
+      display: flex; align-items: center; gap: 0.6rem;
+      font-size: 0.6rem; letter-spacing: 0.22em; text-transform: uppercase;
+    }
+    .step-dot {
+      width: 24px; height: 24px;
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.6rem; color: var(--text-muted);
+      flex-shrink: 0; transition: all 0.3s;
+    }
+    .progress-step.done   .step-dot { background: var(--gold); border-color: var(--gold); color: var(--teal); }
+    .progress-step.active .step-dot { border-color: var(--gold); color: var(--gold); }
+    .progress-step.active .step-label { color: var(--gold); }
+    .step-label { color: var(--text-muted); }
+    .progress-line {
+      flex: 1; height: 1px;
+      background: var(--border); margin: 0 0.75rem;
+      min-width: 40px;
+    }
+    .progress-line.done { background: var(--gold); opacity: 0.5; }
+
+    /* ─── Main Layout ─────────────────────────────── */
+    .checkout-layout {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 3rem;
+      align-items: start;
+    }
+
+    /* ─── Section Card ────────────────────────────── */
+    .section-card {
+      background: rgba(255,248,231,0.03);
+      border: 1px solid var(--border);
+      margin-bottom: 1.5rem;
+      animation: fadeUp 0.5s ease both;
+    }
+    .section-card:nth-child(2) { animation-delay: 0.1s; }
+    .section-card:nth-child(3) { animation-delay: 0.2s; }
+
+    .section-card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.25rem 1.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-card-header h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.3rem; font-weight: 400;
+      letter-spacing: 0.1em; color: var(--cream);
+    }
+    .section-number {
+      width: 28px; height: 28px;
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; color: var(--gold); flex-shrink: 0;
+    }
+    .section-card-body { padding: 1.75rem; }
+
+    /* ─── Form Fields ─────────────────────────────── */
+    .form-grid { display: grid; gap: 1.1rem; }
+    .form-row  { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; }
+    .form-row-3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1.1rem; }
+
+    .form-field { display: flex; flex-direction: column; gap: 0.35rem; }
+
+    .form-field label {
+      font-size: 0.58rem; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.8;
+    }
+    .optional-tag {
+      font-size: 0.52rem; letter-spacing: 0.1em;
+      color: var(--text-muted); opacity: 0.5; margin-left: 0.3rem;
+    }
+
+    .form-field input,
+    .form-field select,
+    .form-field textarea {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.75rem; letter-spacing: 0.08em;
+      padding: 0.75rem 1rem; outline: none;
+      transition: border-color 0.2s, background 0.2s;
+      width: 100%; -webkit-appearance: none;
+    }
+    .form-field input::placeholder,
+    .form-field textarea::placeholder { color: var(--text-muted); }
+    .form-field input:focus,
+    .form-field select:focus { border-color: rgba(201,169,110,0.55); background: rgba(255,248,231,0.07); }
+    .form-field input.invalid,
+    .form-field select.invalid { border-color: var(--error); }
+    .form-field select option { background: var(--teal); }
+    .field-err {
+      font-size: 0.6rem; letter-spacing: 0.08em;
+      color: var(--error); display: none;
+    }
+    .form-field.has-error .field-err { display: block; }
+
+    /* GST toggle */
+    .gst-toggle-row {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 1rem 0;
+      cursor: pointer; user-select: none;
+    }
+    .toggle-box {
+      width: 18px; height: 18px;
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: all 0.2s;
+    }
+    .toggle-box.checked { background: var(--gold); border-color: var(--gold); }
+    .toggle-box.checked::after { content: '✓'; color: var(--teal); font-size: 0.65rem; }
+    .toggle-label {
+      font-size: 0.68rem; letter-spacing: 0.1em; color: var(--text-muted);
+    }
+    .gst-fields { display: none; }
+    .gst-fields.visible { display: grid; gap: 1.1rem; }
+
+    /* Shipping options */
+    .shipping-options { display: flex; flex-direction: column; gap: 0.75rem; }
+    .shipping-option {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 1.25rem;
+      border: 1px solid var(--border);
+      cursor: pointer; transition: border-color 0.2s, background 0.2s;
+      gap: 1rem;
+    }
+    .shipping-option.selected { border-color: rgba(201,169,110,0.5); background: rgba(201,169,110,0.05); }
+    .shipping-option-left { display: flex; align-items: center; gap: 0.85rem; }
+    .radio-dot {
+      width: 16px; height: 16px;
+      border: 1px solid var(--border);
+      border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color 0.2s;
+    }
+    .shipping-option.selected .radio-dot { border-color: var(--gold); }
+    .shipping-option.selected .radio-dot::after {
+      content: ''; width: 8px; height: 8px;
+      border-radius: 50%; background: var(--gold);
+    }
+    .ship-name {
+      font-size: 0.72rem; letter-spacing: 0.1em; color: var(--cream);
+    }
+    .ship-eta {
+      font-size: 0.62rem; letter-spacing: 0.06em; color: var(--text-muted);
+      margin-top: 0.15rem;
+    }
+    .ship-price {
+      font-size: 0.75rem; letter-spacing: 0.08em; color: var(--gold-light);
+    }
+
+    /* Payment methods */
+    .payment-options { display: flex; flex-direction: column; gap: 0.75rem; }
+    .payment-option {
+      display: flex; align-items: center; gap: 0.85rem;
+      padding: 1rem 1.25rem;
+      border: 1px solid var(--border);
+      cursor: pointer; transition: border-color 0.2s, background 0.2s;
+    }
+    .payment-option.selected { border-color: rgba(201,169,110,0.5); background: rgba(201,169,110,0.05); }
+    .payment-option.selected .radio-dot { border-color: var(--gold); }
+    .payment-option.selected .radio-dot::after {
+      content: ''; width: 8px; height: 8px;
+      border-radius: 50%; background: var(--gold);
+    }
+    .pay-name {
+      font-size: 0.72rem; letter-spacing: 0.1em; color: var(--cream);
+    }
+    .pay-desc {
+      font-size: 0.62rem; letter-spacing: 0.06em; color: var(--text-muted);
+      margin-top: 0.15rem;
+    }
+    .pay-icon { font-size: 1.1rem; opacity: 0.7; }
+
+    /* UPI / bank fields */
+    .payment-detail { display: none; margin-top: 1.1rem; }
+    .payment-detail.visible { display: block; }
+
+    /* Order note */
+    .form-field textarea { min-height: 80px; resize: vertical; line-height: 1.7; }
+
+    /* ─── Order Summary Sidebar ───────────────────── */
+    .order-summary {
+      background: rgba(255,248,231,0.03);
+      border: 1px solid var(--border);
+      padding: 2rem;
+      position: sticky; top: 84px;
+      animation: fadeUp 0.5s ease both;
+      animation-delay: 0.15s;
+    }
+    .summary-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.3rem; font-weight: 400;
+      letter-spacing: 0.1em; color: var(--cream);
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .summary-items { margin-bottom: 1.5rem; }
+    .summary-item {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      padding: 0.65rem 0;
+      border-bottom: 1px solid rgba(201,169,110,0.08);
+      gap: 1rem;
+    }
+    .summary-item:last-child { border-bottom: none; }
+    .summary-item-name {
+      font-size: 0.72rem; letter-spacing: 0.06em; color: var(--cream);
+      flex: 1;
+    }
+    .summary-item-qty {
+      font-size: 0.62rem; color: var(--text-muted); margin-top: 0.2rem;
+    }
+    .summary-item-price {
+      font-size: 0.72rem; color: var(--gold-light);
+      white-space: nowrap;
+    }
+
+    .summary-row {
+      display: flex; justify-content: space-between;
+      padding: 0.5rem 0;
+      font-size: 0.7rem; letter-spacing: 0.06em; color: var(--text-muted);
+      border-bottom: 1px solid rgba(201,169,110,0.08);
+    }
+    .summary-row:last-of-type { border-bottom: none; }
+    .summary-row.total {
+      padding-top: 1rem; margin-top: 0.5rem;
+      border-top: 1px solid var(--border); border-bottom: none;
+    }
+    .summary-row.total span:first-child {
+      font-size: 0.62rem; letter-spacing: 0.25em; text-transform: uppercase;
+    }
+    .summary-row.total span:last-child {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem; font-weight: 300; color: var(--gold);
+    }
+    .gst-note {
+      font-size: 0.58rem; letter-spacing: 0.08em; color: var(--text-muted);
+      opacity: 0.5; margin: 0.75rem 0; line-height: 1.6;
+    }
+
+    /* Place order button */
+    .btn-place-order {
+      display: block; width: 100%;
+      padding: 1rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--teal); background: var(--gold);
+      border: 1px solid var(--gold);
+      cursor: pointer; transition: all 0.25s;
+      margin: 1.5rem 0 0.75rem;
+    }
+    .btn-place-order:hover { background: transparent; color: var(--gold); }
+    .btn-place-order:disabled { opacity: 0.5; cursor: not-allowed; background: var(--gold); color: var(--teal); }
+
+    .btn-back-cart {
+      display: block; width: 100%; padding: 0.7rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.6rem; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--text-muted); border: 1px solid var(--border);
+      background: none; cursor: pointer; transition: all 0.25s; text-align: center;
+    }
+    .btn-back-cart:hover { border-color: var(--gold); color: var(--gold); }
+
+    .trust-row {
+      display: flex; gap: 1rem; justify-content: center; margin-top: 1.25rem;
+    }
+    .trust-badge {
+      font-size: 0.56rem; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--text-muted); opacity: 0.45; display: flex; align-items: center; gap: 0.3rem;
+    }
+
+    /* ─── Footer ──────────────────────────────────── */
+    .site-footer {
+      background: rgba(0,20,20,0.6); border-top: 1px solid var(--border);
+      padding: 4rem 2rem 2rem; position: relative; z-index: 1;
+    }
+    .footer-content { max-width: 1280px; margin: 0 auto; }
+    .footer-grid {
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem; margin-bottom: 3rem;
+    }
+    .footer-section h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; font-weight: 400;
+      letter-spacing: 0.2em; color: var(--cream); margin-bottom: 0.5rem;
+    }
+    .footer-section > p { font-size: 0.7rem; letter-spacing: 0.12em; color: var(--text-muted); }
+    .footer-section h4 {
+      font-size: 0.6rem; letter-spacing: 0.35em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.75; margin-bottom: 1.2rem;
+    }
+    .footer-section a {
+      display: block; font-size: 0.72rem; letter-spacing: 0.08em;
+      color: var(--text-muted); margin-bottom: 0.6rem; transition: color 0.2s;
+    }
+    .footer-section a:hover { color: var(--gold); }
+    .footer-bottom {
+      border-top: 1px solid var(--border); padding-top: 1.5rem;
+      display: flex; justify-content: space-between;
+      align-items: center; flex-wrap: wrap; gap: 0.5rem;
+    }
+    .footer-bottom p { font-size: 0.62rem; letter-spacing: 0.12em; color: var(--text-muted); opacity: 0.6; }
+
+    /* ─── Animations ──────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── Responsive ──────────────────────────────── */
+    @media (max-width: 1024px) {
+      .checkout-layout { grid-template-columns: 1fr; }
+      .order-summary { position: static; }
+    }
+    @media (max-width: 768px) {
+      .desktop-only { display: none; }
+      .menu-toggle  { display: block; }
+      .nav-left, .nav-right { min-width: auto; }
+      .form-row  { grid-template-columns: 1fr; }
+      .form-row-3 { grid-template-columns: 1fr 1fr; }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+      .checkout-progress { max-width: 100%; }
+    }
+    @media (max-width: 480px) {
+      .form-row-3 { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+    }
+  </style>
 </head>
+
 <body>
-    <nav class="nav-bar">
-        <div class="nav-content">
-            <div class="nav-logo">ATELIER ĀKĀRA</div>
-            <div class="nav-links">
-                <a href="profile.html" class="nav-link">Identity</a>
-                <a href="orders.html" class="nav-link">Orders</a>
-                <a href="#" class="nav-link" id="logoutBtn">Sign Out</a>
-            </div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <nav class="nav-container">
+      <div class="nav-left">
+        <button class="menu-toggle" id="menuToggle">☰</button>
+        <div class="nav-links desktop-only">
+          <a href="../catalog.html">Catalog</a>
+          <a href="../about.html">About</a>
         </div>
+      </div>
+      <a href="../index.html" class="brand-logo">ATELIER ĀKĀRA</a>
+      <div class="nav-right">
+        <a href="../contact.html" class="nav-link desktop-only">Contact</a>
+        <a href="cart.html" class="cart-link">🛒 <span id="cartCount">0</span></a>
+      </div>
+    </nav>
+  </header>
+
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="../catalog.html">Catalog</a>
+    <a href="../about.html">About</a>
+    <a href="../contact.html">Contact</a>
+    <a href="cart.html">← Back to Cart</a>
+  </nav>
+
+  <!-- Page -->
+  <main class="checkout-page">
+
+    <nav class="breadcrumbs">
+      <a href="../index.html">Home</a>
+      <span>/</span>
+      <a href="cart.html">Cart</a>
+      <span>/</span>
+      Checkout
     </nav>
 
-    <div class="orders-container">
-        <div class="orders-content">
-            <div class="orders-header">
-                <h1 style="font-family: var(--font-secondary); font-size: 2.5rem; color: var(--archival-cream); margin-bottom: 0.5rem;">
-                    ACQUISITION_RECORDS
-                </h1>
-                <p style="color: var(--archival-cream); opacity: 0.7;">
-                    Your Order History
-                </p>
-            </div>
-
-            <div id="ordersContainer">
-                <div class="empty-state">
-                    <div class="spinner" style="margin: 0 auto 2rem; width: 40px; height: 40px; border-width: 4px;"></div>
-                    <p>Loading your orders...</p>
-                </div>
-            </div>
-        </div>
+    <!-- Progress -->
+    <div class="checkout-progress">
+      <div class="progress-step done">
+        <div class="step-dot">✓</div>
+        <span class="step-label">Cart</span>
+      </div>
+      <div class="progress-line done"></div>
+      <div class="progress-step active">
+        <div class="step-dot">2</div>
+        <span class="step-label">Checkout</span>
+      </div>
+      <div class="progress-line"></div>
+      <div class="progress-step">
+        <div class="step-dot">3</div>
+        <span class="step-label">Confirmation</span>
+      </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script type="module">
-        import { supabaseConfig } from '../config.js';
-        import { requireAuth, requireVerification } from '../utils/security.js';
+    <!-- Layout -->
+    <div class="checkout-layout">
 
-        const supabase = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey);
+      <!-- ── Left: Forms ── -->
+      <div class="checkout-forms">
 
-        // Check authentication
-        await requireAuth(supabase);
-        await requireVerification(supabase);
+        <!-- 1. Delivery Address -->
+        <div class="section-card">
+          <div class="section-card-header">
+            <h2>Delivery Address</h2>
+            <div class="section-number">01</div>
+          </div>
+          <div class="section-card-body">
+            <div class="form-grid">
+              <div class="form-row">
+                <div class="form-field" id="field-firstName">
+                  <label>First Name</label>
+                  <input type="text" id="firstName" placeholder="Priya" autocomplete="given-name">
+                  <span class="field-err">Required</span>
+                </div>
+                <div class="form-field" id="field-lastName">
+                  <label>Last Name</label>
+                  <input type="text" id="lastName" placeholder="Sharma" autocomplete="family-name">
+                  <span class="field-err">Required</span>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-field" id="field-email">
+                  <label>Email Address</label>
+                  <input type="email" id="email" placeholder="priya@email.com" autocomplete="email">
+                  <span class="field-err">Enter a valid email</span>
+                </div>
+                <div class="form-field" id="field-phone">
+                  <label>Phone Number</label>
+                  <input type="tel" id="phone" placeholder="+91 98765 43210" autocomplete="tel">
+                  <span class="field-err">Enter a valid phone number</span>
+                </div>
+              </div>
+              <div class="form-field" id="field-address1">
+                <label>Address Line 1</label>
+                <input type="text" id="address1" placeholder="Flat / House No., Building Name" autocomplete="address-line1">
+                <span class="field-err">Required</span>
+              </div>
+              <div class="form-field">
+                <label>Address Line 2 <span class="optional-tag">(Optional)</span></label>
+                <input type="text" id="address2" placeholder="Street, Area, Landmark" autocomplete="address-line2">
+              </div>
+              <div class="form-row-3">
+                <div class="form-field" id="field-city">
+                  <label>City</label>
+                  <input type="text" id="city" placeholder="Mumbai" autocomplete="address-level2">
+                  <span class="field-err">Required</span>
+                </div>
+                <div class="form-field" id="field-state">
+                  <label>State</label>
+                  <select id="state">
+                    <option value="" disabled selected>Select</option>
+                    <option>Andhra Pradesh</option><option>Arunachal Pradesh</option>
+                    <option>Assam</option><option>Bihar</option><option>Chhattisgarh</option>
+                    <option>Goa</option><option>Gujarat</option><option>Haryana</option>
+                    <option>Himachal Pradesh</option><option>Jharkhand</option>
+                    <option>Karnataka</option><option>Kerala</option>
+                    <option>Madhya Pradesh</option><option selected>Maharashtra</option>
+                    <option>Manipur</option><option>Meghalaya</option><option>Mizoram</option>
+                    <option>Nagaland</option><option>Odisha</option><option>Punjab</option>
+                    <option>Rajasthan</option><option>Sikkim</option><option>Tamil Nadu</option>
+                    <option>Telangana</option><option>Tripura</option>
+                    <option>Uttar Pradesh</option><option>Uttarakhand</option>
+                    <option>West Bengal</option><option>Delhi</option>
+                  </select>
+                  <span class="field-err">Required</span>
+                </div>
+                <div class="form-field" id="field-pincode">
+                  <label>PIN Code</label>
+                  <input type="text" id="pincode" placeholder="400001" maxlength="6" autocomplete="postal-code">
+                  <span class="field-err">Enter 6-digit PIN</span>
+                </div>
+              </div>
 
-        // Load orders
-        loadOrders();
+              <!-- GST Invoice toggle -->
+              <div class="gst-toggle-row" onclick="toggleGST()">
+                <div class="toggle-box" id="gstToggleBox"></div>
+                <span class="toggle-label">I need a GST invoice (B2B purchase)</span>
+              </div>
+              <div class="gst-fields" id="gstFields">
+                <div class="form-row">
+                  <div class="form-field">
+                    <label>Company Name</label>
+                    <input type="text" id="companyName" placeholder="Your Company Pvt Ltd">
+                  </div>
+                  <div class="form-field" id="field-gstin">
+                    <label>GSTIN</label>
+                    <input type="text" id="gstin" placeholder="27XXXXX0000X1ZX" maxlength="15">
+                    <span class="field-err">Enter valid 15-character GSTIN</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-        async function loadOrders() {
-            try {
-                const { data: { user } } = await supabase.auth.getUser();
-                
-                const { data: orders, error } = await supabase
-                    .from('orders')
-                    .select(`
-                        *,
-                        addresses (*)
-                    `)
-                    .eq('user_id', user.id)
-                    .order('created_at', { ascending: false });
-                
-                if (error) throw error;
-                
-                if (!orders || orders.length === 0) {
-                    document.getElementById('ordersContainer').innerHTML = `
-                        <div class="empty-state glass-panel" style="padding: 3rem;">
-                            <p>No orders yet. Start exploring the collection.</p>
-                            <a href="checkout.html" class="btn-primary" style="display: inline-block; margin-top: 1rem;">
-                                Explore Collection
-                            </a>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                // Display orders
-                const ordersHtml = orders.map(order => {
-                    const items = order.items || [];
-                    const address = order.addresses;
-                    
-                    return `
-                        <div class="order-card glass-panel">
-                            <div class="order-header">
-                                <div>
-                                    <div class="order-number">Order #${order.order_number}</div>
-                                    <div style="font-size: 0.85rem; color: var(--archival-cream); opacity: 0.6; margin-top: 0.25rem;">
-                                        ${new Date(order.created_at).toLocaleDateString('en-US', { 
-                                            year: 'numeric', 
-                                            month: 'long', 
-                                            day: 'numeric' 
-                                        })}
-                                    </div>
-                                </div>
-                                <div class="order-status status-${order.status}">
-                                    ${order.status}
-                                </div>
-                            </div>
-                            
-                            <div class="order-items">
-                                ${items.map(item => `
-                                    <div class="order-item">
-                                        <span>${item.name} × ${item.quantity}</span>
-                                        <span>₹${item.price}</span>
-                                    </div>
-                                `).join('')}
-                                <div class="order-item" style="font-weight: 600; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--glass-border);">
-                                    <span>Total</span>
-                                    <span>₹${order.total}</span>
-                                </div>
-                            </div>
-                            
-                            <div class="order-meta">
-                                <div class="meta-item">
-                                    <div class="meta-label">Shipping To</div>
-                                    <div class="meta-value">
-                                        ${address ? `
-                                            ${address.first_name} ${address.last_name}<br>
-                                            ${address.city}, ${address.state} ${address.pincode}
-                                        ` : 'Address not available'}
-                                    </div>
-                                </div>
-                                
-                                <div class="meta-item">
-                                    <div class="meta-label">Payment Status</div>
-                                    <div class="meta-value" style="text-transform: capitalize;">
-                                        ${order.payment_status}
-                                    </div>
-                                </div>
-                                
-                                <div class="meta-item">
-                                    <div class="meta-label">Order Status</div>
-                                    <div class="meta-value" style="text-transform: capitalize;">
-                                        ${order.status}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-                
-                document.getElementById('ordersContainer').innerHTML = ordersHtml;
-                
-            } catch (err) {
-                console.error('Load orders error:', err);
-                document.getElementById('ordersContainer').innerHTML = `
-                    <div class="empty-state glass-panel" style="padding: 3rem;">
-                        <p>Failed to load orders. Please try again.</p>
-                    </div>
-                `;
-            }
+        <!-- 2. Shipping Method -->
+        <div class="section-card">
+          <div class="section-card-header">
+            <h2>Shipping Method</h2>
+            <div class="section-number">02</div>
+          </div>
+          <div class="section-card-body">
+            <div class="shipping-options">
+              <div class="shipping-option selected" onclick="selectShipping(this, 0, 'standard')" data-cost="0" data-method="standard">
+                <div class="shipping-option-left">
+                  <div class="radio-dot"></div>
+                  <div>
+                    <p class="ship-name">Standard Delivery</p>
+                    <p class="ship-eta">5–8 business days</p>
+                  </div>
+                </div>
+                <span class="ship-price">Free</span>
+              </div>
+              <div class="shipping-option" onclick="selectShipping(this, 199, 'express')" data-cost="199" data-method="express">
+                <div class="shipping-option-left">
+                  <div class="radio-dot"></div>
+                  <div>
+                    <p class="ship-name">Express Delivery</p>
+                    <p class="ship-eta">2–3 business days</p>
+                  </div>
+                </div>
+                <span class="ship-price">₹199</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Payment Method -->
+        <div class="section-card">
+          <div class="section-card-header">
+            <h2>Payment Method</h2>
+            <div class="section-number">03</div>
+          </div>
+          <div class="section-card-body">
+            <div class="payment-options">
+
+              <div class="payment-option selected" onclick="selectPayment(this, 'razorpay')">
+                <div class="radio-dot"></div>
+                <span class="pay-icon">💳</span>
+                <div>
+                  <p class="pay-name">Card / UPI / Net Banking</p>
+                  <p class="pay-desc">Powered by Razorpay — all major methods accepted</p>
+                </div>
+              </div>
+
+              <div class="payment-option" onclick="selectPayment(this, 'upi')">
+                <div class="radio-dot"></div>
+                <span class="pay-icon">⬡</span>
+                <div>
+                  <p class="pay-name">UPI Direct</p>
+                  <p class="pay-desc">Pay directly to our UPI ID</p>
+                </div>
+              </div>
+              <div class="payment-detail" id="detail-upi">
+                <div class="form-field" style="max-width:320px;">
+                  <label>Our UPI ID</label>
+                  <input type="text" value="support@akaraonline" disabled style="opacity:0.7;cursor:default;">
+                </div>
+                <p style="font-size:0.65rem;letter-spacing:0.08em;color:var(--text-muted);margin-top:0.75rem;line-height:1.7;">
+                  After payment, enter your UPI transaction reference in the order notes and click Place Order.
+                </p>
+              </div>
+
+              <div class="payment-option" onclick="selectPayment(this, 'bank')">
+                <div class="radio-dot"></div>
+                <span class="pay-icon">🏦</span>
+                <div>
+                  <p class="pay-name">Bank Transfer / NEFT</p>
+                  <p class="pay-desc">For bulk / B2B orders above ₹5,000</p>
+                </div>
+              </div>
+              <div class="payment-detail" id="detail-bank">
+                <div style="font-size:0.7rem;letter-spacing:0.06em;line-height:1.9;color:var(--text-muted);background:rgba(255,248,231,0.04);border:1px solid var(--border);padding:1rem 1.25rem;">
+                  <p><strong style="color:var(--cream);">Bank:</strong> HDFC Bank</p>
+                  <p><strong style="color:var(--cream);">Account Name:</strong> Precision Forge Labs</p>
+                  <p><strong style="color:var(--cream);">Account No:</strong> XXXX XXXX XXXX (contact us)</p>
+                  <p><strong style="color:var(--cream);">IFSC:</strong> HDFC0XXXXXX</p>
+                </div>
+                <p style="font-size:0.62rem;letter-spacing:0.08em;color:var(--text-muted);margin-top:0.75rem;opacity:0.65;">
+                  Orders are processed after payment confirmation. Share UTR number in order notes.
+                </p>
+              </div>
+
+            </div>
+
+            <!-- Order note -->
+            <div class="form-field" style="margin-top:1.5rem;">
+              <label>Order Notes <span class="optional-tag">(Optional)</span></label>
+              <textarea id="orderNote" placeholder="Special instructions, UPI reference, delivery timing preferences…"></textarea>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── Right: Summary ── -->
+      <aside class="order-summary">
+        <h2 class="summary-title">Order Summary</h2>
+        <div class="summary-items" id="summaryItems">
+          <p style="font-size:0.7rem;color:var(--text-muted);letter-spacing:0.1em;">Loading cart…</p>
+        </div>
+
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span id="summarySubtotal">₹0</span>
+        </div>
+        <div class="summary-row">
+          <span>GST (18% incl.)</span>
+          <span id="summaryGST">₹0</span>
+        </div>
+        <div class="summary-row">
+          <span>Shipping</span>
+          <span id="summaryShipping">Free</span>
+        </div>
+        <div class="summary-row total">
+          <span>Total</span>
+          <span id="summaryTotal">₹0</span>
+        </div>
+
+        <p class="gst-note">All prices GST-inclusive (CGST 9% + SGST 9% for Maharashtra, IGST 18% for other states). GST invoice issued on request.</p>
+
+        <button class="btn-place-order" id="placeOrderBtn" onclick="placeOrder()">
+          Place Order
+        </button>
+        <a href="cart.html" class="btn-back-cart">← Back to Cart</a>
+
+        <div class="trust-row">
+          <span class="trust-badge">🔒 Secure</span>
+          <span class="trust-badge">↩ 7-day returns</span>
+          <span class="trust-badge">✓ GST Invoice</span>
+        </div>
+      </aside>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-grid">
+        <div class="footer-section">
+          <h3>ATELIER ĀKĀRA</h3>
+          <p>Artifacts for the Modern Spaces</p>
+        </div>
+        <div class="footer-section">
+          <h4>Shop</h4>
+          <a href="../catalog.html">All Products</a>
+          <a href="../catalog.html?category=planters">Planters</a>
+          <a href="../catalog.html?category=vases">Vases</a>
+          <a href="../catalog.html?category=lighting">Lighting</a>
+        </div>
+        <div class="footer-section">
+          <h4>Information</h4>
+          <a href="../about.html">About Us</a>
+          <a href="../contact.html">Contact</a>
+          <a href="../privacy.html">Privacy Policy</a>
+          <a href="../terms.html">Terms of Service</a>
+        </div>
+        <div class="footer-section">
+          <h4>Connect</h4>
+          <a href="https://instagram.com/atelier.akara" target="_blank">Instagram</a>
+          <a href="mailto:support@akaraonline.co.in">Email Us</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>Precision Forge Labs &nbsp;|&nbsp; GST: 27GZCPS9353H1ZQ</p>
+        <p>© 2024 Atelier Ākāra. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ─────────────────────────────────────────────────
+    // CREDENTIALS — paste your keys here
+    // ─────────────────────────────────────────────────
+    const SUPABASE_URL      = '';
+    const SUPABASE_ANON_KEY = '';
+    const RAZORPAY_KEY_ID   = '';   // ← your Razorpay Key ID (starts with rzp_)
+
+    let supabase = null;
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    // ─── State ────────────────────────────────────────
+    let cartItems     = [];
+    let shippingCost  = 0;
+    let shippingMethod = 'standard';
+    let paymentMethod  = 'razorpay';
+    let wantsGST       = false;
+
+    // ─── Mobile menu ──────────────────────────────────
+    document.getElementById('menuToggle').addEventListener('click', () =>
+      document.getElementById('mobileNav').classList.toggle('open'));
+
+    // ─── Cart count + load ────────────────────────────
+    function getCart() { return JSON.parse(localStorage.getItem('akara_cart') || '[]'); }
+
+    function initCart() {
+      cartItems = getCart();
+      const total = cartItems.reduce((s, i) => s + (i.qty || 1), 0);
+      document.getElementById('cartCount').textContent = total;
+
+      if (!cartItems.length) {
+        window.location.href = 'cart.html';
+        return;
+      }
+      renderSummary();
+    }
+
+    // ─── Render summary sidebar ───────────────────────
+    function renderSummary() {
+      const container = document.getElementById('summaryItems');
+
+      // For placeholder display (no Supabase prices yet)
+      const PLACEHOLDER_PRICES = { default: 2400 };
+
+      let subtotal = 0;
+      const html = cartItems.map(item => {
+        const price    = item.price || PLACEHOLDER_PRICES.default;
+        const lineTotal = price * (item.qty || 1);
+        subtotal += lineTotal;
+        return `
+          <div class="summary-item">
+            <div>
+              <p class="summary-item-name">${item.name || 'Product #' + item.id}</p>
+              <p class="summary-item-qty">Qty: ${item.qty || 1}</p>
+            </div>
+            <span class="summary-item-price">₹${lineTotal.toLocaleString('en-IN')}</span>
+          </div>`;
+      }).join('');
+
+      container.innerHTML = html;
+
+      const gst   = Math.round(subtotal - subtotal / 1.18);
+      const grand = subtotal + shippingCost;
+
+      document.getElementById('summarySubtotal').textContent = `₹${subtotal.toLocaleString('en-IN')}`;
+      document.getElementById('summaryGST').textContent      = `₹${gst.toLocaleString('en-IN')} (incl.)`;
+      document.getElementById('summaryShipping').textContent = shippingCost ? `₹${shippingCost}` : 'Free';
+      document.getElementById('summaryTotal').textContent    = `₹${grand.toLocaleString('en-IN')}`;
+
+      return { subtotal, gst, grand };
+    }
+
+    // ─── Shipping select ──────────────────────────────
+    function selectShipping(el, cost, method) {
+      document.querySelectorAll('.shipping-option').forEach(o => o.classList.remove('selected'));
+      el.classList.add('selected');
+      shippingCost   = cost;
+      shippingMethod = method;
+      renderSummary();
+    }
+
+    // ─── Payment select ───────────────────────────────
+    function selectPayment(el, method) {
+      document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
+      document.querySelectorAll('.payment-detail').forEach(d => d.classList.remove('visible'));
+      el.classList.add('selected');
+      paymentMethod = method;
+      if (method === 'upi')  document.getElementById('detail-upi').classList.add('visible');
+      if (method === 'bank') document.getElementById('detail-bank').classList.add('visible');
+    }
+
+    // ─── GST toggle ───────────────────────────────────
+    function toggleGST() {
+      wantsGST = !wantsGST;
+      document.getElementById('gstToggleBox').classList.toggle('checked', wantsGST);
+      document.getElementById('gstFields').classList.toggle('visible', wantsGST);
+    }
+
+    // ─── Validation ───────────────────────────────────
+    const REQUIRED_FIELDS = [
+      { id: 'firstName', wrap: 'field-firstName', check: v => v.length >= 2 },
+      { id: 'lastName',  wrap: 'field-lastName',  check: v => v.length >= 1 },
+      { id: 'email',     wrap: 'field-email',     check: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) },
+      { id: 'phone',     wrap: 'field-phone',     check: v => /^[\d\s\+\-]{8,15}$/.test(v) },
+      { id: 'address1',  wrap: 'field-address1',  check: v => v.length >= 5 },
+      { id: 'city',      wrap: 'field-city',      check: v => v.length >= 2 },
+      { id: 'state',     wrap: 'field-state',     check: v => v !== '' },
+      { id: 'pincode',   wrap: 'field-pincode',   check: v => /^\d{6}$/.test(v) },
+    ];
+
+    function validateForm() {
+      let valid = true;
+      REQUIRED_FIELDS.forEach(({ id, wrap, check }) => {
+        const el  = document.getElementById(id);
+        const wEl = document.getElementById(wrap);
+        if (!check(el.value.trim())) {
+          wEl.classList.add('has-error');
+          el.classList.add('invalid');
+          valid = false;
+        } else {
+          wEl.classList.remove('has-error');
+          el.classList.remove('invalid');
         }
+      });
 
-        // Logout
-        document.getElementById('logoutBtn').addEventListener('click', async (e) => {
-            e.preventDefault();
-            await supabase.auth.signOut();
-            window.location.href = '../auth/login.html';
+      if (wantsGST) {
+        const gstinVal = document.getElementById('gstin').value.trim();
+        const ok = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(gstinVal);
+        document.getElementById('field-gstin').classList.toggle('has-error', !ok);
+        document.getElementById('gstin').classList.toggle('invalid', !ok);
+        if (!ok) valid = false;
+      }
+      return valid;
+    }
+
+    // Clear errors on input
+    [...REQUIRED_FIELDS.map(f => f.id), 'gstin'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('input',  () => { el.classList.remove('invalid'); el.closest('.form-field')?.classList.remove('has-error'); });
+      el.addEventListener('change', () => { el.classList.remove('invalid'); el.closest('.form-field')?.classList.remove('has-error'); });
+    });
+
+    // ─── Build order payload ──────────────────────────
+    function buildOrderPayload() {
+      const { subtotal, gst, grand } = renderSummary();
+      return {
+        customer: {
+          first_name: document.getElementById('firstName').value.trim(),
+          last_name:  document.getElementById('lastName').value.trim(),
+          email:      document.getElementById('email').value.trim(),
+          phone:      document.getElementById('phone').value.trim(),
+        },
+        shipping_address: {
+          line1:   document.getElementById('address1').value.trim(),
+          line2:   document.getElementById('address2').value.trim(),
+          city:    document.getElementById('city').value.trim(),
+          state:   document.getElementById('state').value,
+          pincode: document.getElementById('pincode').value.trim(),
+        },
+        gst_details: wantsGST ? {
+          company: document.getElementById('companyName').value.trim(),
+          gstin:   document.getElementById('gstin').value.trim(),
+        } : null,
+        items:           cartItems,
+        subtotal,
+        gst_amount:      gst,
+        shipping_cost:   shippingCost,
+        shipping_method: shippingMethod,
+        total:           grand,
+        payment_method:  paymentMethod,
+        note:            document.getElementById('orderNote').value.trim(),
+        status:          'pending',
+        created_at:      new Date().toISOString(),
+      };
+    }
+
+    // ─── Generate order ID ────────────────────────────
+    function generateOrderId() {
+      const seq = String(Date.now()).slice(-5);
+      return `INV-${seq}`;
+    }
+
+    // ─── Place Order ──────────────────────────────────
+    async function placeOrder() {
+      if (!validateForm()) {
+        document.querySelector('.has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
+      const btn = document.getElementById('placeOrderBtn');
+      btn.disabled = true;
+      btn.textContent = 'Processing…';
+
+      const payload   = buildOrderPayload();
+      const orderId   = generateOrderId();
+      payload.order_id = orderId;
+
+      // ── Razorpay flow ──────────────────────────────
+      if (paymentMethod === 'razorpay' && RAZORPAY_KEY_ID) {
+        const options = {
+          key:         RAZORPAY_KEY_ID,
+          amount:      payload.total * 100,            // in paise
+          currency:    'INR',
+          name:        'Atelier Ākāra',
+          description: `Order ${orderId}`,
+          prefill: {
+            name:    `${payload.customer.first_name} ${payload.customer.last_name}`,
+            email:   payload.customer.email,
+            contact: payload.customer.phone,
+          },
+          theme: { color: '#c9a96e' },
+          handler: async function(response) {
+            payload.payment_id     = response.razorpay_payment_id;
+            payload.payment_status = 'paid';
+            await saveOrderAndRedirect(payload, orderId);
+          },
+        };
+        const rzp = new window.Razorpay(options);
+        rzp.on('payment.failed', () => {
+          btn.disabled = false; btn.textContent = 'Place Order';
+          alert('Payment failed. Please try again.');
         });
-    </script>
+        rzp.open();
+        return;
+      }
+
+      // ── Non-Razorpay (UPI/Bank) or no key yet ─────
+      payload.payment_status = 'pending';
+      await saveOrderAndRedirect(payload, orderId);
+    }
+
+    // ─── Save to Supabase + redirect ──────────────────
+    async function saveOrderAndRedirect(payload, orderId) {
+      if (supabase) {
+        try {
+          await supabase.from('orders').insert([payload]);
+        } catch (e) {
+          console.error('Order save error:', e);
+        }
+      }
+
+      // Store for success page
+      localStorage.setItem('akara_last_order', JSON.stringify(payload));
+      // Clear cart
+      localStorage.removeItem('akara_cart');
+
+      window.location.href = `ordersuccess.html?order=${orderId}`;
+    }
+
+    // ─── Init ─────────────────────────────────────────
+    initCart();
+  </script>
+
 </body>
 </html>

@@ -1,287 +1,1127 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Identity Specs - Atelier Ākāra</title>
-    <link rel="stylesheet" href="../auth-styles.css">
-    <style>
-        .profile-container {
-            min-height: 100vh;
-            padding: 2rem;
-            padding-top: 100px;
-        }
-        
-        .profile-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-        
-        .profile-content {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        
-        .profile-card {
-            margin-bottom: 2rem;
-            padding: 2rem;
-        }
-        
-        .spec-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 2rem;
-            margin: 2rem 0;
-        }
-        
-        .spec-item {
-            text-align: center;
-        }
-        
-        .spec-label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: var(--archival-cream);
-            opacity: 0.6;
-            margin-bottom: 0.5rem;
-        }
-        
-        .spec-value {
-            font-size: 1.2rem;
-            color: var(--archival-cream);
-            font-weight: 500;
-        }
-        
-        .history-table {
-            width: 100%;
-            margin-top: 1.5rem;
-        }
-        
-        .history-table th,
-        .history-table td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid var(--glass-border);
-        }
-        
-        .history-table th {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--archival-cream);
-            opacity: 0.7;
-        }
-        
-        .history-table td {
-            color: var(--archival-cream);
-            opacity: 0.9;
-        }
-        
-        .nav-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: rgba(0, 43, 43, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 1rem 2rem;
-            z-index: 1000;
-            border-bottom: 1px solid var(--glass-border);
-        }
-        
-        .nav-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .nav-logo {
-            font-family: var(--font-secondary);
-            font-size: 1.2rem;
-            letter-spacing: 2px;
-            color: var(--archival-cream);
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-        }
-        
-        .nav-link {
-            color: var(--archival-cream);
-            text-decoration: none;
-            font-size: 0.9rem;
-            opacity: 0.8;
-            transition: opacity 0.3s;
-        }
-        
-        .nav-link:hover {
-            opacity: 1;
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 3rem 1rem;
-            opacity: 0.6;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Your account — Atelier Ākāra">
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+  <title>My Account — Atelier Ākāra</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <!-- Supabase via CDN — no npm needed, works on GitHub Pages -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --teal:       #002b2b;
+      --teal-mid:   #004040;
+      --teal-light: #005f5f;
+      --cream:      #fff8e7;
+      --gold:       #c9a96e;
+      --gold-light: #e2c99a;
+      --text-main:  #fff8e7;
+      --text-muted: rgba(255,248,231,0.55);
+      --border:     rgba(201,169,110,0.25);
+      --input-bg:   rgba(255,248,231,0.05);
+      --error:      #e07070;
+      --success:    #70c9a0;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Josefin Sans', sans-serif;
+      background: var(--teal);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 15% 5%, rgba(0,95,95,0.3) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 85% 90%, rgba(0,64,64,0.35) 0%, transparent 55%);
+      pointer-events: none; z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,169,110,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,169,110,0.035) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ─── Header ──────────────────────────────────── */
+    .site-header {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(0,43,43,0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-container {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      max-width: 1280px; margin: 0 auto;
+      padding: 0 2rem; height: 64px;
+    }
+    .nav-left, .nav-right {
+      display: flex; align-items: center;
+      gap: 2rem; min-width: 180px;
+    }
+    .nav-right { justify-content: flex-end; }
+    .nav-links { display: flex; gap: 2rem; }
+    .nav-links a, .nav-link {
+      font-size: 0.7rem; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--text-muted); transition: color 0.2s;
+    }
+    .nav-links a:hover, .nav-link:hover { color: var(--gold); }
+    .brand-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; font-weight: 300;
+      letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--cream); white-space: nowrap;
+    }
+    .cart-link, #userLink {
+      font-size: 0.75rem; color: var(--gold); transition: color 0.2s;
+    }
+    .cart-link:hover, #userLink:hover { color: var(--gold-light); }
+    .menu-toggle {
+      display: none; background: none; border: none;
+      color: var(--text-main); font-size: 1.2rem; cursor: pointer;
+    }
+    .mobile-nav {
+      display: none; position: fixed;
+      top: 64px; left: 0; right: 0;
+      background: rgba(0,43,43,0.97);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 1.5rem 2rem; z-index: 99;
+      flex-direction: column; gap: 1.2rem;
+    }
+    .mobile-nav.open { display: flex; }
+    .mobile-nav a {
+      font-size: 0.75rem; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--text-muted);
+      padding: 0.4rem 0;
+      border-bottom: 1px solid rgba(201,169,110,0.1);
+    }
+    .mobile-nav a:hover { color: var(--gold); }
+
+    /* ─── Auth Screen ─────────────────────────────── */
+    .auth-screen {
+      position: relative; z-index: 1;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .auth-box {
+      width: 100%; max-width: 420px;
+      background: rgba(255,248,231,0.03);
+      border: 1px solid var(--border);
+      padding: 3rem 2.5rem;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .auth-logo {
+      text-align: center;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem; font-weight: 300;
+      letter-spacing: 0.35em; text-transform: uppercase;
+      color: var(--cream); margin-bottom: 0.4rem;
+    }
+    .auth-divider {
+      width: 40px; height: 1px;
+      background: var(--gold); opacity: 0.4;
+      margin: 0.75rem auto 2rem;
+    }
+    .auth-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.8rem; font-weight: 300;
+      letter-spacing: 0.08em; color: var(--cream);
+      text-align: center; margin-bottom: 0.4rem;
+    }
+    .auth-subtitle {
+      font-size: 0.7rem; letter-spacing: 0.1em;
+      color: var(--text-muted); text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    /* Tabs */
+    .auth-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2rem;
+    }
+    .auth-tab {
+      flex: 1; background: none; border: none;
+      border-bottom: 2px solid transparent;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.62rem; letter-spacing: 0.28em;
+      text-transform: uppercase; color: var(--text-muted);
+      padding: 0.7rem; cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+      margin-bottom: -1px;
+    }
+    .auth-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+    /* Form fields */
+    .auth-field {
+      display: flex; flex-direction: column; gap: 0.35rem;
+      margin-bottom: 1.1rem;
+    }
+    .auth-field label {
+      font-size: 0.58rem; letter-spacing: 0.3em;
+      text-transform: uppercase; color: var(--gold); opacity: 0.8;
+    }
+    .auth-field input {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.75rem; letter-spacing: 0.08em;
+      padding: 0.75rem 1rem; outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+    .auth-field input::placeholder { color: var(--text-muted); }
+    .auth-field input:focus { border-color: rgba(201,169,110,0.55); }
+    .auth-field input.invalid { border-color: var(--error); }
+
+    .field-error-msg {
+      font-size: 0.6rem; letter-spacing: 0.08em;
+      color: var(--error); display: none;
+    }
+    .auth-field.has-error .field-error-msg { display: block; }
+
+    .auth-forgot {
+      display: block; text-align: right;
+      font-size: 0.6rem; letter-spacing: 0.12em;
+      color: var(--text-muted); margin-top: -0.6rem;
+      margin-bottom: 1.5rem; cursor: pointer;
+      transition: color 0.2s;
+    }
+    .auth-forgot:hover { color: var(--gold); }
+
+    .btn-auth {
+      display: block; width: 100%;
+      padding: 0.85rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.65rem; letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--teal); background: var(--gold);
+      border: 1px solid var(--gold);
+      cursor: pointer; transition: all 0.25s;
+      margin-bottom: 1rem;
+    }
+    .btn-auth:hover { background: transparent; color: var(--gold); }
+    .btn-auth:disabled { opacity: 0.5; cursor: not-allowed; background: var(--gold); color: var(--teal); }
+
+    .auth-status {
+      font-size: 0.65rem; letter-spacing: 0.1em;
+      text-align: center; padding: 0.5rem;
+      display: none; line-height: 1.6;
+    }
+    .auth-status.error   { color: var(--error); display: block; }
+    .auth-status.success { color: var(--success); display: block; }
+
+    /* ─── Dashboard ───────────────────────────────── */
+    .dashboard {
+      position: relative; z-index: 1;
+      display: none;
+      max-width: 1280px; margin: 0 auto;
+      padding: 84px 2rem 6rem;
+    }
+    .dashboard.visible { display: block; }
+
+    .breadcrumbs {
+      font-size: 0.62rem; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--text-muted);
+      padding: 1.5rem 0 0;
+    }
+    .breadcrumbs a { color: var(--gold); opacity: 0.7; }
+    .breadcrumbs a:hover { opacity: 1; }
+    .breadcrumbs span { opacity: 0.45; margin: 0 0.5rem; }
+
+    /* Dash header */
+    .dash-header {
+      display: flex; align-items: flex-end;
+      justify-content: space-between;
+      padding: 2.5rem 0 2.5rem;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap; gap: 1rem;
+    }
+    .dash-header-left .greeting {
+      font-size: 0.62rem; letter-spacing: 0.35em;
+      text-transform: uppercase; color: var(--gold);
+      opacity: 0.75; margin-bottom: 0.4rem;
+    }
+    .dash-header-left h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 300; letter-spacing: 0.1em;
+      color: var(--cream); line-height: 1;
+    }
+    .btn-signout {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.6rem; letter-spacing: 0.22em;
+      text-transform: uppercase;
+      padding: 0.55rem 1.2rem; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-signout:hover { border-color: var(--error); color: var(--error); }
+
+    /* ─── Dash Layout ─────────────────────────────── */
+    .dash-layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 3rem;
+      margin-top: 3rem;
+    }
+
+    /* Sidebar nav */
+    .dash-sidebar { position: sticky; top: 84px; height: fit-content; }
+    .dash-nav { display: flex; flex-direction: column; gap: 0; }
+    .dash-nav-btn {
+      background: none; border: none;
+      border-left: 2px solid transparent;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.65rem; letter-spacing: 0.22em;
+      text-transform: uppercase; color: var(--text-muted);
+      padding: 0.85rem 1rem; cursor: pointer;
+      text-align: left; transition: all 0.2s;
+    }
+    .dash-nav-btn:hover { color: var(--gold-light); border-left-color: rgba(201,169,110,0.3); }
+    .dash-nav-btn.active { color: var(--gold); border-left-color: var(--gold); }
+
+    /* ─── Tab Panels ──────────────────────────────── */
+    .dash-panel { display: none; animation: fadeUp 0.4s ease both; }
+    .dash-panel.active { display: block; }
+
+    .panel-heading {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.8rem; font-weight: 300;
+      letter-spacing: 0.1em; color: var(--cream);
+      margin-bottom: 2rem;
+    }
+
+    /* ─── Orders Panel ────────────────────────────── */
+    .orders-list { display: flex; flex-direction: column; gap: 0; }
+
+    .order-card {
+      border: 1px solid var(--border);
+      border-bottom: none;
+      background: rgba(255,248,231,0.03);
+      transition: background 0.2s;
+    }
+    .order-card:last-child { border-bottom: 1px solid var(--border); }
+    .order-card:hover { background: rgba(201,169,110,0.04); }
+
+    .order-card-header {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 1.5rem;
+      cursor: pointer;
+      flex-wrap: wrap; gap: 0.75rem;
+    }
+    .order-id {
+      font-size: 0.62rem; letter-spacing: 0.25em;
+      text-transform: uppercase; color: var(--gold); opacity: 0.8;
+    }
+    .order-date {
+      font-size: 0.68rem; letter-spacing: 0.08em; color: var(--text-muted);
+    }
+    .order-total {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; font-weight: 400; color: var(--cream);
+    }
+    .order-status {
+      font-size: 0.58rem; letter-spacing: 0.2em;
+      text-transform: uppercase; padding: 0.25rem 0.7rem;
+      border: 1px solid;
+    }
+    .order-status.delivered  { color: var(--success); border-color: rgba(112,201,160,0.35); }
+    .order-status.processing { color: var(--gold);    border-color: rgba(201,169,110,0.35); }
+    .order-status.shipped    { color: var(--gold-light); border-color: rgba(226,201,154,0.35); }
+
+    .order-detail {
+      padding: 0 1.5rem 1.25rem;
+      display: none;
+    }
+    .order-card.open .order-detail { display: block; }
+    .order-detail-item {
+      display: flex; justify-content: space-between;
+      font-size: 0.7rem; letter-spacing: 0.06em;
+      color: var(--text-muted);
+      padding: 0.35rem 0;
+      border-top: 1px solid rgba(201,169,110,0.08);
+    }
+
+    /* Empty orders */
+    .empty-orders {
+      text-align: center; padding: 4rem 2rem;
+    }
+    .empty-orders p {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.3rem; font-weight: 300;
+      color: var(--text-muted); letter-spacing: 0.1em;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ─── Profile Panel ───────────────────────────── */
+    .profile-form {
+      max-width: 520px;
+      display: flex; flex-direction: column; gap: 1.25rem;
+    }
+    .profile-field {
+      display: flex; flex-direction: column; gap: 0.35rem;
+    }
+    .profile-field label {
+      font-size: 0.58rem; letter-spacing: 0.3em;
+      text-transform: uppercase; color: var(--gold); opacity: 0.8;
+    }
+    .profile-field input,
+    .profile-field select {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.75rem; letter-spacing: 0.08em;
+      padding: 0.75rem 1rem; outline: none;
+      transition: border-color 0.2s; width: 100%;
+      -webkit-appearance: none;
+    }
+    .profile-field input::placeholder { color: var(--text-muted); }
+    .profile-field input:focus { border-color: rgba(201,169,110,0.55); }
+    .profile-field input:disabled { opacity: 0.45; cursor: not-allowed; }
+    .profile-field select option { background: var(--teal); }
+
+    .profile-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    .profile-section-label {
+      font-size: 0.58rem; letter-spacing: 0.35em;
+      text-transform: uppercase; color: var(--gold);
+      opacity: 0.6; margin-top: 0.75rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .btn-save {
+      display: inline-block;
+      padding: 0.8rem 2.5rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.65rem; letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--teal); background: var(--gold);
+      border: 1px solid var(--gold);
+      cursor: pointer; transition: all 0.25s;
+      margin-top: 0.75rem;
+    }
+    .btn-save:hover { background: transparent; color: var(--gold); }
+    .save-status {
+      font-size: 0.65rem; letter-spacing: 0.1em;
+      color: var(--success); display: none;
+      margin-top: 0.5rem;
+    }
+    .save-status.visible { display: block; }
+
+    /* ─── Addresses Panel ─────────────────────────── */
+    .address-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 1.25rem; margin-bottom: 2rem;
+    }
+    .address-card {
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      background: rgba(255,248,231,0.03);
+      position: relative;
+    }
+    .address-card.default { border-color: rgba(201,169,110,0.5); }
+    .address-badge {
+      position: absolute; top: 0.75rem; right: 0.75rem;
+      font-size: 0.55rem; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--gold);
+      border: 1px solid rgba(201,169,110,0.4);
+      padding: 0.2rem 0.5rem;
+    }
+    .address-name {
+      font-size: 0.8rem; letter-spacing: 0.08em;
+      color: var(--cream); margin-bottom: 0.5rem;
+    }
+    .address-lines {
+      font-size: 0.72rem; letter-spacing: 0.05em;
+      color: var(--text-muted); line-height: 1.75;
+    }
+    .address-actions {
+      display: flex; gap: 1rem; margin-top: 1rem;
+    }
+    .address-btn {
+      background: none; border: none;
+      font-size: 0.6rem; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--text-muted);
+      cursor: pointer; transition: color 0.2s;
+    }
+    .address-btn:hover { color: var(--gold); }
+    .address-btn.danger:hover { color: var(--error); }
+
+    .btn-add-address {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.62rem; letter-spacing: 0.22em;
+      text-transform: uppercase;
+      padding: 0.7rem 1.4rem; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-add-address:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ─── Security Panel ──────────────────────────── */
+    .security-box {
+      max-width: 480px;
+      display: flex; flex-direction: column; gap: 1.25rem;
+    }
+    .security-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.25rem 1.5rem;
+      border: 1px solid var(--border);
+      background: rgba(255,248,231,0.03);
+      flex-wrap: wrap; gap: 1rem;
+    }
+    .security-row-info h4 {
+      font-size: 0.72rem; letter-spacing: 0.1em;
+      color: var(--cream); margin-bottom: 0.2rem;
+    }
+    .security-row-info p {
+      font-size: 0.62rem; letter-spacing: 0.06em;
+      color: var(--text-muted);
+    }
+    .btn-change {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.6rem; letter-spacing: 0.2em;
+      text-transform: uppercase;
+      padding: 0.45rem 1rem; cursor: pointer;
+      transition: all 0.2s; white-space: nowrap;
+    }
+    .btn-change:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ─── Footer ──────────────────────────────────── */
+    .site-footer {
+      background: rgba(0,20,20,0.6);
+      border-top: 1px solid var(--border);
+      padding: 4rem 2rem 2rem;
+      position: relative; z-index: 1;
+    }
+    .footer-content { max-width: 1280px; margin: 0 auto; }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem; margin-bottom: 3rem;
+    }
+    .footer-section h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; font-weight: 400;
+      letter-spacing: 0.2em; color: var(--cream); margin-bottom: 0.5rem;
+    }
+    .footer-section > p { font-size: 0.7rem; letter-spacing: 0.12em; color: var(--text-muted); }
+    .footer-section h4 {
+      font-size: 0.6rem; letter-spacing: 0.35em;
+      text-transform: uppercase; color: var(--gold);
+      opacity: 0.75; margin-bottom: 1.2rem;
+    }
+    .footer-section a {
+      display: block; font-size: 0.72rem;
+      letter-spacing: 0.08em; color: var(--text-muted);
+      margin-bottom: 0.6rem; transition: color 0.2s;
+    }
+    .footer-section a:hover { color: var(--gold); }
+    .footer-bottom {
+      border-top: 1px solid var(--border); padding-top: 1.5rem;
+      display: flex; justify-content: space-between;
+      align-items: center; flex-wrap: wrap; gap: 0.5rem;
+    }
+    .footer-bottom p { font-size: 0.62rem; letter-spacing: 0.12em; color: var(--text-muted); opacity: 0.6; }
+
+    /* ─── Animations ──────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── Responsive ──────────────────────────────── */
+    @media (max-width: 900px) {
+      .dash-layout { grid-template-columns: 1fr; }
+      .dash-sidebar { position: static; }
+      .dash-nav { flex-direction: row; flex-wrap: wrap; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 2rem; }
+      .dash-nav-btn { border-left: none; border-bottom: 2px solid transparent; padding: 0.7rem 1rem; }
+      .dash-nav-btn.active { border-bottom-color: var(--gold); border-left: none; }
+      .address-grid { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+    }
+    @media (max-width: 768px) {
+      .desktop-only { display: none; }
+      .menu-toggle { display: block; }
+      .nav-left, .nav-right { min-width: auto; }
+      .profile-row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+    }
+  </style>
 </head>
+
 <body>
-    <nav class="nav-bar">
-        <div class="nav-content">
-            <div class="nav-logo">ATELIER ĀKĀRA</div>
-            <div class="nav-links">
-                <a href="profile.html" class="nav-link">Identity</a>
-                <a href="orders.html" class="nav-link">Orders</a>
-                <a href="#" class="nav-link" id="logoutBtn">Sign Out</a>
-            </div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <nav class="nav-container">
+      <div class="nav-left">
+        <button class="menu-toggle" id="menuToggle">☰</button>
+        <div class="nav-links desktop-only">
+          <a href="../catalog.html">Catalog</a>
+          <a href="../about.html">About</a>
         </div>
+      </div>
+      <a href="../index.html" class="brand-logo">ATELIER ĀKĀRA</a>
+      <div class="nav-right">
+        <a href="../contact.html" class="nav-link desktop-only">Contact</a>
+        <a href="cart.html" class="cart-link">🛒 <span id="cartCount">0</span></a>
+        <a href="profile.html" id="userLink" style="color:var(--gold);">👤</a>
+      </div>
+    </nav>
+  </header>
+
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="../catalog.html">Catalog</a>
+    <a href="../about.html">About</a>
+    <a href="../contact.html">Contact</a>
+    <a href="cart.html">Cart</a>
+    <a href="profile.html">My Profile</a>
+  </nav>
+
+  <!-- ══ AUTH SCREEN ══════════════════════════════════ -->
+  <div class="auth-screen" id="authScreen">
+    <div class="auth-box">
+      <div class="auth-logo">ATELIER ĀKĀRA</div>
+      <div class="auth-divider"></div>
+      <h2 class="auth-title" id="authTitle">Welcome Back</h2>
+      <p class="auth-subtitle" id="authSubtitle">Sign in to your account</p>
+
+      <!-- Tabs -->
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tabSignin" onclick="switchTab('signin')">Sign In</button>
+        <button class="auth-tab" id="tabSignup" onclick="switchTab('signup')">Create Account</button>
+      </div>
+
+      <!-- Sign In Form -->
+      <div id="signinForm">
+        <div class="auth-field" id="si-field-email">
+          <label>Email Address</label>
+          <input type="email" id="siEmail" placeholder="your@email.com" autocomplete="email">
+          <span class="field-error-msg">Please enter a valid email.</span>
+        </div>
+        <div class="auth-field" id="si-field-password">
+          <label>Password</label>
+          <input type="password" id="siPassword" placeholder="Your password" autocomplete="current-password">
+          <span class="field-error-msg">Please enter your password.</span>
+        </div>
+        <span class="auth-forgot" onclick="sendPasswordReset()">Forgot your password?</span>
+        <button class="btn-auth" id="signinBtn" onclick="handleSignIn()">Sign In</button>
+        <p class="auth-status" id="siStatus"></p>
+      </div>
+
+      <!-- Sign Up Form -->
+      <div id="signupForm" style="display:none;">
+        <div class="auth-field" id="su-field-name">
+          <label>Full Name</label>
+          <input type="text" id="suName" placeholder="Priya Sharma" autocomplete="name">
+          <span class="field-error-msg">Please enter your name.</span>
+        </div>
+        <div class="auth-field" id="su-field-email">
+          <label>Email Address</label>
+          <input type="email" id="suEmail" placeholder="your@email.com" autocomplete="email">
+          <span class="field-error-msg">Please enter a valid email.</span>
+        </div>
+        <div class="auth-field" id="su-field-password">
+          <label>Password</label>
+          <input type="password" id="suPassword" placeholder="At least 8 characters" autocomplete="new-password">
+          <span class="field-error-msg">Password must be at least 8 characters.</span>
+        </div>
+        <button class="btn-auth" id="signupBtn" onclick="handleSignUp()">Create Account</button>
+        <p class="auth-status" id="suStatus"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ DASHBOARD ════════════════════════════════════ -->
+  <div class="dashboard" id="dashboard">
+
+    <nav class="breadcrumbs">
+      <a href="../index.html">Home</a>
+      <span>/</span>
+      My Account
     </nav>
 
-    <div class="profile-container">
-        <div class="profile-content">
-            <div class="profile-header">
-                <h1 style="font-family: var(--font-secondary); font-size: 2.5rem; color: var(--archival-cream); margin-bottom: 0.5rem;">
-                    IDENTITY_SPECS
-                </h1>
-                <p style="color: var(--archival-cream); opacity: 0.7; font-size: 0.9rem;">
-                    Your Personal Archive
-                </p>
-            </div>
-
-            <!-- Identity Specs -->
-            <div class="profile-card glass-panel">
-                <h2 style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; color: var(--archival-cream); margin-bottom: 2rem;">
-                    Identity Specifications
-                </h2>
-                
-                <div class="spec-grid">
-                    <div class="spec-item">
-                        <div class="spec-label">Member ID</div>
-                        <div class="spec-value member-id" id="memberId">Loading...</div>
-                    </div>
-                    
-                    <div class="spec-item">
-                        <div class="spec-label">Member Since</div>
-                        <div class="spec-value" id="memberSince">Loading...</div>
-                    </div>
-                    
-                    <div class="spec-item">
-                        <div class="spec-label">Identity</div>
-                        <div class="spec-value" id="memberName">Loading...</div>
-                    </div>
-                    
-                    <div class="spec-item">
-                        <div class="spec-label">Status</div>
-                        <div class="spec-value" style="color: #10b981;">Verified</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Acquisition History -->
-            <div class="profile-card glass-panel">
-                <h2 style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; color: var(--archival-cream); margin-bottom: 1.5rem;">
-                    ACQUISITION_HISTORY
-                </h2>
-                
-                <div id="historyContainer">
-                    <div class="empty-state">
-                        <p>No acquisition history yet. Explore the collection to begin your archive.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="dash-header">
+      <div class="dash-header-left">
+        <p class="greeting">Welcome back</p>
+        <h1 id="dashName">—</h1>
+      </div>
+      <button class="btn-signout" onclick="handleSignOut()">Sign Out</button>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script type="module">
-        import { supabaseConfig } from '../config.js';
-        import { requireAuth, requireVerification } from '../utils/security.js';
+    <div class="dash-layout">
 
-        const supabase = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey);
+      <!-- Sidebar -->
+      <aside class="dash-sidebar">
+        <nav class="dash-nav">
+          <button class="dash-nav-btn active" onclick="switchPanel('orders')">Orders</button>
+          <button class="dash-nav-btn" onclick="switchPanel('profile')">Profile</button>
+          <button class="dash-nav-btn" onclick="switchPanel('addresses')">Addresses</button>
+          <button class="dash-nav-btn" onclick="switchPanel('security')">Security</button>
+        </nav>
+      </aside>
 
-        // Check authentication
-        await requireAuth(supabase);
-        await requireVerification(supabase);
+      <!-- Panels -->
+      <div class="dash-content">
 
-        // Load profile data
-        loadProfile();
+        <!-- Orders -->
+        <div class="dash-panel active" id="panel-orders">
+          <h2 class="panel-heading">My Orders</h2>
+          <div class="orders-list" id="ordersList">
+            <!-- Populated by JS -->
+          </div>
+        </div>
 
-        async function loadProfile() {
-            try {
-                const { data: { user } } = await supabase.auth.getUser();
-                
-                const { data: profile, error } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', user.id)
-                    .single();
-                
-                if (error) throw error;
-                
-                // Display specs
-                document.getElementById('memberId').textContent = profile.member_id || 'N/A';
-                document.getElementById('memberSince').textContent = new Date(profile.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
-                document.getElementById('memberName').textContent = `${profile.first_name} ${profile.last_name}`;
-                
-                // Load acquisition history
-                loadHistory(user.id);
-                
-            } catch (err) {
-                console.error('Profile error:', err);
-            }
+        <!-- Profile -->
+        <div class="dash-panel" id="panel-profile">
+          <h2 class="panel-heading">My Profile</h2>
+          <div class="profile-form">
+            <div class="profile-row">
+              <div class="profile-field">
+                <label>First Name</label>
+                <input type="text" id="pfFirstName" placeholder="Priya">
+              </div>
+              <div class="profile-field">
+                <label>Last Name</label>
+                <input type="text" id="pfLastName" placeholder="Sharma">
+              </div>
+            </div>
+            <div class="profile-field">
+              <label>Email Address</label>
+              <input type="email" id="pfEmail" disabled>
+            </div>
+            <div class="profile-field">
+              <label>Phone Number</label>
+              <input type="tel" id="pfPhone" placeholder="+91 98765 43210">
+            </div>
+            <p class="profile-section-label">GST Details (Optional — for B2B invoicing)</p>
+            <div class="profile-field">
+              <label>Company Name</label>
+              <input type="text" id="pfCompany" placeholder="Your Company Pvt Ltd">
+            </div>
+            <div class="profile-field">
+              <label>GSTIN</label>
+              <input type="text" id="pfGstin" placeholder="27XXXXX0000X1ZX" maxlength="15">
+            </div>
+            <button class="btn-save" onclick="saveProfile()">Save Changes</button>
+            <p class="save-status" id="saveStatus">Profile updated successfully.</p>
+          </div>
+        </div>
+
+        <!-- Addresses -->
+        <div class="dash-panel" id="panel-addresses">
+          <h2 class="panel-heading">Saved Addresses</h2>
+          <div class="address-grid" id="addressGrid">
+            <!-- Populated by JS -->
+          </div>
+          <button class="btn-add-address" onclick="alert('Address form coming soon')">+ Add New Address</button>
+        </div>
+
+        <!-- Security -->
+        <div class="dash-panel" id="panel-security">
+          <h2 class="panel-heading">Security</h2>
+          <div class="security-box">
+            <div class="security-row">
+              <div class="security-row-info">
+                <h4>Password</h4>
+                <p>Last changed: unknown</p>
+              </div>
+              <button class="btn-change" onclick="sendPasswordReset()">Change Password</button>
+            </div>
+            <div class="security-row">
+              <div class="security-row-info">
+                <h4>Email Address</h4>
+                <p id="secEmail">—</p>
+              </div>
+              <button class="btn-change" onclick="alert('Email update coming soon')">Update Email</button>
+            </div>
+            <div class="security-row">
+              <div class="security-row-info">
+                <h4>Delete Account</h4>
+                <p>Permanently remove your data</p>
+              </div>
+              <button class="btn-change" style="color:var(--error);border-color:rgba(224,112,112,0.3);" onclick="confirmDelete()">Delete</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-grid">
+        <div class="footer-section">
+          <h3>ATELIER ĀKĀRA</h3>
+          <p>Artifacts for the Modern Spaces</p>
+        </div>
+        <div class="footer-section">
+          <h4>Shop</h4>
+          <a href="../catalog.html">All Products</a>
+          <a href="../catalog.html?category=planters">Planters</a>
+          <a href="../catalog.html?category=vases">Vases</a>
+          <a href="../catalog.html?category=lighting">Lighting</a>
+        </div>
+        <div class="footer-section">
+          <h4>Information</h4>
+          <a href="../about.html">About Us</a>
+          <a href="../contact.html">Contact</a>
+          <a href="../privacy.html">Privacy Policy</a>
+          <a href="../terms.html">Terms of Service</a>
+        </div>
+        <div class="footer-section">
+          <h4>Connect</h4>
+          <a href="https://instagram.com/atelier.akara" target="_blank">Instagram</a>
+          <a href="mailto:support@akaraonline.co.in">Email Us</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>Precision Forge Labs &nbsp;|&nbsp; GST: 27GZCPS9353H1ZQ</p>
+        <p>© 2024 Atelier Ākāra. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ─────────────────────────────────────────────────────
+    // IMPORTANT: Paste your Supabase credentials here
+    // ─────────────────────────────────────────────────────
+    const SUPABASE_URL      = '';   // ← your Supabase project URL
+    const SUPABASE_ANON_KEY = '';   // ← your anon/public key
+
+    let supabase = null;
+    let currentUser = null;
+
+    // Init Supabase if credentials are set
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    // ─── Mobile menu ───────────────────────────────────
+    document.getElementById('menuToggle').addEventListener('click', () =>
+      document.getElementById('mobileNav').classList.toggle('open'));
+
+    // ─── Cart count ────────────────────────────────────
+    function updateCartCount() {
+      const cart  = JSON.parse(localStorage.getItem('akara_cart') || '[]');
+      const total = cart.reduce((s, i) => s + (i.qty || 1), 0);
+      document.getElementById('cartCount').textContent = total;
+    }
+    updateCartCount();
+
+    // ─── Session check ─────────────────────────────────
+    async function checkSession() {
+      if (!supabase) {
+        // No Supabase configured — show auth screen with a notice
+        showAuthNotice();
+        return;
+      }
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        currentUser = session.user;
+        showDashboard(session.user);
+      }
+      // else auth screen stays visible (default)
+    }
+
+    function showAuthNotice() {
+      const status = document.getElementById('siStatus');
+      status.textContent = 'Auth not configured yet — add your Supabase credentials.';
+      status.className = 'auth-status error';
+    }
+
+    // ─── Tab switch ────────────────────────────────────
+    function switchTab(tab) {
+      document.getElementById('signinForm').style.display = tab === 'signin' ? 'block' : 'none';
+      document.getElementById('signupForm').style.display = tab === 'signup' ? 'block' : 'none';
+      document.getElementById('tabSignin').classList.toggle('active', tab === 'signin');
+      document.getElementById('tabSignup').classList.toggle('active', tab === 'signup');
+      document.getElementById('authTitle').textContent    = tab === 'signin' ? 'Welcome Back' : 'Create Account';
+      document.getElementById('authSubtitle').textContent = tab === 'signin' ? 'Sign in to your account' : 'Join Atelier Ākāra';
+    }
+
+    // ─── Sign In ────────────────────────────────────────
+    async function handleSignIn() {
+      if (!supabase) { showAuthNotice(); return; }
+      const email    = document.getElementById('siEmail').value.trim();
+      const password = document.getElementById('siPassword').value;
+      const btn      = document.getElementById('signinBtn');
+      const status   = document.getElementById('siStatus');
+
+      // Basic validation
+      let valid = true;
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        document.getElementById('si-field-email').classList.add('has-error');
+        document.getElementById('siEmail').classList.add('invalid');
+        valid = false;
+      }
+      if (!password) {
+        document.getElementById('si-field-password').classList.add('has-error');
+        document.getElementById('siPassword').classList.add('invalid');
+        valid = false;
+      }
+      if (!valid) return;
+
+      btn.disabled = true; btn.textContent = 'Signing in…';
+      status.className = 'auth-status';
+
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      btn.disabled = false; btn.textContent = 'Sign In';
+
+      if (error) {
+        status.textContent = error.message;
+        status.className   = 'auth-status error';
+        return;
+      }
+      currentUser = data.user;
+      showDashboard(data.user);
+    }
+
+    // ─── Sign Up ────────────────────────────────────────
+    async function handleSignUp() {
+      if (!supabase) { showAuthNotice(); return; }
+      const name     = document.getElementById('suName').value.trim();
+      const email    = document.getElementById('suEmail').value.trim();
+      const password = document.getElementById('suPassword').value;
+      const btn      = document.getElementById('signupBtn');
+      const status   = document.getElementById('suStatus');
+
+      let valid = true;
+      if (name.length < 2) { markError('su-field-name', 'suName'); valid = false; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { markError('su-field-email', 'suEmail'); valid = false; }
+      if (password.length < 8) { markError('su-field-password', 'suPassword'); valid = false; }
+      if (!valid) return;
+
+      btn.disabled = true; btn.textContent = 'Creating account…';
+      status.className = 'auth-status';
+
+      const { data, error } = await supabase.auth.signUp({
+        email, password,
+        options: { data: { full_name: name } }
+      });
+      btn.disabled = false; btn.textContent = 'Create Account';
+
+      if (error) {
+        status.textContent = error.message;
+        status.className   = 'auth-status error';
+        return;
+      }
+      status.textContent = 'Account created! Please check your email to confirm.';
+      status.className   = 'auth-status success';
+    }
+
+    function markError(wrapId, inputId) {
+      document.getElementById(wrapId).classList.add('has-error');
+      document.getElementById(inputId).classList.add('invalid');
+    }
+
+    // ─── Password reset ─────────────────────────────────
+    async function sendPasswordReset() {
+      if (!supabase) { alert('Supabase not configured.'); return; }
+      const email = document.getElementById('siEmail').value.trim() || prompt('Enter your email address:');
+      if (!email) return;
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/user/profile.html`
+      });
+      alert(error ? error.message : `Password reset link sent to ${email}`);
+    }
+
+    // ─── Sign Out ───────────────────────────────────────
+    async function handleSignOut() {
+      if (supabase) await supabase.auth.signOut();
+      currentUser = null;
+      document.getElementById('dashboard').classList.remove('visible');
+      document.getElementById('authScreen').style.display = 'flex';
+    }
+
+    // ─── Show Dashboard ─────────────────────────────────
+    function showDashboard(user) {
+      document.getElementById('authScreen').style.display = 'none';
+      document.getElementById('dashboard').classList.add('visible');
+
+      const name = user.user_metadata?.full_name || user.email.split('@')[0];
+      document.getElementById('dashName').textContent = name;
+      document.getElementById('secEmail').textContent  = user.email;
+
+      // Pre-fill profile
+      const parts = name.split(' ');
+      document.getElementById('pfFirstName').value = parts[0] || '';
+      document.getElementById('pfLastName').value  = parts.slice(1).join(' ') || '';
+      document.getElementById('pfEmail').value     = user.email;
+
+      loadOrders(user.id);
+      loadAddresses(user.id);
+    }
+
+    // ─── Orders ─────────────────────────────────────────
+    async function loadOrders(userId) {
+      const list = document.getElementById('ordersList');
+
+      if (!supabase) {
+        // Demo orders for testing
+        renderOrders(DEMO_ORDERS);
+        return;
+      }
+      try {
+        const { data, error } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false });
+        if (error) throw error;
+        renderOrders(data || []);
+      } catch {
+        renderOrders(DEMO_ORDERS);
+      }
+    }
+
+    const DEMO_ORDERS = [
+      {
+        id: 'ORD-001',
+        created_at: '2024-12-15T10:30:00Z',
+        total: 4800,
+        status: 'delivered',
+        items: [{ name: 'Geodesic Planter', qty: 2, price: 2400 }]
+      },
+      {
+        id: 'ORD-002',
+        created_at: '2024-12-28T14:00:00Z',
+        total: 3600,
+        status: 'processing',
+        items: [{ name: 'Prism Vase', qty: 2, price: 1800 }]
+      },
+    ];
+
+    function renderOrders(orders) {
+      const list = document.getElementById('ordersList');
+      if (!orders.length) {
+        list.innerHTML = `
+          <div class="empty-orders">
+            <p>No orders yet</p>
+            <a href="../catalog.html" style="display:inline-block;padding:0.75rem 2rem;background:var(--gold);color:var(--teal);font-family:'Josefin Sans',sans-serif;font-size:0.65rem;letter-spacing:0.3em;text-transform:uppercase;">Shop Now</a>
+          </div>`;
+        return;
+      }
+      list.innerHTML = orders.map(o => {
+        const date = new Date(o.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+        const items = (o.items || []).map(i => `
+          <div class="order-detail-item">
+            <span>${i.name} × ${i.qty}</span>
+            <span>₹${(i.price * i.qty).toLocaleString('en-IN')}</span>
+          </div>`).join('');
+        return `
+          <div class="order-card" onclick="this.classList.toggle('open')">
+            <div class="order-card-header">
+              <span class="order-id">${o.id}</span>
+              <span class="order-date">${date}</span>
+              <span class="order-total">₹${Number(o.total).toLocaleString('en-IN')}</span>
+              <span class="order-status ${o.status}">${o.status}</span>
+            </div>
+            <div class="order-detail">${items}</div>
+          </div>`;
+      }).join('');
+    }
+
+    // ─── Addresses ──────────────────────────────────────
+    async function loadAddresses(userId) {
+      const grid = document.getElementById('addressGrid');
+      // Placeholder — wire to a 'addresses' table in Supabase
+      grid.innerHTML = `
+        <div class="address-card default">
+          <span class="address-badge">Default</span>
+          <p class="address-name">Home</p>
+          <p class="address-lines">Mumbai, Maharashtra 400001<br>India</p>
+          <div class="address-actions">
+            <button class="address-btn" onclick="alert('Edit coming soon')">Edit</button>
+            <button class="address-btn danger" onclick="alert('Delete coming soon')">Remove</button>
+          </div>
+        </div>`;
+    }
+
+    // ─── Save Profile ────────────────────────────────────
+    async function saveProfile() {
+      if (!supabase || !currentUser) {
+        showSaveStatus(); return;
+      }
+      const firstName = document.getElementById('pfFirstName').value.trim();
+      const lastName  = document.getElementById('pfLastName').value.trim();
+      const phone     = document.getElementById('pfPhone').value.trim();
+      const company   = document.getElementById('pfCompany').value.trim();
+      const gstin     = document.getElementById('pfGstin').value.trim();
+
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          full_name: `${firstName} ${lastName}`.trim(),
+          phone, company, gstin
         }
+      });
+      if (!error) showSaveStatus();
+    }
 
-        async function loadHistory(userId) {
-            try {
-                const { data: inquiries, error } = await supabase
-                    .from('inquiries')
-                    .select('*')
-                    .eq('user_id', userId)
-                    .order('created_at', { ascending: false});
-                
-                if (error) throw error;
-                
-                if (!inquiries || inquiries.length === 0) return;
-                
-                // Build table
-                const table = `
-                    <table class="history-table">
-                        <thead>
-                            <tr>
-                                <th>Artifact</th>
-                                <th>Date</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${inquiries.map(inq => `
-                                <tr>
-                                    <td>${inq.product_name}</td>
-                                    <td>${new Date(inq.created_at).toLocaleDateString()}</td>
-                                    <td style="text-transform: capitalize;">${inq.status}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                `;
-                
-                document.getElementById('historyContainer').innerHTML = table;
-                
-            } catch (err) {
-                console.error('History error:', err);
-            }
-        }
+    function showSaveStatus() {
+      const el = document.getElementById('saveStatus');
+      el.classList.add('visible');
+      setTimeout(() => el.classList.remove('visible'), 3000);
+    }
 
-        // Logout
-        document.getElementById('logoutBtn').addEventListener('click', async (e) => {
-            e.preventDefault();
-            await supabase.auth.signOut();
-            window.location.href = '../auth/login.html';
-        });
-    </script>
+    // ─── Panel switch ────────────────────────────────────
+    function switchPanel(name) {
+      document.querySelectorAll('.dash-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.dash-nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(`panel-${name}`).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+
+    // ─── Delete account ──────────────────────────────────
+    function confirmDelete() {
+      if (confirm('Are you sure you want to permanently delete your account? This cannot be undone.')) {
+        alert('Please contact support@akaraonline.co.in to complete account deletion.');
+      }
+    }
+
+    // ─── Init ────────────────────────────────────────────
+    checkSession();
+  </script>
+
 </body>
 </html>

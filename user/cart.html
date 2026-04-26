@@ -1,52 +1,828 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shopping Cart - Atelier Ākāra</title>
-    <link rel="stylesheet" href="/auth-styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Your shopping cart — Atelier Ākāra">
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+  <title>Cart — Atelier Ākāra</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --teal:       #002b2b;
+      --teal-mid:   #004040;
+      --teal-light: #005f5f;
+      --cream:      #fff8e7;
+      --gold:       #c9a96e;
+      --gold-light: #e2c99a;
+      --text-main:  #fff8e7;
+      --text-muted: rgba(255,248,231,0.55);
+      --border:     rgba(201,169,110,0.25);
+      --input-bg:   rgba(255,248,231,0.05);
+      --error:      #e07070;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Josefin Sans', sans-serif;
+      background: var(--teal);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 15% 5%,  rgba(0,95,95,0.3)  0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 85% 90%,  rgba(0,64,64,0.35) 0%, transparent 55%);
+      pointer-events: none; z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,169,110,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,169,110,0.035) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ─── Header ──────────────────────────────────── */
+    .site-header {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(0,43,43,0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-container {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      max-width: 1280px; margin: 0 auto;
+      padding: 0 2rem; height: 64px;
+    }
+    .nav-left, .nav-right {
+      display: flex; align-items: center;
+      gap: 2rem; min-width: 180px;
+    }
+    .nav-right { justify-content: flex-end; }
+    .nav-links { display: flex; gap: 2rem; }
+    .nav-links a, .nav-link {
+      font-size: 0.7rem; font-weight: 400;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text-muted); transition: color 0.2s;
+    }
+    .nav-links a:hover, .nav-link:hover { color: var(--gold); }
+    .brand-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; font-weight: 300;
+      letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--cream); white-space: nowrap;
+    }
+    .cart-link, #userLink {
+      font-size: 0.75rem; letter-spacing: 0.1em;
+      color: var(--gold); transition: color 0.2s;
+    }
+    .cart-link:hover, #userLink:hover { color: var(--gold-light); }
+    .menu-toggle {
+      display: none; background: none; border: none;
+      color: var(--text-main); font-size: 1.2rem; cursor: pointer;
+    }
+    .mobile-nav {
+      display: none; position: fixed;
+      top: 64px; left: 0; right: 0;
+      background: rgba(0,43,43,0.97);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 1.5rem 2rem; z-index: 99;
+      flex-direction: column; gap: 1.2rem;
+    }
+    .mobile-nav.open { display: flex; }
+    .mobile-nav a {
+      font-size: 0.75rem; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--text-muted);
+      padding: 0.4rem 0;
+      border-bottom: 1px solid rgba(201,169,110,0.1);
+    }
+    .mobile-nav a:hover { color: var(--gold); }
+
+    /* ─── Page ────────────────────────────────────── */
+    .cart-page {
+      position: relative; z-index: 1;
+      max-width: 1280px; margin: 0 auto;
+      padding: 84px 2rem 6rem;
+    }
+
+    .breadcrumbs {
+      font-size: 0.62rem; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--text-muted);
+      padding: 1.5rem 0 0;
+    }
+    .breadcrumbs a { color: var(--gold); opacity: 0.7; transition: opacity 0.2s; }
+    .breadcrumbs a:hover { opacity: 1; }
+    .breadcrumbs span { opacity: 0.45; margin: 0 0.5rem; }
+
+    /* ─── Page Header ─────────────────────────────── */
+    .cart-header {
+      display: flex; align-items: baseline;
+      justify-content: space-between;
+      padding: 2.5rem 0 2rem;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap; gap: 1rem;
+    }
+    .cart-header h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 300; letter-spacing: 0.12em;
+      color: var(--cream); line-height: 1;
+    }
+    .cart-header .item-count {
+      font-size: 0.65rem; letter-spacing: 0.25em;
+      text-transform: uppercase; color: var(--text-muted);
+    }
+
+    /* ─── Main Layout ─────────────────────────────── */
+    .cart-layout {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 3rem;
+      margin-top: 2.5rem;
+      align-items: start;
+    }
+
+    /* ─── Cart Items ──────────────────────────────── */
+    .cart-items { display: flex; flex-direction: column; gap: 0; }
+
+    .cart-item {
+      display: grid;
+      grid-template-columns: 80px 1fr auto;
+      gap: 1.5rem;
+      align-items: center;
+      padding: 1.5rem 0;
+      border-bottom: 1px solid var(--border);
+      animation: fadeUp 0.4s ease both;
+    }
+
+    .item-img {
+      width: 80px; height: 80px;
+      background: rgba(0,64,64,0.4);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .item-img img { width: 100%; height: 100%; object-fit: cover; }
+    .item-img-placeholder {
+      font-size: 0.55rem; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--gold); opacity: 0.35;
+    }
+
+    .item-details {}
+    .item-category {
+      font-size: 0.58rem; letter-spacing: 0.3em;
+      text-transform: uppercase; color: var(--gold);
+      opacity: 0.7; margin-bottom: 0.25rem;
+    }
+    .item-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; font-weight: 400;
+      letter-spacing: 0.08em; color: var(--cream);
+      margin-bottom: 0.5rem;
+    }
+    .item-price {
+      font-size: 0.75rem; letter-spacing: 0.08em;
+      color: var(--gold-light);
+    }
+
+    .item-actions {
+      display: flex; flex-direction: column;
+      align-items: flex-end; gap: 0.75rem;
+    }
+
+    /* Qty stepper */
+    .qty-stepper {
+      display: flex; align-items: center;
+      border: 1px solid var(--border);
+    }
+    .qty-btn {
+      background: none; border: none;
+      color: var(--text-muted);
+      width: 32px; height: 32px;
+      font-size: 1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: color 0.2s, background 0.2s;
+    }
+    .qty-btn:hover { color: var(--gold); background: rgba(201,169,110,0.07); }
+    .qty-value {
+      width: 36px; text-align: center;
+      font-size: 0.72rem; letter-spacing: 0.1em;
+      color: var(--text-main);
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      padding: 0.4rem 0;
+    }
+
+    .remove-btn {
+      background: none; border: none;
+      font-size: 0.6rem; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--text-muted);
+      cursor: pointer; transition: color 0.2s;
+    }
+    .remove-btn:hover { color: var(--error); }
+
+    /* ─── Empty State ─────────────────────────────── */
+    .empty-cart {
+      text-align: center;
+      padding: 5rem 2rem;
+      display: none;
+    }
+    .empty-cart.visible { display: block; }
+    .empty-cart-icon {
+      width: 64px; height: 64px;
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.5rem;
+      font-size: 1.5rem; opacity: 0.4;
+    }
+    .empty-cart h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem; font-weight: 300;
+      letter-spacing: 0.1em; color: var(--cream);
+      margin-bottom: 0.75rem;
+    }
+    .empty-cart p {
+      font-size: 0.75rem; letter-spacing: 0.08em;
+      color: var(--text-muted); margin-bottom: 2rem;
+    }
+
+    /* ─── Order Summary ───────────────────────────── */
+    .order-summary {
+      background: rgba(255,248,231,0.03);
+      border: 1px solid var(--border);
+      padding: 2rem;
+      position: sticky;
+      top: 84px;
+    }
+
+    .summary-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.3rem; font-weight: 400;
+      letter-spacing: 0.1em; color: var(--cream);
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .summary-row {
+      display: flex; justify-content: space-between;
+      align-items: center;
+      padding: 0.55rem 0;
+      font-size: 0.72rem; letter-spacing: 0.08em;
+      color: var(--text-muted);
+      border-bottom: 1px solid rgba(201,169,110,0.1);
+    }
+    .summary-row:last-of-type { border-bottom: none; }
+    .summary-row.total {
+      padding-top: 1rem; margin-top: 0.5rem;
+      border-top: 1px solid var(--border);
+      border-bottom: none;
+    }
+    .summary-row.total span:first-child {
+      font-size: 0.65rem; letter-spacing: 0.25em;
+      text-transform: uppercase; color: var(--text-muted);
+    }
+    .summary-row.total span:last-child {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem; font-weight: 300;
+      color: var(--gold); letter-spacing: 0.05em;
+    }
+
+    .gst-note {
+      font-size: 0.58rem; letter-spacing: 0.1em;
+      color: var(--text-muted); opacity: 0.5;
+      margin: 0.75rem 0 1.5rem;
+      line-height: 1.6;
+    }
+
+    /* Coupon input */
+    .coupon-row {
+      display: flex; gap: 0.5rem;
+      margin: 1.25rem 0;
+    }
+    .coupon-row input {
+      flex: 1;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.7rem; letter-spacing: 0.1em;
+      padding: 0.6rem 0.9rem; outline: none;
+      transition: border-color 0.2s;
+      text-transform: uppercase;
+    }
+    .coupon-row input::placeholder { color: var(--text-muted); text-transform: none; }
+    .coupon-row input:focus { border-color: rgba(201,169,110,0.5); }
+    .coupon-apply {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--gold);
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.6rem; letter-spacing: 0.2em;
+      text-transform: uppercase;
+      padding: 0 0.9rem; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .coupon-apply:hover { border-color: var(--gold); background: rgba(201,169,110,0.06); }
+    .coupon-msg {
+      font-size: 0.62rem; letter-spacing: 0.1em;
+      margin-top: 0.25rem; display: none;
+    }
+    .coupon-msg.error { color: var(--error); display: block; }
+    .coupon-msg.success { color: #70c9a0; display: block; }
+
+    /* Checkout button */
+    .btn-checkout {
+      display: block; width: 100%;
+      padding: 1rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.65rem; font-weight: 400;
+      letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--teal); background: var(--gold);
+      border: 1px solid var(--gold);
+      cursor: pointer; transition: all 0.25s;
+      margin-bottom: 0.75rem;
+      text-align: center;
+    }
+    .btn-checkout:hover { background: transparent; color: var(--gold); }
+    .btn-checkout:disabled { opacity: 0.4; cursor: not-allowed; background: var(--gold); color: var(--teal); }
+
+    .btn-continue {
+      display: block; width: 100%;
+      padding: 0.75rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.62rem; font-weight: 400;
+      letter-spacing: 0.25em; text-transform: uppercase;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      background: none; cursor: pointer;
+      transition: all 0.25s; text-align: center;
+    }
+    .btn-continue:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* Security badges */
+    .trust-row {
+      display: flex; gap: 1rem;
+      justify-content: center;
+      margin-top: 1.25rem;
+    }
+    .trust-badge {
+      font-size: 0.58rem; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--text-muted);
+      opacity: 0.45; display: flex; align-items: center; gap: 0.3rem;
+    }
+
+    /* ─── You may also like ───────────────────────── */
+    .upsell-section {
+      margin-top: 5rem;
+      border-top: 1px solid var(--border);
+      padding-top: 3.5rem;
+    }
+    .upsell-header {
+      display: flex; align-items: baseline;
+      justify-content: space-between; margin-bottom: 2rem;
+      flex-wrap: wrap; gap: 1rem;
+    }
+    .section-label {
+      font-size: 0.6rem; letter-spacing: 0.4em;
+      text-transform: uppercase; color: var(--gold); opacity: 0.7;
+    }
+    .upsell-header h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+      font-weight: 300; letter-spacing: 0.1em; color: var(--cream);
+    }
+    .upsell-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem;
+    }
+    .upsell-card {
+      border: 1px solid var(--border);
+      background: rgba(255,248,231,0.03);
+      cursor: pointer; transition: transform 0.3s, border-color 0.3s;
+    }
+    .upsell-card:hover { transform: translateY(-4px); border-color: rgba(201,169,110,0.5); }
+    .upsell-img {
+      aspect-ratio: 1;
+      background: rgba(0,64,64,0.4);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .upsell-img span { font-size: 0.58rem; letter-spacing: 0.2em; color: var(--gold); opacity: 0.3; text-transform: uppercase; }
+    .upsell-body { padding: 1rem; }
+    .upsell-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem; font-weight: 400;
+      color: var(--cream); margin-bottom: 0.3rem;
+    }
+    .upsell-price { font-size: 0.72rem; color: var(--gold-light); }
+
+    /* ─── Footer ──────────────────────────────────── */
+    .site-footer {
+      background: rgba(0,20,20,0.6);
+      border-top: 1px solid var(--border);
+      padding: 4rem 2rem 2rem;
+      position: relative; z-index: 1;
+    }
+    .footer-content { max-width: 1280px; margin: 0 auto; }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem; margin-bottom: 3rem;
+    }
+    .footer-section h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; font-weight: 400;
+      letter-spacing: 0.2em; color: var(--cream); margin-bottom: 0.5rem;
+    }
+    .footer-section > p { font-size: 0.7rem; letter-spacing: 0.12em; color: var(--text-muted); }
+    .footer-section h4 {
+      font-size: 0.6rem; letter-spacing: 0.35em;
+      text-transform: uppercase; color: var(--gold);
+      opacity: 0.75; margin-bottom: 1.2rem;
+    }
+    .footer-section a {
+      display: block; font-size: 0.72rem;
+      letter-spacing: 0.08em; color: var(--text-muted);
+      margin-bottom: 0.6rem; transition: color 0.2s;
+    }
+    .footer-section a:hover { color: var(--gold); }
+    .footer-bottom {
+      border-top: 1px solid var(--border); padding-top: 1.5rem;
+      display: flex; justify-content: space-between;
+      align-items: center; flex-wrap: wrap; gap: 0.5rem;
+    }
+    .footer-bottom p { font-size: 0.62rem; letter-spacing: 0.12em; color: var(--text-muted); opacity: 0.6; }
+
+    /* ─── Animations ──────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .cart-layout, .upsell-section { animation: fadeUp 0.6s ease both; }
+
+    /* ─── Responsive ──────────────────────────────── */
+    @media (max-width: 1024px) {
+      .cart-layout { grid-template-columns: 1fr; }
+      .order-summary { position: static; }
+      .upsell-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .desktop-only { display: none; }
+      .menu-toggle { display: block; }
+      .nav-left, .nav-right { min-width: auto; }
+      .cart-item { grid-template-columns: 64px 1fr; }
+      .item-actions { flex-direction: row; align-items: center; gap: 1rem; grid-column: 1 / -1; }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+    }
+    @media (max-width: 480px) {
+      .upsell-grid { grid-template-columns: 1fr 1fr; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+    }
+  </style>
 </head>
+
 <body>
-    <header class="site-header">
-        <nav class="nav-container">
-            <div class="nav-center">
-                <a href="/" class="brand-logo">ATELIER ĀKĀRA</a>
-            </div>
-        </nav>
-    </header>
-    
-    <main class="cart-page">
-        <h1>Shopping Cart</h1>
-        
-        <div class="cart-container">
-            <div class="cart-items" id="cartItems">
-                <!-- Cart items loaded here -->
-            </div>
-            
-            <div class="cart-summary">
-                <h2>Order Summary</h2>
-                <div class="summary-row">
-                    <span>Subtotal:</span>
-                    <span id="subtotal">₹0</span>
-                </div>
-                <div class="summary-row">
-                    <span>Shipping:</span>
-                    <span id="shipping">FREE</span>
-                </div>
-                <div class="summary-row total">
-                    <span>Total:</span>
-                    <span id="total">₹0</span>
-                </div>
-                
-                <button class="btn-primary" onclick="proceedToCheckout()">Proceed to Checkout</button>
-                <a href="/catalog.html" class="btn-secondary">Continue Shopping</a>
-            </div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <nav class="nav-container">
+      <div class="nav-left">
+        <button class="menu-toggle" id="menuToggle">☰</button>
+        <div class="nav-links desktop-only">
+          <a href="../catalog.html">Catalog</a>
+          <a href="../about.html">About</a>
         </div>
-    </main>
-    
-    <script type="module">
-        // Cart functionality will be implemented with Supabase
-        console.log('Cart page loaded');
-    </script>
+      </div>
+      <a href="../index.html" class="brand-logo">ATELIER ĀKĀRA</a>
+      <div class="nav-right">
+        <a href="../contact.html" class="nav-link desktop-only">Contact</a>
+        <a href="cart.html" class="cart-link">🛒 <span id="cartCount">0</span></a>
+        <a href="profile.html" id="userLink">👤</a>
+      </div>
+    </nav>
+  </header>
+
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="../catalog.html">Catalog</a>
+    <a href="../about.html">About</a>
+    <a href="../contact.html">Contact</a>
+    <a href="cart.html">Cart</a>
+    <a href="profile.html">My Profile</a>
+  </nav>
+
+  <!-- Page -->
+  <main class="cart-page">
+
+    <nav class="breadcrumbs">
+      <a href="../index.html">Home</a>
+      <span>/</span>
+      Cart
+    </nav>
+
+    <div class="cart-header">
+      <h1>Your Cart</h1>
+      <span class="item-count" id="itemCountLabel"></span>
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-cart" id="emptyCart">
+      <div class="empty-cart-icon">🛒</div>
+      <h2>Your cart is empty</h2>
+      <p>Looks like you haven't added anything yet.</p>
+      <a href="../catalog.html" class="btn-checkout" style="display:inline-block;width:auto;padding:0.85rem 2.5rem;text-decoration:none;">Browse Collection</a>
+    </div>
+
+    <!-- Cart layout (hidden when empty) -->
+    <div class="cart-layout" id="cartLayout">
+
+      <!-- Items -->
+      <div class="cart-items" id="cartItems"></div>
+
+      <!-- Summary -->
+      <aside class="order-summary">
+        <h2 class="summary-title">Order Summary</h2>
+
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span id="subtotalVal">₹0</span>
+        </div>
+        <div class="summary-row">
+          <span>GST (18%)</span>
+          <span id="gstVal">₹0</span>
+        </div>
+        <div class="summary-row">
+          <span>Shipping</span>
+          <span id="shippingVal">Calculated at checkout</span>
+        </div>
+        <div class="summary-row total">
+          <span>Total</span>
+          <span id="totalVal">₹0</span>
+        </div>
+
+        <p class="gst-note">All prices are GST-inclusive (CGST 9% + SGST 9% or IGST 18% for interstate orders). Final shipping calculated at checkout.</p>
+
+        <!-- Coupon -->
+        <div class="coupon-row">
+          <input type="text" id="couponInput" placeholder="Enter coupon code">
+          <button class="coupon-apply" onclick="applyCoupon()">Apply</button>
+        </div>
+        <p class="coupon-msg" id="couponMsg"></p>
+
+        <button class="btn-checkout" id="checkoutBtn" onclick="proceedToCheckout()">Proceed to Checkout</button>
+        <a href="../catalog.html" class="btn-continue">Continue Shopping</a>
+
+        <div class="trust-row">
+          <span class="trust-badge">🔒 Secure</span>
+          <span class="trust-badge">↩ 7-day returns</span>
+          <span class="trust-badge">✓ GST Invoice</span>
+        </div>
+      </aside>
+
+    </div>
+
+    <!-- Upsell -->
+    <div class="upsell-section" id="upsellSection">
+      <div class="upsell-header">
+        <div>
+          <p class="section-label">Complete the Look</p>
+          <h2>You May Also Like</h2>
+        </div>
+        <a href="../catalog.html" style="font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);opacity:0.75;transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.75">View All →</a>
+      </div>
+      <div class="upsell-grid" id="upsellGrid"></div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-grid">
+        <div class="footer-section">
+          <h3>ATELIER ĀKĀRA</h3>
+          <p>Artifacts for the Modern Spaces</p>
+        </div>
+        <div class="footer-section">
+          <h4>Shop</h4>
+          <a href="../catalog.html">All Products</a>
+          <a href="../catalog.html?category=planters">Planters</a>
+          <a href="../catalog.html?category=vases">Vases</a>
+          <a href="../catalog.html?category=lighting">Lighting</a>
+        </div>
+        <div class="footer-section">
+          <h4>Information</h4>
+          <a href="../about.html">About Us</a>
+          <a href="../contact.html">Contact</a>
+          <a href="../privacy.html">Privacy Policy</a>
+          <a href="../terms.html">Terms of Service</a>
+        </div>
+        <div class="footer-section">
+          <h4>Connect</h4>
+          <a href="https://instagram.com/atelier.akara" target="_blank">Instagram</a>
+          <a href="mailto:support@akaraonline.co.in">Email Us</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>Precision Forge Labs &nbsp;|&nbsp; GST: 27GZCPS9353H1ZQ</p>
+        <p>© 2024 Atelier Ākāra. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ─── Constants ─────────────────────────────────────
+    const SUPABASE_URL      = '';
+    const SUPABASE_ANON_KEY = '';
+
+    const UPSELL_PLACEHOLDERS = [
+      { name: 'Geodesic Planter',  category: 'Planters', price: 2400 },
+      { name: 'Prism Vase',        category: 'Vases',    price: 1800 },
+      { name: 'Hexagon Planter',   category: 'Planters', price: 3200 },
+      { name: 'Faceted Pendant',   category: 'Lighting', price: 4800 },
+    ];
+
+    // ─── Mobile menu ───────────────────────────────────
+    document.getElementById('menuToggle').addEventListener('click', () =>
+      document.getElementById('mobileNav').classList.toggle('open'));
+
+    // ─── Cart storage helpers ──────────────────────────
+    const getCart   = ()         => JSON.parse(localStorage.getItem('akara_cart') || '[]');
+    const saveCart  = cart       => localStorage.setItem('akara_cart', JSON.stringify(cart));
+
+    // ─── Product cache (fetched once from Supabase) ────
+    let productCache = {};
+
+    async function getProduct(id) {
+      if (productCache[id]) return productCache[id];
+      if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return null;
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/products?id=eq.${id}&select=*`, {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          }
+        });
+        const data = await res.json();
+        if (data[0]) productCache[id] = data[0];
+        return data[0] || null;
+      } catch { return null; }
+    }
+
+    // ─── Render cart ───────────────────────────────────
+    async function renderCart() {
+      const cart     = getCart();
+      const empty    = document.getElementById('emptyCart');
+      const layout   = document.getElementById('cartLayout');
+      const itemsEl  = document.getElementById('cartItems');
+      const countLbl = document.getElementById('itemCountLabel');
+
+      const totalItems = cart.reduce((s, i) => s + (i.qty || 1), 0);
+      document.getElementById('cartCount').textContent = totalItems;
+      countLbl.textContent = totalItems === 1 ? '1 item' : `${totalItems} items`;
+
+      if (!cart.length) {
+        empty.classList.add('visible');
+        layout.style.display = 'none';
+        document.getElementById('upsellSection').style.marginTop = '3rem';
+        renderUpsell([]);
+        return;
+      }
+
+      empty.classList.remove('visible');
+      layout.style.display = 'grid';
+
+      // Build enriched items
+      const enriched = await Promise.all(cart.map(async (item, idx) => {
+        const product = await getProduct(item.id);
+        return { ...item, product, idx };
+      }));
+
+      itemsEl.innerHTML = enriched.map(({ item, product, id, qty, idx }, i) => {
+        const name     = product?.name     || `Product #${id}`;
+        const cat      = product?.category || '';
+        const price    = product?.price    || item.price || 0;
+        const imgUrl   = product?.image_url || '';
+        const lineTotal = price * (qty || 1);
+        return `
+          <div class="cart-item" style="animation-delay:${i * 0.07}s" data-id="${id}">
+            <div class="item-img">
+              ${imgUrl
+                ? `<img src="${imgUrl}" alt="${name}">`
+                : `<span class="item-img-placeholder">Image</span>`}
+            </div>
+            <div class="item-details">
+              <p class="item-category">${cat}</p>
+              <p class="item-name">${name}</p>
+              <p class="item-price">₹${Number(lineTotal).toLocaleString('en-IN')}</p>
+            </div>
+            <div class="item-actions">
+              <div class="qty-stepper">
+                <button class="qty-btn" onclick="changeQty('${id}', -1)">−</button>
+                <span class="qty-value">${qty || 1}</span>
+                <button class="qty-btn" onclick="changeQty('${id}', 1)">+</button>
+              </div>
+              <button class="remove-btn" onclick="removeItem('${id}')">Remove</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      updateTotals(enriched);
+      renderUpsell(enriched.map(e => e.id));
+    }
+
+    // ─── Totals ────────────────────────────────────────
+    function updateTotals(enriched) {
+      const cart = getCart();
+      let subtotal = 0;
+      enriched.forEach(({ id, qty, product }) => {
+        const price = product?.price || 0;
+        subtotal += price * (qty || 1);
+      });
+
+      // Since prices are GST-inclusive, extract GST (18%)
+      const gst      = Math.round(subtotal - subtotal / 1.18);
+      const baseAmt  = subtotal - gst;
+
+      document.getElementById('subtotalVal').textContent = `₹${subtotal.toLocaleString('en-IN')}`;
+      document.getElementById('gstVal').textContent      = `₹${gst.toLocaleString('en-IN')} (incl.)`;
+      document.getElementById('totalVal').textContent    = `₹${subtotal.toLocaleString('en-IN')}`;
+    }
+
+    // ─── Qty & remove ──────────────────────────────────
+    function changeQty(id, delta) {
+      const cart = getCart();
+      const item = cart.find(i => i.id === id);
+      if (!item) return;
+      item.qty = Math.max(1, (item.qty || 1) + delta);
+      saveCart(cart);
+      renderCart();
+    }
+
+    function removeItem(id) {
+      const cart = getCart().filter(i => i.id !== id);
+      saveCart(cart);
+      renderCart();
+    }
+
+    // ─── Coupon ────────────────────────────────────────
+    function applyCoupon() {
+      const code = document.getElementById('couponInput').value.trim().toUpperCase();
+      const msg  = document.getElementById('couponMsg');
+      // Placeholder — wire up real coupon logic via Supabase
+      if (code === 'AKARA10') {
+        msg.textContent = '10% discount applied!';
+        msg.className   = 'coupon-msg success';
+      } else {
+        msg.textContent = 'Invalid or expired coupon code.';
+        msg.className   = 'coupon-msg error';
+      }
+    }
+
+    // ─── Checkout ──────────────────────────────────────
+    function proceedToCheckout() {
+      // Wire to your checkout/payment flow here (Razorpay, etc.)
+      alert('Checkout flow coming soon — wire up your payment gateway here.');
+    }
+
+    // ─── Upsell ────────────────────────────────────────
+    function renderUpsell(excludeIds) {
+      const grid = document.getElementById('upsellGrid');
+      const items = UPSELL_PLACEHOLDERS.filter((_, i) => !excludeIds.includes(String(i + 1)));
+      grid.innerHTML = UPSELL_PLACEHOLDERS.map(p => `
+        <div class="upsell-card" onclick="window.location='../catalog.html'">
+          <div class="upsell-img"><span>Image</span></div>
+          <div class="upsell-body">
+            <p class="upsell-name">${p.name}</p>
+            <p class="upsell-price">₹${p.price.toLocaleString('en-IN')}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ─── Init ──────────────────────────────────────────
+    renderCart();
+  </script>
+
 </body>
 </html>
