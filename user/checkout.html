@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Atelier Ākāra</title>
+    <link rel="stylesheet" href="../auth-styles.css">
+    <style>
+        .checkout-container {
+            min-height: 100vh;
+            padding: 2rem;
+            padding-top: 100px;
+        }
+        
+        .checkout-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .checkout-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .checkout-card {
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .section-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--archival-cream);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        
+        .nav-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 43, 43, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            z-index: 1000;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        
+        .nav-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-logo {
+            font-family: var(--font-secondary);
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            color: var(--archival-cream);
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .nav-link {
+            color: var(--archival-cream);
+            text-decoration: none;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+        
+        .nav-link:hover {
+            opacity: 1;
+        }
+        
+        .order-summary {
+            background: rgba(255, 248, 231, 0.05);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+        
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        
+        .order-item:last-child {
+            border-bottom: none;
+        }
+        
+        .order-total {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 2px solid var(--archival-cream);
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav-bar">
+        <div class="nav-content">
+            <div class="nav-logo">ATELIER ĀKĀRA</div>
+            <div class="nav-links">
+                <a href="profile.html" class="nav-link">Identity</a>
+                <a href="orders.html" class="nav-link">Orders</a>
+                <a href="#" class="nav-link" id="logoutBtn">Sign Out</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="checkout-container">
+        <div class="checkout-content">
+            <div class="checkout-header">
+                <h1 style="font-family: var(--font-secondary); font-size: 2.5rem; color: var(--archival-cream); margin-bottom: 0.5rem;">
+                    CHECKOUT
+                </h1>
+                <p style="color: var(--archival-cream); opacity: 0.7;">
+                    Complete your acquisition
+                </p>
+            </div>
+
+            <div id="message-container"></div>
+
+            <!-- Address Form -->
+            <div class="checkout-card glass-panel">
+                <h2 class="section-title">Shipping Address</h2>
+
+                <form id="checkoutForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName" class="form-label">First Name *</label>
+                            <input 
+                                type="text" 
+                                id="firstName" 
+                                name="firstName" 
+                                class="form-input" 
+                                required
+                                autocomplete="given-name"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="lastName" class="form-label">Last Name *</label>
+                            <input 
+                                type="text" 
+                                id="lastName" 
+                                name="lastName" 
+                                class="form-input" 
+                                required
+                                autocomplete="family-name"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="phone" class="form-label">Mobile Number *</label>
+                            <input 
+                                type="tel" 
+                                id="phone" 
+                                name="phone" 
+                                class="form-input" 
+                                placeholder="10-digit number"
+                                required
+                                autocomplete="tel"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email" class="form-label">Email *</label>
+                            <input 
+                                type="email" 
+                                id="email" 
+                                name="email" 
+                                class="form-input" 
+                                required
+                                autocomplete="email"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="addressLine1" class="form-label">Address Line 1 *</label>
+                        <input 
+                            type="text" 
+                            id="addressLine1" 
+                            name="addressLine1" 
+                            class="form-input" 
+                            placeholder="House number, building name"
+                            required
+                            autocomplete="address-line1"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="addressLine2" class="form-label">Address Line 2</label>
+                        <input 
+                            type="text" 
+                            id="addressLine2" 
+                            name="addressLine2" 
+                            class="form-input" 
+                            placeholder="Street, locality (optional)"
+                            autocomplete="address-line2"
+                        >
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="city" class="form-label">City *</label>
+                            <input 
+                                type="text" 
+                                id="city" 
+                                name="city" 
+                                class="form-input" 
+                                required
+                                autocomplete="address-level2"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="state" class="form-label">State *</label>
+                            <input 
+                                type="text" 
+                                id="state" 
+                                name="state" 
+                                class="form-input" 
+                                required
+                                autocomplete="address-level1"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pincode" class="form-label">Pincode *</label>
+                        <input 
+                            type="text" 
+                            id="pincode" 
+                            name="pincode" 
+                            class="form-input" 
+                            placeholder="6-digit pincode"
+                            required
+                            maxlength="6"
+                            autocomplete="postal-code"
+                        >
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="checkoutBtn" style="margin-top: 2rem;">
+                        <span id="btnText">Place Order</span>
+                        <span id="btnSpinner" class="spinner" style="display: none;"></span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="checkout-card glass-panel">
+                <h2 class="section-title">Order Summary</h2>
+                <div class="order-summary" id="orderSummary">
+                    <p style="text-align: center; opacity: 0.6;">Loading order details...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module">
+        import { supabaseConfig } from '../config.js';
+        import { 
+            requireAuth, 
+            requireVerification,
+            sanitizeInput,
+            isValidEmail,
+            isValidPhone,
+            isValidPincode,
+            isValidName,
+            isRequired,
+            initializeFormSecurity,
+            displayErrors,
+            clearErrors
+        } from '../utils/security.js';
+
+        const supabase = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey);
+
+        // Check authentication
+        await requireAuth(supabase);
+        await requireVerification(supabase);
+
+        // Initialize form security
+        const form = document.getElementById('checkoutForm');
+        initializeFormSecurity(form);
+
+        // Load user data and prefill
+        loadUserData();
+
+        // Mock order items (replace with actual cart data)
+        const orderItems = [
+            { name: 'Tattva Vase', price: 999, quantity: 1 },
+            { name: 'Vāyu Planter', price: 699, quantity: 1 }
+        ];
+
+        displayOrderSummary();
+
+        async function loadUserData() {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+                
+                if (profile) {
+                    document.getElementById('firstName').value = profile.first_name || '';
+                    document.getElementById('lastName').value = profile.last_name || '';
+                    document.getElementById('email').value = user.email || '';
+                    if (profile.phone) {
+                        document.getElementById('phone').value = profile.phone;
+                    }
+                }
+            } catch (err) {
+                console.error('Load user data error:', err);
+            }
+        }
+
+        function displayOrderSummary() {
+            const subtotal = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const shipping = subtotal >= 2000 ? 0 : 150;
+            const total = subtotal + shipping;
+
+            const html = `
+                ${orderItems.map(item => `
+                    <div class="order-item">
+                        <span>${item.name} × ${item.quantity}</span>
+                        <span>₹${item.price}</span>
+                    </div>
+                `).join('')}
+                <div class="order-item">
+                    <span>Subtotal</span>
+                    <span>₹${subtotal}</span>
+                </div>
+                <div class="order-item">
+                    <span>Shipping</span>
+                    <span>${shipping === 0 ? 'Free' : '₹' + shipping}</span>
+                </div>
+                <div class="order-item order-total">
+                    <span>Total</span>
+                    <span>₹${total}</span>
+                </div>
+            `;
+
+            document.getElementById('orderSummary').innerHTML = html;
+        }
+
+        // Handle form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearErrors();
+            
+            // Sanitize all inputs
+            const formData = {
+                firstName: sanitizeInput(document.getElementById('firstName').value),
+                lastName: sanitizeInput(document.getElementById('lastName').value),
+                phone: sanitizeInput(document.getElementById('phone').value),
+                email: sanitizeInput(document.getElementById('email').value),
+                addressLine1: sanitizeInput(document.getElementById('addressLine1').value),
+                addressLine2: sanitizeInput(document.getElementById('addressLine2').value),
+                city: sanitizeInput(document.getElementById('city').value),
+                state: sanitizeInput(document.getElementById('state').value),
+                pincode: sanitizeInput(document.getElementById('pincode').value)
+            };
+
+            // Validate all required fields
+            const errors = {};
+
+            if (!isRequired(formData.firstName)) errors.firstName = 'First name is required';
+            else if (!isValidName(formData.firstName)) errors.firstName = 'Invalid first name';
+
+            if (!isRequired(formData.lastName)) errors.lastName = 'Last name is required';
+            else if (!isValidName(formData.lastName)) errors.lastName = 'Invalid last name';
+
+            if (!isRequired(formData.phone)) errors.phone = 'Mobile number is required';
+            else if (!isValidPhone(formData.phone)) errors.phone = 'Invalid mobile number (10 digits required)';
+
+            if (!isRequired(formData.email)) errors.email = 'Email is required';
+            else if (!isValidEmail(formData.email)) errors.email = 'Invalid email address';
+
+            if (!isRequired(formData.addressLine1)) errors.addressLine1 = 'Address is required';
+
+            if (!isRequired(formData.city)) errors.city = 'City is required';
+
+            if (!isRequired(formData.state)) errors.state = 'State is required';
+
+            if (!isRequired(formData.pincode)) errors.pincode = 'Pincode is required';
+            else if (!isValidPincode(formData.pincode)) errors.pincode = 'Invalid pincode (6 digits required)';
+
+            if (Object.keys(errors).length > 0) {
+                displayErrors(errors);
+                showMessage('Please fix the errors above', 'error');
+                return;
+            }
+
+            setLoading(true);
+
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+
+                // Save address
+                const { data: address, error: addressError } = await supabase
+                    .from('addresses')
+                    .insert({
+                        user_id: user.id,
+                        first_name: formData.firstName,
+                        last_name: formData.lastName,
+                        phone: formData.phone,
+                        email: formData.email,
+                        address_line1: formData.addressLine1,
+                        address_line2: formData.addressLine2,
+                        city: formData.city,
+                        state: formData.state,
+                        pincode: formData.pincode,
+                        is_default: true
+                    })
+                    .select()
+                    .single();
+
+                if (addressError) throw addressError;
+
+                // Create order
+                const subtotal = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                const shipping = subtotal >= 2000 ? 0 : 150;
+                const total = subtotal + shipping;
+
+                const orderNumber = 'AK' + Date.now().toString().slice(-8);
+
+                const { data: order, error: orderError } = await supabase
+                    .from('orders')
+                    .insert({
+                        order_number: orderNumber,
+                        user_id: user.id,
+                        address_id: address.id,
+                        items: orderItems,
+                        subtotal: subtotal,
+                        shipping: shipping,
+                        total: total,
+                        status: 'pending',
+                        payment_status: 'pending'
+                    })
+                    .select()
+                    .single();
+
+                if (orderError) throw orderError;
+
+                showMessage('Order placed successfully! Order #' + orderNumber, 'success');
+
+                setTimeout(() => {
+                    window.location.href = 'orders.html';
+                }, 2000);
+
+            } catch (err) {
+                console.error('Checkout error:', err);
+                showMessage('Failed to place order. Please try again.', 'error');
+                setLoading(false);
+            }
+        });
+
+        function setLoading(loading) {
+            const btn = document.getElementById('checkoutBtn');
+            const btnText = document.getElementById('btnText');
+            const btnSpinner = document.getElementById('btnSpinner');
+            
+            btn.disabled = loading;
+            btnText.style.display = loading ? 'none' : 'inline';
+            btnSpinner.style.display = loading ? 'inline-block' : 'none';
+        }
+
+        function showMessage(text, type = 'info') {
+            const container = document.getElementById('message-container');
+            container.innerHTML = `
+                <div class="message message-${type}">
+                    ${text}
+                </div>
+            `;
+            window.scrollTo(0, 0);
+        }
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            await supabase.auth.signOut();
+            window.location.href = '../auth/login.html';
+        });
+    </script>
+</body>
+</html>

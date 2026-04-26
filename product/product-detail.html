@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product - Atelier Ākāra</title>
+    <link rel="stylesheet" href="/auth-styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <nav class="nav-container">
+            <div class="nav-center">
+                <a href="/" class="brand-logo">ATELIER ĀKĀRA</a>
+            </div>
+        </nav>
+    </header>
+    
+    <main class="product-detail-page">
+        <nav class="breadcrumbs">
+            <a href="/">Home</a> / <a href="/catalog.html">Catalog</a> / <span id="productName"></span>
+        </nav>
+        
+        <div class="product-detail-grid">
+            <div class="product-images">
+                <div class="main-image">
+                    <img id="mainImage" src="" alt="">
+                </div>
+                <div class="image-thumbnails" id="thumbnails">
+                    <!-- Thumbnails loaded here -->
+                </div>
+            </div>
+            
+            <div class="product-info">
+                <h1 id="productTitle"></h1>
+                <div class="product-rating">
+                    <span class="stars">★★★★★</span>
+                    <span class="review-count">(0 reviews)</span>
+                </div>
+                
+                <p class="product-price" id="productPrice">₹0</p>
+                
+                <div class="product-variants">
+                    <div class="variant-group">
+                        <label>Size:</label>
+                        <div class="variant-options" id="sizeOptions"></div>
+                    </div>
+                    
+                    <div class="variant-group">
+                        <label>Color:</label>
+                        <div class="variant-options" id="colorOptions"></div>
+                    </div>
+                </div>
+                
+                <div class="stock-status">
+                    <span class="in-stock">✓ In Stock</span>
+                </div>
+                
+                <div class="quantity-selector">
+                    <label>Quantity:</label>
+                    <button onclick="decreaseQty()">-</button>
+                    <input type="number" id="quantity" value="1" min="1">
+                    <button onclick="increaseQty()">+</button>
+                </div>
+                
+                <div class="product-actions">
+                    <button class="btn-primary" onclick="addToCart()">Add to Cart</button>
+                    <button class="btn-secondary" onclick="buyNow()">Buy Now</button>
+                    <button class="btn-icon" onclick="addToWishlist()">❤ Add to Wishlist</button>
+                </div>
+                
+                <div class="product-description">
+                    <h2>Description</h2>
+                    <p id="productDescription"></p>
+                </div>
+                
+                <div class="product-features">
+                    <h2>Features</h2>
+                    <ul id="productFeatures"></ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="related-products">
+            <h2>You May Also Like</h2>
+            <div class="product-grid" id="relatedProducts"></div>
+        </div>
+        
+        <div class="product-reviews">
+            <h2>Customer Reviews</h2>
+            <div id="reviewsList"></div>
+        </div>
+    </main>
+    
+    <script>
+        function decreaseQty() {
+            const input = document.getElementById('quantity');
+            if (input.value > 1) input.value = parseInt(input.value) - 1;
+        }
+        
+        function increaseQty() {
+            const input = document.getElementById('quantity');
+            input.value = parseInt(input.value) + 1;
+        }
+        
+        function addToCart() {
+            // Add to cart logic
+            alert('Added to cart!');
+        }
+        
+        function buyNow() {
+            // Buy now logic
+            window.location.href = '/user/checkout.html';
+        }
+        
+        function addToWishlist() {
+            // Wishlist logic
+            alert('Added to wishlist!');
+        }
+    </script>
+</body>
+</html>

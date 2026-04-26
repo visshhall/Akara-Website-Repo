@@ -1,0 +1,12 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /user/
+Disallow: /auth/callback.html
+Disallow: /netlify/
+
+Allow: /
+Allow: /catalog.html
+Allow: /about.html
+Allow: /contact.html
+
+Sitemap: https://akaraonline.co.in/sitemap.xml

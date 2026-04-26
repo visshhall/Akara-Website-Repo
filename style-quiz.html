@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Style Quiz - Atelier Ākāra</title>
+    <link rel="stylesheet" href="/auth-styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <nav class="nav-container">
+            <div class="nav-center">
+                <a href="/" class="brand-logo">ATELIER ĀKĀRA</a>
+            </div>
+        </nav>
+    </header>
+    
+    <main class="quiz-page">
+        <h1>Find Your Perfect Style</h1>
+        <p class="subtitle">Answer 5 quick questions to get personalized recommendations</p>
+        
+        <div class="quiz-container" id="quizContainer">
+            <div class="quiz-question active" data-question="1">
+                <h2>What's your interior style?</h2>
+                <div class="quiz-options">
+                    <button class="quiz-option" data-value="modern">Modern Minimalist</button>
+                    <button class="quiz-option" data-value="traditional">Traditional</button>
+                    <button class="quiz-option" data-value="eclectic">Eclectic</button>
+                    <button class="quiz-option" data-value="industrial">Industrial</button>
+                </div>
+            </div>
+            
+            <div class="quiz-question" data-question="2">
+                <h2>Preferred color palette?</h2>
+                <div class="quiz-options">
+                    <button class="quiz-option" data-value="neutral">Neutrals (Beige, Cream, White)</button>
+                    <button class="quiz-option" data-value="dark">Dark (Black, Charcoal)</button>
+                    <button class="quiz-option" data-value="colorful">Colorful</button>
+                    <button class="quiz-option" data-value="mixed">Mix & Match</button>
+                </div>
+            </div>
+            
+            <div class="quiz-question" data-question="3">
+                <h2>Room size?</h2>
+                <div class="quiz-options">
+                    <button class="quiz-option" data-value="small">Small (< 150 sq ft)</button>
+                    <button class="quiz-option" data-value="medium">Medium (150-250 sq ft)</button>
+                    <button class="quiz-option" data-value="large">Large (> 250 sq ft)</button>
+                </div>
+            </div>
+            
+            <div class="quiz-question" data-question="4">
+                <h2>Budget range?</h2>
+                <div class="quiz-options">
+                    <button class="quiz-option" data-value="budget">Under ₹2,000</button>
+                    <button class="quiz-option" data-value="mid">₹2,000 - ₹5,000</button>
+                    <button class="quiz-option" data-value="premium">Above ₹5,000</button>
+                </div>
+            </div>
+            
+            <div class="quiz-question" data-question="5">
+                <h2>What do you need most?</h2>
+                <div class="quiz-options">
+                    <button class="quiz-option" data-value="planters">Planters</button>
+                    <button class="quiz-option" data-value="vases">Vases</button>
+                    <button class="quiz-option" data-value="lighting">Lighting</button>
+                    <button class="quiz-option" data-value="all">Everything!</button>
+                </div>
+            </div>
+            
+            <div class="quiz-results" style="display:none;">
+                <h2>Your Perfect Match!</h2>
+                <div id="recommendations"></div>
+                <button class="btn-primary" onclick="location.href='/catalog.html'">Shop Your Style</button>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        let currentQuestion = 1;
+        let answers = {};
+        
+        document.querySelectorAll('.quiz-option').forEach(btn => {
+            btn.addEventListener('click', function() {
+                answers[`q${currentQuestion}`] = this.dataset.value;
+                
+                document.querySelector(`[data-question="${currentQuestion}"]`).classList.remove('active');
+                currentQuestion++;
+                
+                if (currentQuestion <= 5) {
+                    document.querySelector(`[data-question="${currentQuestion}"]`).classList.add('active');
+                } else {
+                    showResults();
+                }
+            });
+        });
+        
+        function showResults() {
+            document.querySelectorAll('.quiz-question').forEach(q => q.style.display = 'none');
+            document.querySelector('.quiz-results').style.display = 'block';
+            
+            // Show personalized recommendations based on answers
+            document.getElementById('recommendations').innerHTML = `
+                <p>Based on your style, we recommend:</p>
+                <ul>
+                    <li>Vetra Planter (Beige)</li>
+                    <li>Tattva Vase (Black)</li>
+                    <li>Sway Planter (Cream)</li>
+                </ul>
+            `;
+        }
+    </script>
+</body>
+</html>

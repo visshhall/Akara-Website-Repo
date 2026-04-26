@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifying - Atelier Ākāra</title>
+    <link rel="stylesheet" href="../auth-styles.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-box glass-panel">
+            <div class="auth-logo">
+                <h1>ATELIER ĀKĀRA</h1>
+                <p>Email Verification</p>
+            </div>
+
+            <div id="message-container" style="text-align: center;">
+                <div class="spinner" style="margin: 2rem auto; width: 40px; height: 40px; border-width: 4px;"></div>
+                <p style="color: var(--archival-cream); opacity: 0.9; margin-top: 1rem;">
+                    Verifying your email...
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script type="module">
+        import { supabaseConfig } from '../config.js';
+
+        // Initialize Supabase
+        const supabase = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey);
+
+        // Handle the callback
+        handleCallback();
+
+        async function handleCallback() {
+            try {
+                // Get the hash fragment from URL
+                const hashParams = new URLSearchParams(window.location.hash.substring(1));
+                const accessToken = hashParams.get('access_token');
+                const type = hashParams.get('type');
+                
+                if (!accessToken) {
+                    showMessage('Invalid verification link. Please try signing up again.', 'error');
+                    setTimeout(() => {
+                        window.location.href = 'signup.html';
+                    }, 3000);
+                    return;
+                }
+
+                // Get session
+                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                
+                if (sessionError || !session) {
+                    showMessage('Verification failed. Please try again.', 'error');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 3000);
+                    return;
+                }
+
+                // Get user
+                const { data: { user }, error: userError } = await supabase.auth.getUser();
+                
+                if (userError || !user) {
+                    showMessage('User not found. Please try again.', 'error');
+                    setTimeout(() => {
+                        window.location.href = 'signup.html';
+                    }, 3000);
+                    return;
+                }
+
+                // Check if email is confirmed
+                if (!user.email_confirmed_at) {
+                    showMessage('Email not confirmed. Please check your inbox.', 'error');
+                    await supabase.auth.signOut();
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 3000);
+                    return;
+                }
+
+                // Get or create profile
+                let { data: profile, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+
+                if (profileError) {
+                    console.error('Profile error:', profileError);
+                }
+
+                // Update email_verified flag
+                if (profile) {
+                    await supabase
+                        .from('profiles')
+                        .update({ email_verified: true })
+                        .eq('id', user.id);
+                }
+
+                // Success!
+                showMessage('Email verified successfully! Welcome to Atelier Ākāra.', 'success');
+                
+                // Get Member ID for welcome message
+                if (profile && profile.member_id) {
+                    setTimeout(() => {
+                        document.getElementById('message-container').innerHTML += `
+                            <p style="color: var(--archival-cream); margin-top: 1rem; font-size: 0.9rem;">
+                                Your Member ID: <span class="member-id">${profile.member_id}</span>
+                            </p>
+                        `;
+                    }, 1000);
+                }
+
+                // Redirect based on type and role
+                setTimeout(() => {
+                    if (profile && profile.is_admin) {
+                        window.location.href = '../admin/dashboard.html';
+                    } else {
+                        window.location.href = '../user/profile.html';
+                    }
+                }, 3000);
+
+            } catch (err) {
+                console.error('Callback error:', err);
+                showMessage('An error occurred during verification. Please try logging in.', 'error');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 3000);
+            }
+        }
+
+        function showMessage(text, type = 'info') {
+            const container = document.getElementById('message-container');
+            container.innerHTML = `
+                <div class="message message-${type}">
+                    ${text}
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

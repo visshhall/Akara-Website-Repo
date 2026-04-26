@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Analytics - Atelier Ākāra</title>
+    <link rel="stylesheet" href="../auth-styles.css">
+    <style>
+        .users-container { min-height: 100vh; padding: 2rem; padding-top: 100px; }
+        .users-content { max-width: 1400px; margin: 0 auto; }
+        .nav-bar { position: fixed; top: 0; left: 0; right: 0; background: rgba(0, 43, 43, 0.95); backdrop-filter: blur(10px); padding: 1rem 2rem; z-index: 1000; border-bottom: 1px solid var(--glass-border); }
+        .nav-content { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .nav-logo { font-family: var(--font-secondary); font-size: 1.2rem; letter-spacing: 2px; color: var(--archival-cream); }
+        .nav-links { display: flex; gap: 2rem; }
+        .nav-link { color: var(--archival-cream); text-decoration: none; font-size: 0.9rem; opacity: 0.8; transition: opacity 0.3s; }
+        .nav-link:hover { opacity: 1; }
+        .data-table { width: 100%; margin-top: 2rem; }
+        .data-table th, .data-table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--glass-border); }
+        .data-table th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--archival-cream); opacity: 0.7; }
+        .data-table td { color: var(--archival-cream); opacity: 0.9; }
+    </style>
+</head>
+<body>
+    <nav class="nav-bar">
+        <div class="nav-content">
+            <div class="nav-logo">STUDIO CONTROL</div>
+            <div class="nav-links">
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+                <a href="products.html" class="nav-link">Products</a>
+                <a href="orders.html" class="nav-link">Orders</a>
+                <a href="users.html" class="nav-link">Users</a>
+                <a href="#" class="nav-link" id="logoutBtn">Sign Out</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="users-container">
+        <div class="users-content">
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <h1 style="font-family: var(--font-secondary); font-size: 2.5rem; color: var(--archival-cream);">MEMBER_DIRECTORY</h1>
+            </div>
+            <div class="glass-panel" style="padding: 2.5rem;">
+                <div id="usersContainer">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module">
+        import { supabaseConfig, ADMIN_UUID } from '../config.js';
+        import { requireAuth, requireVerification, requireAdmin } from '../utils/security.js';
+
+        const supabase = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey);
+        await requireAuth(supabase);
+        await requireVerification(supabase);
+        await requireAdmin(supabase, ADMIN_UUID);
+
+        loadUsers();
+
+        async function loadUsers() {
+            const { data: users } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+            if (!users || users.length === 0) {
+                document.getElementById('usersContainer').innerHTML = '<p style="text-align: center; opacity: 0.6;">No users yet</p>';
+                return;
+            }
+            document.getElementById('usersContainer').innerHTML = `
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Member ID</th><th>Name</th><th>Email</th><th>Joined</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                        ${users.map(u => `
+                            <tr>
+                                <td style="font-family: 'Courier New', monospace;">${u.member_id}</td>
+                                <td>${u.first_name} ${u.last_name}</td>
+                                <td>${u.email}</td>
+                                <td>${new Date(u.created_at).toLocaleDateString()}</td>
+                                <td>${u.email_verified ? '<span style="color:#10b981;">Verified</span>' : '<span style="color:#fbbf24;">Pending</span>'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            await supabase.auth.signOut();
+            window.location.href = '../auth/login.html';
+        });
+    </script>
+</body>
+</html>

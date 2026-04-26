@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orders - Atelier Ākāra</title>
+    <link rel="stylesheet" href="../auth-styles.css">
+    <style>
+        .orders-container {
+            min-height: 100vh;
+            padding: 2rem;
+            padding-top: 100px;
+        }
+        
+        .orders-content {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .orders-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .nav-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 43, 43, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            z-index: 1000;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        
+        .nav-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-logo {
+            font-family: var(--font-secondary);
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            color: var(--archival-cream);
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .nav-link {
+            color: var(--archival-cream);
+            text-decoration: none;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+        
+        .nav-link:hover {
+            opacity: 1;
+        }
+        
+        .order-card {
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        
+        .order-number {
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            color: var(--archival-cream);
+        }
+        
+        .order-status {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .status-pending {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fcd34d;
+        }
+        
+        .status-confirmed {
+            background: rgba(59, 130, 246, 0.2);
+            color: #93c5fd;
+        }
+        
+        .status-shipped {
+            background: rgba(139, 92, 246, 0.2);
+            color: #c4b5fd;
+        }
+        
+        .status-delivered {
+            background: rgba(34, 197, 94, 0.2);
+            color: #86efac;
+        }
+        
+        .order-items {
+            margin: 1rem 0;
+        }
+        
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            color: var(--archival-cream);
+            opacity: 0.9;
+        }
+        
+        .order-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--glass-border);
+        }
+        
+        .meta-item {
+            font-size: 0.9rem;
+        }
+        
+        .meta-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--archival-cream);
+            opacity: 0.6;
+            margin-bottom: 0.25rem;
+        }
+        
+        .meta-value {
+            color: var(--archival-cream);
+            opacity: 0.9;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 5rem 2rem;
+        }
+        
+        .empty-state p {
+            color: var(--archival-cream);
+            opacity: 0.6;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav-bar">
+        <div class="nav-content">
+            <div class="nav-logo">ATELIER ĀKĀRA</div>
+            <div class="nav-links">
+                <a href="profile.html" class="nav-link">Identity</a>
+                <a href="orders.html" class="nav-link">Orders</a>
+                <a href="#" class="nav-link" id="logoutBtn">Sign Out</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="orders-container">
+        <div class="orders-content">
+            <div class="orders-header">
+                <h1 style="font-family: var(--font-secondary); font-size: 2.5rem; color: var(--archival-cream); margin-bottom: 0.5rem;">
+                    ACQUISITION_RECORDS
+                </h1>
+                <p style="color: var(--archival-cream); opacity: 0.7;">
+                    Your Order History
+                </p>
+            </div>
+
+            <div id="ordersContainer">
+                <div class="empty-state">
+                    <div class="spinner" style="margin: 0 auto 2rem; width: 40px; height: 40px; border-width: 4px;"></div>
+                    <p>Loading your orders...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module">
+        import { supabaseConfig } from '../config.js';
+        import { requireAuth, requireVerification } from '../utils/security.js';
+
+        const supabase = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey);
+
+        // Check authentication
+        await requireAuth(supabase);
+        await requireVerification(supabase);
+
+        // Load orders
+        loadOrders();
+
+        async function loadOrders() {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                
+                const { data: orders, error } = await supabase
+                    .from('orders')
+                    .select(`
+                        *,
+                        addresses (*)
+                    `)
+                    .eq('user_id', user.id)
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                if (!orders || orders.length === 0) {
+                    document.getElementById('ordersContainer').innerHTML = `
+                        <div class="empty-state glass-panel" style="padding: 3rem;">
+                            <p>No orders yet. Start exploring the collection.</p>
+                            <a href="checkout.html" class="btn-primary" style="display: inline-block; margin-top: 1rem;">
+                                Explore Collection
+                            </a>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Display orders
+                const ordersHtml = orders.map(order => {
+                    const items = order.items || [];
+                    const address = order.addresses;
+                    
+                    return `
+                        <div class="order-card glass-panel">
+                            <div class="order-header">
+                                <div>
+                                    <div class="order-number">Order #${order.order_number}</div>
+                                    <div style="font-size: 0.85rem; color: var(--archival-cream); opacity: 0.6; margin-top: 0.25rem;">
+                                        ${new Date(order.created_at).toLocaleDateString('en-US', { 
+                                            year: 'numeric', 
+                                            month: 'long', 
+                                            day: 'numeric' 
+                                        })}
+                                    </div>
+                                </div>
+                                <div class="order-status status-${order.status}">
+                                    ${order.status}
+                                </div>
+                            </div>
+                            
+                            <div class="order-items">
+                                ${items.map(item => `
+                                    <div class="order-item">
+                                        <span>${item.name} × ${item.quantity}</span>
+                                        <span>₹${item.price}</span>
+                                    </div>
+                                `).join('')}
+                                <div class="order-item" style="font-weight: 600; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--glass-border);">
+                                    <span>Total</span>
+                                    <span>₹${order.total}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="order-meta">
+                                <div class="meta-item">
+                                    <div class="meta-label">Shipping To</div>
+                                    <div class="meta-value">
+                                        ${address ? `
+                                            ${address.first_name} ${address.last_name}<br>
+                                            ${address.city}, ${address.state} ${address.pincode}
+                                        ` : 'Address not available'}
+                                    </div>
+                                </div>
+                                
+                                <div class="meta-item">
+                                    <div class="meta-label">Payment Status</div>
+                                    <div class="meta-value" style="text-transform: capitalize;">
+                                        ${order.payment_status}
+                                    </div>
+                                </div>
+                                
+                                <div class="meta-item">
+                                    <div class="meta-label">Order Status</div>
+                                    <div class="meta-value" style="text-transform: capitalize;">
+                                        ${order.status}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                document.getElementById('ordersContainer').innerHTML = ordersHtml;
+                
+            } catch (err) {
+                console.error('Load orders error:', err);
+                document.getElementById('ordersContainer').innerHTML = `
+                    <div class="empty-state glass-panel" style="padding: 3rem;">
+                        <p>Failed to load orders. Please try again.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            await supabase.auth.signOut();
+            window.location.href = '../auth/login.html';
+        });
+    </script>
+</body>
+</html>

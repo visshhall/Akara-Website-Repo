@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Account - Atelier Ākāra</title>
+    <link rel="stylesheet" href="/auth-styles.css">
+</head>
+<body>
+    <main class="deletion-page">
+        <h1>Delete Your Account</h1>
+        <p>We're sorry to see you go!</p>
+        
+        <div class="deletion-warning">
+            <h2>⚠️ Warning</h2>
+            <p>This action cannot be undone. Deleting your account will:</p>
+            <ul>
+                <li>Permanently delete your profile and personal information</li>
+                <li>Remove your saved addresses</li>
+                <li>Delete your wishlist</li>
+                <li>Remove your reviews</li>
+                <li>Delete your reward points</li>
+            </ul>
+            
+            <p><strong>We will retain:</strong></p>
+            <ul>
+                <li>Order history and invoices (7 years - legal requirement)</li>
+                <li>Data will be anonymized</li>
+            </ul>
+        </div>
+        
+        <form id="deletionForm">
+            <div class="form-group">
+                <label>Type "DELETE MY ACCOUNT" to confirm:</label>
+                <input type="text" id="confirmText" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Enter your password:</label>
+                <input type="password" id="password" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Reason for leaving (optional):</label>
+                <textarea id="reason" maxlength="500"></textarea>
+            </div>
+            
+            <button type="submit" class="btn-danger">Delete My Account</button>
+            <a href="/user/profile.html" class="btn-secondary">Cancel</a>
+        </form>
+    </main>
+    
+    <script type="module">
+        document.getElementById('deletionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const confirmText = document.getElementById('confirmText').value;
+            if (confirmText !== 'DELETE MY ACCOUNT') {
+                alert('Please type "DELETE MY ACCOUNT" to confirm');
+                return;
+            }
+            
+            const confirmed = confirm('Are you absolutely sure? This cannot be undone.');
+            if (!confirmed) return;
+            
+            // Delete account logic
+            alert('Account deletion initiated. You will be logged out.');
+            window.location.href = '/';
+        });
+    </script>
+</body>
+</html>

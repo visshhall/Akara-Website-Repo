@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catalog - Atelier Ākāra</title>
+    <link rel="stylesheet" href="/auth-styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <nav class="nav-container">
+            <div class="nav-left">
+                <button class="menu-toggle" id="menuToggle">☰</button>
+                <div class="nav-links desktop-only">
+                    <a href="/catalog.html">Catalog</a>
+                    <a href="/about.html">About</a>
+                </div>
+            </div>
+            <div class="nav-center">
+                <a href="/" class="brand-logo">ATELIER ĀKĀRA</a>
+            </div>
+            <div class="nav-right">
+                <a href="/contact.html" class="nav-link desktop-only">Contact</a>
+                <a href="/user/cart.html" class="cart-link">🛒 <span id="cartCount">0</span></a>
+                <a href="/user/profile.html" id="userLink">👤</a>
+            </div>
+        </nav>
+    </header>
+    
+    <main class="catalog-page">
+        <nav class="breadcrumbs">
+            <a href="/">Home</a> / <span>Catalog</span>
+        </nav>
+        
+        <h1>Our Collection</h1>
+        
+        <!-- Filters -->
+        <div class="filters">
+            <button class="filter-btn active" data-category="all">All</button>
+            <button class="filter-btn" data-category="planters">Planters</button>
+            <button class="filter-btn" data-category="vases">Vases</button>
+            <button class="filter-btn" data-category="lighting">Lighting</button>
+        </div>
+        
+        <!-- Search -->
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search products..." maxlength="100">
+        </div>
+        
+        <!-- Products Grid -->
+        <div class="product-grid" id="productGrid">
+            <div class="loading">Loading products...</div>
+        </div>
+    </main>
+    
+    <footer class="site-footer">
+        <div class="footer-content">
+            <p>Precision Forge Labs | GST: 27GZCPS9353H1ZQ</p>
+            <p>© 2024 Atelier Ākāra</p>
+        </div>
+    </footer>
+    
+    <script type="module">
+        import { supabaseConfig } from './config.js';
+        
+        async function loadProducts(category = 'all', search = '') {
+            console.log('Loading products:', category, search);
+            // Implementation with Supabase
+        }
+        
+        // Filter buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                loadProducts(e.target.dataset.category);
+            });
+        });
+        
+        // Search
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const category = document.querySelector('.filter-btn.active').dataset.category;
+            loadProducts(category, e.target.value);
+        });
+        
+        loadProducts();
+    </script>
+</body>
+</html>

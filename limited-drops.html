@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Limited Edition Drops - Atelier Ākāra</title>
+    <link rel="stylesheet" href="/auth-styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <nav class="nav-container">
+            <div class="nav-center">
+                <a href="/" class="brand-logo">ATELIER ĀKĀRA</a>
+            </div>
+        </nav>
+    </header>
+    
+    <main class="limited-drops-page">
+        <h1>Limited Edition Drops</h1>
+        <p class="subtitle">Exclusive monthly releases - Once they're gone, they're gone!</p>
+        
+        <div class="current-drop">
+            <h2>March 2024 Drop</h2>
+            <div class="drop-countdown">
+                <p>Drop ends in:</p>
+                <div class="countdown">
+                    <span id="days">00</span>d
+                    <span id="hours">00</span>h
+                    <span id="minutes">00</span>m
+                    <span id="seconds">00</span>s
+                </div>
+            </div>
+            
+            <div class="drop-products" id="dropProducts">
+                <div class="drop-product">
+                    <h3>Midnight Edition - Tattva Vase</h3>
+                    <p>Exclusive matte black finish</p>
+                    <p class="price">₹1,299 <span class="original">₹999</span></p>
+                    <p class="stock">Only 50 units | <span class="remaining">12 left</span></p>
+                    <button class="btn-primary">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="past-drops">
+            <h2>Past Drops</h2>
+            <p>Sold Out - Check back next month for new releases!</p>
+        </div>
+    </main>
+    
+    <script>
+        // Countdown timer
+        const dropEndDate = new Date('2024-03-31T23:59:59').getTime();
+        
+        setInterval(() => {
+            const now = new Date().getTime();
+            const distance = dropEndDate - now;
+            
+            document.getElementById('days').textContent = Math.floor(distance / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
+            document.getElementById('hours').textContent = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
+            document.getElementById('minutes').textContent = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+            document.getElementById('seconds').textContent = Math.floor((distance % (1000 * 60)) / 1000).toString().padStart(2, '0');
+        }, 1000);
+    </script>
+</body>
+</html>

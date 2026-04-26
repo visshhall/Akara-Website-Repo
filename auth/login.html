@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studio Access - Atelier Ākāra</title>
+    <link rel="stylesheet" href="../auth-styles.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-box glass-panel">
+            <div class="auth-logo">
+                <h1>ATELIER ĀKĀRA</h1>
+                <p>Studio Access</p>
+            </div>
+
+            <div id="message-container"></div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        class="form-input" 
+                        placeholder="your@email.com"
+                        required
+                        autocomplete="email"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        class="form-input" 
+                        placeholder="Enter your password"
+                        required
+                        autocomplete="current-password"
+                    >
+                </div>
+
+                <div style="text-align: right; margin-bottom: 1.5rem;">
+                    <a href="reset-password.html" class="auth-link">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="btn-primary" id="loginBtn">
+                    <span id="btnText">Access Studio</span>
+                    <span id="btnSpinner" class="spinner" style="display: none;"></span>
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p style="color: var(--archival-cream); opacity: 0.8; margin-bottom: 1rem;">
+                    New to Atelier Ākāra?
+                </p>
+                <a href="signup.html" class="auth-link">Create Identity</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script type="module">
+        import { supabaseConfig } from '../config.js';
+        import { sanitizeInput, isValidEmail, initializeFormSecurity } from '../utils/security.js';
+
+        // Initialize Supabase
+        const supabase = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey);
+
+        // Initialize form security (auto-trim)
+        const form = document.getElementById('loginForm');
+        initializeFormSecurity(form);
+
+        // Check if already logged in
+        checkExistingSession();
+
+        async function checkExistingSession() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                // Check if email is verified
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user && user.email_confirmed_at) {
+                    window.location.href = '../user/profile.html';
+                } else {
+                    showMessage('Please verify your email to access your account.', 'info');
+                    await supabase.auth.signOut();
+                }
+            }
+        }
+
+        // Handle form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = sanitizeInput(document.getElementById('email').value);
+            const password = sanitizeInput(document.getElementById('password').value);
+            
+            // Validate
+            if (!isValidEmail(email)) {
+                showMessage('Please enter a valid email address.', 'error');
+                return;
+            }
+            
+            if (password.length === 0) {
+                showMessage('Please enter your password.', 'error');
+                return;
+            }
+            
+            setLoading(true);
+            
+            try {
+                // Sign in
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) {
+                    if (error.message.includes('Invalid login credentials')) {
+                        showMessage('Invalid email or password.', 'error');
+                    } else if (error.message.includes('Email not confirmed')) {
+                        showMessage('Please verify your email before logging in. Check your inbox.', 'error');
+                    } else {
+                        showMessage(error.message, 'error');
+                    }
+                    setLoading(false);
+                    return;
+                }
+                
+                // Check if email is verified
+                if (!data.user.email_confirmed_at) {
+                    showMessage('Please verify your email before logging in. Check your inbox for the verification link.', 'error');
+                    await supabase.auth.signOut();
+                    setLoading(false);
+                    return;
+                }
+                
+                // Get profile
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', data.user.id)
+                    .single();
+                
+                // Redirect based on role
+                if (profile && profile.is_admin) {
+                    window.location.href = '../admin/dashboard.html';
+                } else {
+                    window.location.href = '../user/profile.html';
+                }
+                
+            } catch (err) {
+                console.error('Login error:', err);
+                showMessage('An unexpected error occurred. Please try again.', 'error');
+                setLoading(false);
+            }
+        });
+
+        function setLoading(loading) {
+            const btn = document.getElementById('loginBtn');
+            const btnText = document.getElementById('btnText');
+            const btnSpinner = document.getElementById('btnSpinner');
+            
+            btn.disabled = loading;
+            btnText.style.display = loading ? 'none' : 'inline';
+            btnSpinner.style.display = loading ? 'inline-block' : 'none';
+        }
+
+        function showMessage(text, type = 'info') {
+            const container = document.getElementById('message-container');
+            container.innerHTML = `
+                <div class="message message-${type}">
+                    ${text}
+                </div>
+            `;
+            
+            // Auto-hide after 5 seconds for non-error messages
+            if (type !== 'error') {
+                setTimeout(() => {
+                    container.innerHTML = '';
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>

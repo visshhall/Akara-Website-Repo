@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Identity - Atelier Ākāra</title>
+    <link rel="stylesheet" href="../auth-styles.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-box glass-panel">
+            <div class="auth-logo">
+                <h1>ATELIER ĀKĀRA</h1>
+                <p>Create Your Identity</p>
+            </div>
+
+            <div id="message-container"></div>
+
+            <form id="signupForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName" class="form-label">First Name</label>
+                        <input 
+                            type="text" 
+                            id="firstName" 
+                            name="firstName" 
+                            class="form-input" 
+                            placeholder="First name"
+                            required
+                            autocomplete="given-name"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="lastName" class="form-label">Last Name</label>
+                        <input 
+                            type="text" 
+                            id="lastName" 
+                            name="lastName" 
+                            class="form-input" 
+                            placeholder="Last name"
+                            required
+                            autocomplete="family-name"
+                        >
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        class="form-input" 
+                        placeholder="your@email.com"
+                        required
+                        autocomplete="email"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        class="form-input" 
+                        placeholder="Create a strong password"
+                        required
+                        autocomplete="new-password"
+                    >
+                    <div class="password-strength" id="passwordStrength" style="display: none;">
+                        <div class="password-strength-bar" id="strengthBar"></div>
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--archival-cream); opacity: 0.6; margin-top: 0.5rem;">
+                        Min 8 characters, 1 uppercase, 1 lowercase, 1 number
+                    </p>
+                </div>
+
+                <div class="checkbox-group">
+                    <input 
+                        type="checkbox" 
+                        id="terms" 
+                        name="terms" 
+                        class="checkbox-input"
+                        required
+                    >
+                    <label for="terms" class="checkbox-label">
+                        I agree to receive updates and understand this is for accessing Atelier Ākāra's collection
+                    </label>
+                </div>
+
+                <button type="submit" class="btn-primary" id="signupBtn">
+                    <span id="btnText">Create Identity</span>
+                    <span id="btnSpinner" class="spinner" style="display: none;"></span>
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p style="color: var(--archival-cream); opacity: 0.8; margin-bottom: 1rem;">
+                    Already have an identity?
+                </p>
+                <a href="login.html" class="auth-link">Access Studio</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script type="module">
+        import { supabaseConfig } from '../config.js';
+        import { 
+            sanitizeInput, 
+            isValidEmail, 
+            isValidName,
+            validatePassword,
+            initializeFormSecurity 
+        } from '../utils/security.js';
+
+        // Initialize Supabase
+        const supabase = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey);
+
+        // Initialize form security (auto-trim)
+        const form = document.getElementById('signupForm');
+        initializeFormSecurity(form);
+
+        // Password strength indicator
+        const passwordInput = document.getElementById('password');
+        const strengthContainer = document.getElementById('passwordStrength');
+        const strengthBar = document.getElementById('strengthBar');
+
+        passwordInput.addEventListener('input', () => {
+            const password = passwordInput.value;
+            if (password.length === 0) {
+                strengthContainer.style.display = 'none';
+                return;
+            }
+
+            strengthContainer.style.display = 'block';
+            const { strength } = validatePassword(password);
+            
+            strengthBar.className = 'password-strength-bar strength-' + strength;
+        });
+
+        // Handle form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Sanitize inputs
+            const firstName = sanitizeInput(document.getElementById('firstName').value);
+            const lastName = sanitizeInput(document.getElementById('lastName').value);
+            const email = sanitizeInput(document.getElementById('email').value);
+            const password = sanitizeInput(document.getElementById('password').value);
+            const terms = document.getElementById('terms').checked;
+            
+            // Validate
+            if (!isValidName(firstName)) {
+                showMessage('First name contains invalid characters.', 'error');
+                return;
+            }
+            
+            if (!isValidName(lastName)) {
+                showMessage('Last name contains invalid characters.', 'error');
+                return;
+            }
+            
+            if (!isValidEmail(email)) {
+                showMessage('Please enter a valid email address.', 'error');
+                return;
+            }
+            
+            const passwordValidation = validatePassword(password);
+            if (!passwordValidation.isValid) {
+                showMessage('Password must be at least 8 characters with uppercase, lowercase, and number.', 'error');
+                return;
+            }
+            
+            if (!terms) {
+                showMessage('Please agree to the terms to continue.', 'error');
+                return;
+            }
+            
+            setLoading(true);
+            
+            try {
+                // Sign up
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        data: {
+                            first_name: firstName,
+                            last_name: lastName
+                        },
+                        emailRedirectTo: window.location.origin + '/auth/callback.html'
+                    }
+                });
+                
+                if (error) {
+                    if (error.message.includes('already registered')) {
+                        showMessage('This email is already registered. Please log in instead.', 'error');
+                    } else {
+                        showMessage(error.message, 'error');
+                    }
+                    setLoading(false);
+                    return;
+                }
+                
+                // Success - show verification message
+                showMessage(
+                    'Identity created! Please check your email to verify your account. You must verify before you can log in.',
+                    'success'
+                );
+                
+                // Clear form
+                form.reset();
+                setLoading(false);
+                
+                // Redirect to login after 5 seconds
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 5000);
+                
+            } catch (err) {
+                console.error('Signup error:', err);
+                showMessage('An unexpected error occurred. Please try again.', 'error');
+                setLoading(false);
+            }
+        });
+
+        function setLoading(loading) {
+            const btn = document.getElementById('signupBtn');
+            const btnText = document.getElementById('btnText');
+            const btnSpinner = document.getElementById('btnSpinner');
+            
+            btn.disabled = loading;
+            btnText.style.display = loading ? 'none' : 'inline';
+            btnSpinner.style.display = loading ? 'inline-block' : 'none';
+        }
+
+        function showMessage(text, type = 'info') {
+            const container = document.getElementById('message-container');
+            container.innerHTML = `
+                <div class="message message-${type}">
+                    ${text}
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

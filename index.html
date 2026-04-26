@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Contemporary planters, vases, and lighting for modern Indian homes. Precision-crafted geometric designs.">
+    <meta name="keywords" content="planters, vases, home decor, geometric design, India, contemporary">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Atelier Ākāra - Artifacts for Modern Spaces">
+    <meta property="og:description" content="Contemporary home décor with geometric precision">
+    <meta property="og:url" content="https://akaraonline.co.in">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png">
+    
+    <title>Atelier Ākāra - Artifacts for the Modern Spaces</title>
+    <link rel="stylesheet" href="/auth-styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="site-header">
+        <nav class="nav-container">
+            <div class="nav-left">
+                <button class="menu-toggle" id="menuToggle">☰</button>
+                <div class="nav-links desktop-only">
+                    <a href="/catalog.html">Catalog</a>
+                    <a href="/about.html">About</a>
+                </div>
+            </div>
+            
+            <div class="nav-center">
+                <a href="/" class="brand-logo">ATELIER ĀKĀRA</a>
+            </div>
+            
+            <div class="nav-right">
+                <a href="/contact.html" class="nav-link desktop-only">Contact</a>
+                <a href="/user/cart.html" class="cart-link">🛒 <span id="cartCount">0</span></a>
+                <a href="/user/profile.html" id="userLink">👤</a>
+            </div>
+        </nav>
+    </header>
+    
+    <main class="homepage">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1>ATELIER ĀKĀRA</h1>
+                <p class="tagline">Artifacts for the Modern Spaces</p>
+                <p class="subtitle">Contemporary home décor with geometric precision</p>
+                <a href="/catalog.html" class="btn-primary">Explore Collection</a>
+            </div>
+        </section>
+        
+        <!-- Featured Products -->
+        <section class="featured-section">
+            <h2>Our Top Selling</h2>
+            <div class="product-grid" id="featuredProducts">
+                <div class="loading">Loading products...</div>
+            </div>
+            <a href="/catalog.html" class="btn-secondary">View All Products</a>
+        </section>
+        
+        <!-- About Preview -->
+        <section class="about-preview">
+            <h2>Where Geometry Meets Craft</h2>
+            <p>Each piece is precision-crafted to bring contemporary elegance to modern Indian homes.</p>
+            <a href="/about.html" class="btn-secondary">Learn More</a>
+        </section>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-content">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h3>ATELIER ĀKĀRA</h3>
+                    <p>Artifacts for the Modern Spaces</p>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>SHOP</h4>
+                    <a href="/catalog.html">All Products</a>
+                    <a href="/catalog.html?category=planters">Planters</a>
+                    <a href="/catalog.html?category=vases">Vases</a>
+                    <a href="/catalog.html?category=lighting">Lighting</a>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>INFORMATION</h4>
+                    <a href="/about.html">About Us</a>
+                    <a href="/contact.html">Contact</a>
+                    <a href="/privacy.html">Privacy Policy</a>
+                    <a href="/terms.html">Terms of Service</a>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>CONNECT</h4>
+                    <a href="https://instagram.com/atelier.akara" target="_blank">Instagram</a>
+                    <a href="mailto:support@akaraonline.co.in">Email Us</a>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>Precision Forge Labs | GST: 27GZCPS9353H1ZQ</p>
+                <p>© 2024 Atelier Ākāra. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <script type="module">
+        import { supabaseConfig } from './config.js';
+        
+        // Load featured products
+        async function loadFeaturedProducts() {
+            // Implementation will use Supabase
+            console.log('Loading featured products...');
+        }
+        
+        loadFeaturedProducts();
+    </script>
+</body>
+</html>

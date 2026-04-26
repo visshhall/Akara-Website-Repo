@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support Tickets - Admin</title>
+    <link rel="stylesheet" href="/auth-styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <nav class="nav-container">
+            <div class="nav-center">
+                <a href="/admin/dashboard.html" class="brand-logo">ADMIN PANEL</a>
+            </div>
+        </nav>
+    </header>
+    
+    <main class="admin-page">
+        <h1>Support Tickets</h1>
+        
+        <div class="ticket-stats">
+            <div class="stat-card urgent">
+                <h3>Urgent</h3>
+                <p id="urgentTickets">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Open</h3>
+                <p id="openTickets">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Resolved</h3>
+                <p id="resolvedTickets">0</p>
+            </div>
+        </div>
+        
+        <div class="tickets-list" id="ticketsList">
+            <!-- Tickets loaded here -->
+        </div>
+    </main>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart - Atelier Ākāra</title>
+    <link rel="stylesheet" href="/auth-styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <nav class="nav-container">
+            <div class="nav-center">
+                <a href="/" class="brand-logo">ATELIER ĀKĀRA</a>
+            </div>
+        </nav>
+    </header>
+    
+    <main class="cart-page">
+        <h1>Shopping Cart</h1>
+        
+        <div class="cart-container">
+            <div class="cart-items" id="cartItems">
+                <!-- Cart items loaded here -->
+            </div>
+            
+            <div class="cart-summary">
+                <h2>Order Summary</h2>
+                <div class="summary-row">
+                    <span>Subtotal:</span>
+                    <span id="subtotal">₹0</span>
+                </div>
+                <div class="summary-row">
+                    <span>Shipping:</span>
+                    <span id="shipping">FREE</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total:</span>
+                    <span id="total">₹0</span>
+                </div>
+                
+                <button class="btn-primary" onclick="proceedToCheckout()">Proceed to Checkout</button>
+                <a href="/catalog.html" class="btn-secondary">Continue Shopping</a>
+            </div>
+        </div>
+    </main>
+    
+    <script type="module">
+        // Cart functionality will be implemented with Supabase
+        console.log('Cart page loaded');
+    </script>
+</body>
+</html>

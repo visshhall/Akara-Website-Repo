@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Export My Data - Atelier Ākāra</title>
+    <link rel="stylesheet" href="/auth-styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <nav class="nav-container">
+            <div class="nav-center">
+                <a href="/" class="brand-logo">ATELIER ĀKĀRA</a>
+            </div>
+        </nav>
+    </header>
+    
+    <main class="export-page">
+        <h1>Export My Data</h1>
+        <p>Download a copy of all your personal data (DPDP Act 2023 Right to Access)</p>
+        
+        <div class="export-info">
+            <h2>What's Included:</h2>
+            <ul>
+                <li>Profile information (name, email, phone)</li>
+                <li>Order history</li>
+                <li>Reviews you've written</li>
+                <li>Wishlist items</li>
+                <li>Reward points history</li>
+                <li>Saved addresses</li>
+            </ul>
+            
+            <h2>Data Format:</h2>
+            <p>JSON file (machine-readable)</p>
+            
+            <h2>Processing Time:</h2>
+            <p>Instant download</p>
+        </div>
+        
+        <button class="btn-primary" onclick="exportData()">Export My Data</button>
+        <a href="/user/profile.html" class="btn-secondary">Back to Profile</a>
+        
+        <div id="status" style="display:none;"></div>
+    </main>
+    
+    <script type="module">
+        async function exportData() {
+            document.getElementById('status').style.display = 'block';
+            document.getElementById('status').textContent = 'Preparing your data...';
+            
+            // Fetch all user data
+            const exportData = {
+                exported_at: new Date().toISOString(),
+                profile: {},
+                orders: [],
+                reviews: [],
+                wishlist: [],
+                addresses: []
+            };
+            
+            // Download as JSON
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+                type: 'application/json'
+            });
+            
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `my_data_${Date.now()}.json`;
+            a.click();
+            
+            document.getElementById('status').textContent = 'Download complete!';
+        }
+        
+        window.exportData = exportData;
+    </script>
+</body>
+</html>

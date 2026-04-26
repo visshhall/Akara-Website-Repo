@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Reports - Admin</title>
+    <link rel="stylesheet" href="/auth-styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <nav class="nav-container">
+            <div class="nav-center">
+                <a href="/admin/dashboard.html" class="brand-logo">ADMIN PANEL</a>
+            </div>
+        </nav>
+    </header>
+    
+    <main class="admin-page">
+        <h1>Sales Reports</h1>
+        
+        <div class="report-filters">
+            <select id="reportType">
+                <option>Sales Summary</option>
+                <option>Product Performance</option>
+                <option>Customer Analytics</option>
+            </select>
+            
+            <select id="timePeriod">
+                <option>This Month</option>
+                <option>Last Month</option>
+                <option>This Year</option>
+            </select>
+            
+            <button class="btn-primary">Generate Report</button>
+            <button class="btn-secondary">Export PDF</button>
+        </div>
+        
+        <div id="reportContent">
+            <!-- Report data loaded here -->
+        </div>
+    </main>
+</body>
+</html>

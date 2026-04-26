@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Management - Admin</title>
+    <link rel="stylesheet" href="/auth-styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <nav class="nav-container">
+            <div class="nav-center">
+                <a href="/admin/dashboard.html" class="brand-logo">ADMIN PANEL</a>
+            </div>
+        </nav>
+    </header>
+    
+    <main class="admin-page">
+        <h1>Customer Management</h1>
+        
+        <div class="stats-row">
+            <div class="stat-card">
+                <h3>Total Customers</h3>
+                <p id="totalCustomers">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Active</h3>
+                <p id="activeCustomers">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>New (30d)</h3>
+                <p id="newCustomers">0</p>
+            </div>
+        </div>
+        
+        <table class="customers-table">
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Email</th>
+                    <th>Orders</th>
+                    <th>Total Spent</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="customersTable">
+                <!-- Customers loaded here -->
+            </tbody>
+        </table>
+    </main>
+</body>
+</html>

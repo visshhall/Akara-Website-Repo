@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orders Management - Atelier Ākāra</title>
+    <link rel="stylesheet" href="../auth-styles.css">
+    <style>
+        .orders-container { min-height: 100vh; padding: 2rem; padding-top: 100px; }
+        .orders-content { max-width: 1400px; margin: 0 auto; }
+        .nav-bar { position: fixed; top: 0; left: 0; right: 0; background: rgba(0, 43, 43, 0.95); backdrop-filter: blur(10px); padding: 1rem 2rem; z-index: 1000; border-bottom: 1px solid var(--glass-border); }
+        .nav-content { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .nav-logo { font-family: var(--font-secondary); font-size: 1.2rem; letter-spacing: 2px; color: var(--archival-cream); }
+        .nav-links { display: flex; gap: 2rem; }
+        .nav-link { color: var(--archival-cream); text-decoration: none; font-size: 0.9rem; opacity: 0.8; transition: opacity 0.3s; }
+        .nav-link:hover { opacity: 1; }
+        .data-table { width: 100%; margin-top: 2rem; }
+        .data-table th, .data-table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--glass-border); }
+        .data-table th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--archival-cream); opacity: 0.7; }
+        .data-table td { color: var(--archival-cream); opacity: 0.9; }
+    </style>
+</head>
+<body>
+    <nav class="nav-bar">
+        <div class="nav-content">
+            <div class="nav-logo">STUDIO CONTROL</div>
+            <div class="nav-links">
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+                <a href="products.html" class="nav-link">Products</a>
+                <a href="orders.html" class="nav-link">Orders</a>
+                <a href="users.html" class="nav-link">Users</a>
+                <a href="#" class="nav-link" id="logoutBtn">Sign Out</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="orders-container">
+        <div class="orders-content">
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <h1 style="font-family: var(--font-secondary); font-size: 2.5rem; color: var(--archival-cream);">ORDER_MANAGEMENT</h1>
+            </div>
+            <div class="glass-panel" style="padding: 2.5rem;">
+                <div id="ordersContainer">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module">
+        import { supabaseConfig, ADMIN_UUID } from '../config.js';
+        import { requireAuth, requireVerification, requireAdmin } from '../utils/security.js';
+
+        const supabase = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey);
+        await requireAuth(supabase);
+        await requireVerification(supabase);
+        await requireAdmin(supabase, ADMIN_UUID);
+
+        loadOrders();
+
+        async function loadOrders() {
+            const { data: orders } = await supabase.from('orders').select('*, profiles(first_name, last_name, member_id), addresses(*)').order('created_at', { ascending: false });
+            if (!orders || orders.length === 0) {
+                document.getElementById('ordersContainer').innerHTML = '<p style="text-align: center; opacity: 0.6;">No orders yet</p>';
+                return;
+            }
+            document.getElementById('ordersContainer').innerHTML = `
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Order #</th><th>Member</th><th>Total</th><th>Status</th><th>Payment</th><th>Date</th></tr>
+                    </thead>
+                    <tbody>
+                        ${orders.map(o => `
+                            <tr>
+                                <td style="font-family: 'Courier New', monospace;">${o.order_number}</td>
+                                <td>${o.profiles ? `${o.profiles.first_name} ${o.profiles.last_name}<br><span style="opacity:0.6;font-size:0.85rem;">${o.profiles.member_id}</span>` : 'N/A'}</td>
+                                <td>₹${o.total}</td>
+                                <td style="text-transform: capitalize;">${o.status}</td>
+                                <td style="text-transform: capitalize;">${o.payment_status}</td>
+                                <td>${new Date(o.created_at).toLocaleDateString()}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            await supabase.auth.signOut();
+            window.location.href = '../auth/login.html';
+        });
+    </script>
+</body>
+</html>

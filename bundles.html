@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Build Your Bundle - Atelier Ākāra</title>
+    <link rel="stylesheet" href="/auth-styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <nav class="nav-container">
+            <div class="nav-center">
+                <a href="/" class="brand-logo">ATELIER ĀKĀRA</a>
+            </div>
+        </nav>
+    </header>
+    
+    <main class="bundles-page">
+        <h1>Build Your Perfect Set</h1>
+        <p class="subtitle">Select 3 or more items and save 15%</p>
+        
+        <div class="bundle-builder">
+            <div class="product-selection" id="productSelection">
+                <!-- Products loaded here -->
+            </div>
+            
+            <div class="bundle-summary">
+                <h2>Your Bundle</h2>
+                <p>Selected: <span id="selectedCount">0</span> items</p>
+                <p>Subtotal: <span id="subtotal">₹0</span></p>
+                <p class="discount">Discount (15%): -<span id="discount">₹0</span></p>
+                <p class="total">Total: <span id="total">₹0</span></p>
+                
+                <button class="btn-primary" id="addBundleToCart">Add Bundle to Cart</button>
+            </div>
+        </div>
+    </main>
+    
+    <script type="module">
+        // Bundle builder logic
+        let selectedProducts = [];
+        
+        function updateBundle() {
+            const count = selectedProducts.length;
+            const subtotal = selectedProducts.reduce((sum, p) => sum + p.price, 0);
+            const discount = count >= 3 ? Math.floor(subtotal * 0.15) : 0;
+            const total = subtotal - discount;
+            
+            document.getElementById('selectedCount').textContent = count;
+            document.getElementById('subtotal').textContent = `₹${subtotal}`;
+            document.getElementById('discount').textContent = `₹${discount}`;
+            document.getElementById('total').textContent = `₹${total}`;
+        }
+        
+        updateBundle();
+    </script>
+</body>
+</html>

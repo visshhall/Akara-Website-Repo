@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management - Admin</title>
+    <link rel="stylesheet" href="/auth-styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <nav class="nav-container">
+            <div class="nav-center">
+                <a href="/admin/dashboard.html" class="brand-logo">ADMIN PANEL</a>
+            </div>
+        </nav>
+    </header>
+    
+    <main class="admin-page">
+        <h1>Inventory Management</h1>
+        
+        <div class="inventory-controls">
+            <button class="btn-primary">Bulk Update</button>
+            <button class="btn-secondary">Export CSV</button>
+        </div>
+        
+        <table class="inventory-table">
+            <thead>
+                <tr>
+                    <th>Product ID</th>
+                    <th>Product Name</th>
+                    <th>Variant</th>
+                    <th>Stock</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="inventoryTable">
+                <!-- Inventory loaded here -->
+            </tbody>
+        </table>
+    </main>
+</body>
+</html>

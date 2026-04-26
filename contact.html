@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - Atelier Ākāra</title>
+    <link rel="stylesheet" href="/auth-styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <nav class="nav-container">
+            <div class="nav-left">
+                <button class="menu-toggle" id="menuToggle">☰</button>
+                <div class="nav-links desktop-only">
+                    <a href="/catalog.html">Catalog</a>
+                    <a href="/about.html">About</a>
+                </div>
+            </div>
+            <div class="nav-center">
+                <a href="/" class="brand-logo">ATELIER ĀKĀRA</a>
+            </div>
+            <div class="nav-right">
+                <a href="/contact.html" class="nav-link desktop-only">Contact</a>
+                <a href="/user/cart.html" class="cart-link">🛒 <span id="cartCount">0</span></a>
+                <a href="/user/profile.html">👤</a>
+            </div>
+        </nav>
+    </header>
+    
+    <main class="contact-page">
+        <h1>Get in Touch</h1>
+        
+        <div class="contact-grid">
+            <div class="contact-info">
+                <h2>Contact Information</h2>
+                
+                <div class="info-block">
+                    <h3>📧 Email</h3>
+                    <p><a href="mailto:support@akaraonline.co.in">support@akaraonline.co.in</a></p>
+                    <p class="note">Response time: Within 24 hours</p>
+                </div>
+                
+                <div class="info-block">
+                    <h3>📱 WhatsApp</h3>
+                    <p><a href="https://wa.me/919XXXXXXXXX" target="_blank">+91-XXXXXXXXXX</a></p>
+                    <p class="note">Monday - Saturday, 10 AM - 6 PM</p>
+                </div>
+                
+                <div class="info-block">
+                    <h3>📍 Address</h3>
+                    <p>Precision Forge Labs<br>
+                    Mumbai, Maharashtra<br>
+                    India</p>
+                </div>
+                
+                <div class="info-block">
+                    <h3>🔖 GST</h3>
+                    <p>27GZCPS9353H1ZQ</p>
+                </div>
+            </div>
+            
+            <div class="contact-form-container">
+                <h2>Send Us a Message</h2>
+                
+                <form id="contactForm" class="contact-form">
+                    <div class="form-group">
+                        <label for="name">Name *</label>
+                        <input type="text" id="name" name="name" required maxlength="100">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" name="email" required maxlength="254">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="subject">Subject *</label>
+                        <input type="text" id="subject" name="subject" required maxlength="100">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="message">Message *</label>
+                        <textarea id="message" name="message" rows="5" required maxlength="1000"></textarea>
+                        <small id="charCount">0 / 1000 characters</small>
+                    </div>
+                    
+                    <!-- Honeypot -->
+                    <input type="text" name="website" style="position:absolute;left:-9999px;" tabindex="-1">
+                    
+                    <button type="submit" class="btn-primary">Send Message</button>
+                </form>
+                
+                <div id="formMessage" style="display:none;"></div>
+            </div>
+        </div>
+    </main>
+    
+    <footer class="site-footer">
+        <p>© 2024 Atelier Ākāra</p>
+    </footer>
+    
+    <script>
+        // Character counter
+        document.getElementById('message').addEventListener('input', function() {
+            document.getElementById('charCount').textContent = this.value.length + ' / 1000 characters';
+        });
+        
+        // Form submission
+        document.getElementById('contactForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Check honeypot
+            if (document.querySelector('input[name="website"]').value) {
+                console.log('Bot detected');
+                return;
+            }
+            
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            
+            try {
+                // Send via Netlify function
+                const response = await fetch('/.netlify/functions/contact-form', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    document.getElementById('formMessage').style.display = 'block';
+                    document.getElementById('formMessage').className = 'success';
+                    document.getElementById('formMessage').textContent = 'Message sent successfully! We\'ll respond within 24 hours.';
+                    e.target.reset();
+                } else {
+                    throw new Error('Failed to send');
+                }
+            } catch (error) {
+                document.getElementById('formMessage').style.display = 'block';
+                document.getElementById('formMessage').className = 'error';
+                document.getElementById('formMessage').textContent = 'Error sending message. Please email us directly.';
+            }
+        });
+    </script>
+</body>
+</html>

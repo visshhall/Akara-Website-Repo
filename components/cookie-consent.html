@@ -1,0 +1,81 @@
+<!-- Cookie Consent Banner -->
+<div id="cookieConsent" class="cookie-banner" style="display: none;">
+    <div class="cookie-content">
+        <h3>🍪 Cookie Notice</h3>
+        <p>We use essential cookies to make our site work. We do NOT use tracking or advertising cookies.</p>
+        
+        <div class="cookie-details">
+            <strong>Essential Cookies (Required):</strong>
+            <ul>
+                <li>✓ Session management (keeps you logged in)</li>
+                <li>✓ Security (prevents attacks)</li>
+                <li>✓ Preferences (remembers your settings)</li>
+            </ul>
+        </div>
+        
+        <div class="cookie-actions">
+            <button onclick="acceptCookies()" class="btn-primary">Accept Essential Cookies</button>
+            <a href="/privacy.html" class="btn-secondary">Privacy Policy</a>
+        </div>
+    </div>
+</div>
+
+<style>
+.cookie-banner {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+    background: rgba(0, 77, 77, 0.98);
+    backdrop-filter: blur(10px);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    z-index: 10000;
+}
+
+.cookie-content h3 {
+    color: var(--archival-cream);
+    margin-top: 0;
+}
+
+.cookie-details {
+    margin: 1rem 0;
+    padding: 1rem;
+    background: rgba(255,248,231,0.05);
+    border-radius: 8px;
+}
+
+.cookie-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+</style>
+
+<script>
+function checkCookieConsent() {
+    const consent = localStorage.getItem('cookieConsent');
+    const consentDate = localStorage.getItem('cookieConsentDate');
+    
+    if (!consent || !consentDate) {
+        document.getElementById('cookieConsent').style.display = 'block';
+        return;
+    }
+    
+    const oneYearAgo = Date.now() - (365 * 24 * 60 * 60 * 1000);
+    if (parseInt(consentDate) < oneYearAgo) {
+        document.getElementById('cookieConsent').style.display = 'block';
+    }
+}
+
+function acceptCookies() {
+    localStorage.setItem('cookieConsent', 'true');
+    localStorage.setItem('cookieConsentDate', Date.now().toString());
+    document.getElementById('cookieConsent').style.display = 'none';
+}
+
+checkCookieConsent();
+</script>
