@@ -1,67 +1,952 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reward Points - Atelier Ākāra</title>
-    <link rel="stylesheet" href="/auth-styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Reward Points — Atelier Ākāra">
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+  <title>Reward Points — Atelier Ākāra</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --teal:       #002b2b;
+      --teal-mid:   #004040;
+      --teal-light: #005f5f;
+      --cream:      #fff8e7;
+      --gold:       #c9a96e;
+      --gold-light: #e2c99a;
+      --text-main:  #fff8e7;
+      --text-muted: rgba(255,248,231,0.55);
+      --border:     rgba(201,169,110,0.25);
+      --border-dim: rgba(201,169,110,0.12);
+      --card-bg:    rgba(255,248,231,0.03);
+      --error:      #e07070;
+      --success:    #70c9a0;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Josefin Sans', sans-serif;
+      background: var(--teal);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 15% 5%,  rgba(0,95,95,0.3)  0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 85% 90%,  rgba(0,64,64,0.35) 0%, transparent 55%);
+      pointer-events: none; z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,169,110,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,169,110,0.035) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ─── Header ──────────────────────────────────── */
+    .site-header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(0,43,43,0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-container {
+      display: flex; align-items: center; justify-content: space-between;
+      max-width: 1280px; margin: 0 auto; padding: 0 2rem; height: 64px;
+    }
+    .nav-left, .nav-right {
+      display: flex; align-items: center; gap: 2rem; min-width: 180px;
+    }
+    .nav-right { justify-content: flex-end; }
+    .nav-links { display: flex; gap: 2rem; }
+    .nav-links a, .nav-link {
+      font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text-muted); transition: color 0.2s;
+    }
+    .nav-links a:hover, .nav-link:hover { color: var(--gold); }
+    .brand-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; font-weight: 300;
+      letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--cream); white-space: nowrap;
+    }
+    .cart-link {
+      font-size: 0.75rem; color: var(--text-muted); transition: color 0.2s;
+    }
+    .cart-link:hover { color: var(--gold); }
+    .menu-toggle {
+      display: none; background: none; border: none;
+      color: var(--text-main); font-size: 1.2rem; cursor: pointer;
+    }
+    .mobile-nav {
+      display: none; position: fixed; top: 64px; left: 0; right: 0;
+      background: rgba(0,43,43,0.97); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border); padding: 1.5rem 2rem;
+      z-index: 99; flex-direction: column; gap: 1.2rem;
+    }
+    .mobile-nav.open { display: flex; }
+    .mobile-nav a {
+      font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text-muted); padding: 0.4rem 0;
+      border-bottom: 1px solid rgba(201,169,110,0.1);
+    }
+    .mobile-nav a:hover { color: var(--gold); }
+
+    /* ─── Page ────────────────────────────────────── */
+    .rewards-page {
+      position: relative; z-index: 1;
+      max-width: 1280px; margin: 0 auto;
+      padding: 84px 2rem 6rem;
+    }
+
+    .breadcrumbs {
+      font-size: 0.62rem; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--text-muted);
+      padding: 1.5rem 0 0;
+    }
+    .breadcrumbs a { color: var(--gold); opacity: 0.7; }
+    .breadcrumbs a:hover { opacity: 1; }
+    .breadcrumbs span { opacity: 0.45; margin: 0 0.5rem; }
+
+    /* ─── Page Header ─────────────────────────────── */
+    .rewards-header {
+      text-align: center; padding: 3.5rem 2rem 3rem;
+      position: relative;
+      animation: fadeUp 0.7s ease both;
+    }
+    .rewards-header::before {
+      content: 'REWARDS';
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(5rem, 16vw, 13rem);
+      font-weight: 300;
+      color: rgba(201,169,110,0.04);
+      letter-spacing: 0.3em; white-space: nowrap;
+      pointer-events: none; user-select: none;
+    }
+    .eyebrow {
+      position: relative; z-index: 1;
+      font-size: 0.62rem; letter-spacing: 0.4em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.8; margin-bottom: 1rem;
+    }
+    .rewards-header h1 {
+      position: relative; z-index: 1;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 300; letter-spacing: 0.1em;
+      color: var(--cream); line-height: 1.05; margin-bottom: 1rem;
+    }
+    .header-divider {
+      width: 50px; height: 1px; background: var(--gold);
+      opacity: 0.4; margin: 0 auto 1.25rem;
+      position: relative; z-index: 1;
+    }
+    .rewards-header p {
+      position: relative; z-index: 1;
+      font-size: 0.78rem; letter-spacing: 0.08em;
+      color: var(--text-muted); line-height: 1.85; max-width: 440px; margin: 0 auto;
+    }
+
+    /* ─── Not logged in banner ────────────────────── */
+    .login-banner {
+      background: rgba(201,169,110,0.07);
+      border: 1px solid var(--border);
+      padding: 1.25rem 1.75rem;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem; margin-bottom: 2.5rem; flex-wrap: wrap;
+      animation: fadeUp 0.6s ease 0.1s both;
+    }
+    .login-banner p {
+      font-size: 0.72rem; letter-spacing: 0.07em; color: var(--text-muted);
+    }
+    .login-banner a {
+      font-size: 0.62rem; letter-spacing: 0.25em; text-transform: uppercase;
+      color: var(--gold); border: 1px solid var(--border);
+      padding: 0.5rem 1.25rem; transition: all 0.2s; white-space: nowrap;
+    }
+    .login-banner a:hover { border-color: var(--gold); background: rgba(201,169,110,0.07); }
+
+    /* ─── Points Balance Card ─────────────────────── */
+    .balance-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 3rem 2.5rem;
+      text-align: center; margin-bottom: 2.5rem;
+      position: relative; overflow: hidden;
+      animation: fadeUp 0.6s ease 0.15s both;
+    }
+    .balance-card::before {
+      content: '';
+      position: absolute; top: -40px; right: -40px;
+      width: 180px; height: 180px;
+      border: 1px solid rgba(201,169,110,0.08);
+      border-radius: 50%;
+    }
+    .balance-card::after {
+      content: '';
+      position: absolute; bottom: -60px; left: -60px;
+      width: 240px; height: 240px;
+      border: 1px solid rgba(201,169,110,0.05);
+      border-radius: 50%;
+    }
+    .balance-label {
+      font-size: 0.6rem; letter-spacing: 0.4em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.7; margin-bottom: 1rem;
+    }
+    .balance-amount {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(4rem, 10vw, 7rem);
+      font-weight: 300; color: var(--gold);
+      letter-spacing: 0.05em; line-height: 1;
+      margin-bottom: 0.3rem;
+    }
+    .balance-unit {
+      font-size: 0.68rem; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--text-muted); margin-bottom: 1.5rem;
+    }
+    .balance-equiv {
+      display: inline-block;
+      background: rgba(112,201,160,0.1);
+      border: 1px solid rgba(112,201,160,0.25);
+      color: #70c9a0;
+      font-size: 0.7rem; letter-spacing: 0.12em;
+      padding: 0.4rem 1rem; margin-bottom: 1.5rem;
+    }
+    .balance-meta {
+      display: flex; justify-content: center; gap: 3rem; flex-wrap: wrap;
+    }
+    .balance-meta-item { text-align: center; }
+    .balance-meta-value {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem; font-weight: 300;
+      color: var(--cream); letter-spacing: 0.06em;
+    }
+    .balance-meta-label {
+      font-size: 0.55rem; letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--text-muted); margin-top: 0.2rem;
+    }
+
+    /* ─── Main Grid ───────────────────────────────── */
+    .rewards-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 2rem; margin-bottom: 3rem;
+      align-items: start;
+    }
+
+    /* ─── Redeem Cards ────────────────────────────── */
+    .section-eyebrow {
+      font-size: 0.6rem; letter-spacing: 0.4em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.7; margin-bottom: 0.6rem;
+    }
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      font-weight: 300; letter-spacing: 0.1em;
+      color: var(--cream); margin-bottom: 0.5rem;
+    }
+    .section-subtitle {
+      font-size: 0.7rem; letter-spacing: 0.06em;
+      color: var(--text-muted); margin-bottom: 2rem; line-height: 1.7;
+    }
+
+    .redeem-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem; margin-bottom: 1.5rem;
+    }
+    .redeem-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      padding: 2rem 1.5rem; text-align: center;
+      transition: border-color 0.3s, transform 0.3s;
+      animation: fadeUp 0.5s ease both;
+      position: relative; overflow: hidden;
+    }
+    .redeem-card:nth-child(1) { animation-delay: 0.1s; }
+    .redeem-card:nth-child(2) { animation-delay: 0.18s; }
+    .redeem-card:nth-child(3) { animation-delay: 0.26s; }
+    .redeem-card:hover { border-color: rgba(201,169,110,0.5); transform: translateY(-3px); }
+    .redeem-card.locked { opacity: 0.45; cursor: not-allowed; }
+    .redeem-card.locked:hover { transform: none; }
+
+    /* Best value ribbon */
+    .ribbon {
+      position: absolute; top: 0; right: 0;
+      background: var(--gold); color: var(--teal);
+      font-size: 0.5rem; letter-spacing: 0.2em; text-transform: uppercase;
+      padding: 0.25rem 0.6rem;
+    }
+
+    .redeem-points {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem; font-weight: 300; color: var(--gold);
+      letter-spacing: 0.05em; line-height: 1;
+    }
+    .redeem-points-label {
+      font-size: 0.58rem; letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--text-muted); margin-bottom: 1.25rem;
+    }
+    .redeem-divider {
+      width: 30px; height: 1px; background: var(--border);
+      margin: 0.75rem auto;
+    }
+    .redeem-value {
+      font-size: 1.2rem; letter-spacing: 0.05em;
+      color: var(--cream); margin-bottom: 0.3rem;
+    }
+    .redeem-desc {
+      font-size: 0.62rem; letter-spacing: 0.08em;
+      color: var(--text-muted); margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+    .redeem-saving {
+      font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--success); margin-bottom: 1.25rem;
+    }
+
+    .btn-redeem {
+      display: block; width: 100%;
+      padding: 0.7rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.6rem; letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--teal); background: var(--gold);
+      border: 1px solid var(--gold); cursor: pointer; transition: all 0.25s;
+    }
+    .btn-redeem:hover { background: transparent; color: var(--gold); }
+    .btn-redeem:disabled {
+      opacity: 0.35; cursor: not-allowed;
+      background: var(--gold); color: var(--teal);
+    }
+
+    .redeem-note {
+      font-size: 0.62rem; letter-spacing: 0.08em;
+      color: var(--text-muted); opacity: 0.6; text-align: center;
+    }
+
+    /* ─── History Sidebar ─────────────────────────── */
+    .history-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      animation: fadeUp 0.6s ease 0.2s both;
+    }
+    .history-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border-dim);
+    }
+    .history-header h3 {
+      font-size: 0.62rem; letter-spacing: 0.35em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.8;
+    }
+    .history-list { max-height: 480px; overflow-y: auto; }
+    .history-item {
+      display: flex; align-items: flex-start;
+      justify-content: space-between; gap: 1rem;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border-dim);
+    }
+    .history-item:last-child { border-bottom: none; }
+    .history-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      margin-top: 0.35rem; flex-shrink: 0;
+    }
+    .history-dot.earn   { background: var(--success); }
+    .history-dot.redeem { background: var(--gold); }
+    .history-dot.expire { background: var(--error); }
+    .history-info { flex: 1; }
+    .history-desc {
+      font-size: 0.7rem; letter-spacing: 0.05em;
+      color: var(--cream); margin-bottom: 0.2rem;
+    }
+    .history-date {
+      font-size: 0.6rem; letter-spacing: 0.08em; color: var(--text-muted);
+    }
+    .history-pts {
+      font-size: 0.75rem; letter-spacing: 0.06em;
+      font-family: 'Cormorant Garamond', serif; font-weight: 400;
+      white-space: nowrap;
+    }
+    .history-pts.earn   { color: var(--success); }
+    .history-pts.redeem { color: var(--gold); }
+    .history-pts.expire { color: var(--error); }
+    .history-empty {
+      padding: 2.5rem; text-align: center;
+      font-size: 0.7rem; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--text-muted);
+    }
+
+    /* ─── Earn Section ────────────────────────────── */
+    .earn-section {
+      border-top: 1px solid var(--border);
+      padding-top: 3.5rem; margin-bottom: 3.5rem;
+      animation: fadeUp 0.6s ease 0.25s both;
+    }
+    .earn-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem;
+    }
+    .earn-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      padding: 2rem 1.5rem; text-align: center;
+      transition: border-color 0.3s, background 0.3s;
+      animation: fadeUp 0.5s ease both;
+    }
+    .earn-card:nth-child(1) { animation-delay: 0.05s; }
+    .earn-card:nth-child(2) { animation-delay: 0.12s; }
+    .earn-card:nth-child(3) { animation-delay: 0.19s; }
+    .earn-card:nth-child(4) { animation-delay: 0.26s; }
+    .earn-card:hover { border-color: rgba(201,169,110,0.45); background: rgba(201,169,110,0.04); }
+    .earn-icon { font-size: 1.5rem; opacity: 0.5; margin-bottom: 1rem; }
+    .earn-pts {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.6rem; font-weight: 300;
+      color: var(--gold); letter-spacing: 0.05em; margin-bottom: 0.25rem;
+    }
+    .earn-pts-label {
+      font-size: 0.55rem; letter-spacing: 0.25em; text-transform: uppercase;
+      color: var(--text-muted); margin-bottom: 0.75rem;
+    }
+    .earn-divider { width: 24px; height: 1px; background: var(--border); margin: 0.75rem auto; }
+    .earn-action {
+      font-size: 0.72rem; letter-spacing: 0.06em;
+      color: var(--cream); margin-bottom: 0.3rem;
+    }
+    .earn-desc {
+      font-size: 0.62rem; letter-spacing: 0.04em;
+      color: var(--text-muted); line-height: 1.6;
+    }
+    .earn-btn {
+      display: inline-block;
+      margin-top: 1.25rem;
+      padding: 0.5rem 1.2rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.58rem; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--gold); border: 1px solid var(--border);
+      transition: all 0.2s; cursor: pointer; background: none;
+    }
+    .earn-btn:hover { border-color: var(--gold); background: rgba(201,169,110,0.06); }
+
+    /* ─── Toast ───────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 2rem; right: 2rem; z-index: 999;
+      background: var(--gold); color: var(--teal);
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase;
+      padding: 0.75rem 1.5rem;
+      opacity: 0; transition: opacity 0.3s; pointer-events: none;
+    }
+    .toast.error { background: var(--error); color: var(--cream); }
+    .toast.visible { opacity: 1; }
+
+    /* ─── Footer ──────────────────────────────────── */
+    .site-footer {
+      background: rgba(0,20,20,0.6); border-top: 1px solid var(--border);
+      padding: 4rem 2rem 2rem; position: relative; z-index: 1;
+    }
+    .footer-content { max-width: 1280px; margin: 0 auto; }
+    .footer-grid {
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem; margin-bottom: 3rem;
+    }
+    .footer-section h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; font-weight: 400;
+      letter-spacing: 0.2em; color: var(--cream); margin-bottom: 0.5rem;
+    }
+    .footer-section > p { font-size: 0.7rem; letter-spacing: 0.12em; color: var(--text-muted); }
+    .footer-section h4 {
+      font-size: 0.6rem; letter-spacing: 0.35em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.75; margin-bottom: 1.2rem;
+    }
+    .footer-section a {
+      display: block; font-size: 0.72rem; letter-spacing: 0.08em;
+      color: var(--text-muted); margin-bottom: 0.6rem; transition: color 0.2s;
+    }
+    .footer-section a:hover { color: var(--gold); }
+    .footer-bottom {
+      border-top: 1px solid var(--border); padding-top: 1.5rem;
+      display: flex; justify-content: space-between;
+      align-items: center; flex-wrap: wrap; gap: 0.5rem;
+    }
+    .footer-bottom p { font-size: 0.62rem; letter-spacing: 0.12em; color: var(--text-muted); opacity: 0.6; }
+
+    /* ─── Animations ──────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── Responsive ──────────────────────────────── */
+    @media (max-width: 1024px) {
+      .rewards-grid { grid-template-columns: 1fr; }
+      .history-card { order: -1; }
+      .history-list { max-height: 240px; }
+      .earn-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .desktop-only { display: none; }
+      .menu-toggle { display: block; }
+      .nav-left, .nav-right { min-width: auto; }
+      .redeem-grid { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+    }
+    @media (max-width: 480px) {
+      .earn-grid { grid-template-columns: 1fr; }
+      .balance-meta { gap: 1.5rem; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+    }
+  </style>
 </head>
+
 <body>
-    <header class="site-header">
-        <nav class="nav-container">
-            <div class="nav-center">
-                <a href="/" class="brand-logo">ATELIER ĀKĀRA</a>
-            </div>
-        </nav>
-    </header>
-    
-    <main class="rewards-page">
-        <h1>Reward Points</h1>
-        
-        <div class="points-balance">
-            <h2>Your Balance</h2>
-            <p class="points-amount" id="pointsBalance">0 points</p>
-            <p class="points-value">= ₹0 discount available</p>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <nav class="nav-container">
+      <div class="nav-left">
+        <button class="menu-toggle" id="menuToggle">☰</button>
+        <div class="nav-links desktop-only">
+          <a href="../catalog.html">Catalog</a>
+          <a href="../about.html">About</a>
         </div>
-        
-        <div class="rewards-catalog">
-            <h2>Redeem Your Points</h2>
-            <p class="note">Minimum 2,000 points required to redeem</p>
-            
-            <div class="rewards-grid">
-                <div class="reward-card">
-                    <h3>2,000 Points</h3>
-                    <p>₹200 Coupon</p>
-                    <button class="btn-primary">Redeem</button>
-                </div>
-                
-                <div class="reward-card">
-                    <h3>3,000 Points</h3>
-                    <p>₹350 Coupon</p>
-                    <button class="btn-primary">Redeem</button>
-                </div>
-                
-                <div class="reward-card">
-                    <h3>5,000 Points</h3>
-                    <p>₹650 Coupon</p>
-                    <button class="btn-primary">Redeem</button>
-                </div>
-            </div>
+      </div>
+      <a href="../index.html" class="brand-logo">ATELIER ĀKĀRA</a>
+      <div class="nav-right">
+        <a href="../contact.html" class="nav-link desktop-only">Contact</a>
+        <a href="cart.html" class="cart-link">🛒 <span id="cartCount">0</span></a>
+        <a href="profile.html" style="font-size:0.75rem;color:var(--text-muted);">👤</a>
+      </div>
+    </nav>
+  </header>
+
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="../catalog.html">Catalog</a>
+    <a href="../about.html">About</a>
+    <a href="../contact.html">Contact</a>
+    <a href="cart.html">Cart</a>
+    <a href="profile.html">My Account</a>
+  </nav>
+
+  <!-- Page -->
+  <main class="rewards-page">
+
+    <nav class="breadcrumbs">
+      <a href="../index.html">Home</a>
+      <span>/</span>
+      <a href="profile.html">My Account</a>
+      <span>/</span>
+      Rewards
+    </nav>
+
+    <!-- Header -->
+    <div class="rewards-header">
+      <p class="eyebrow">Loyalty Programme</p>
+      <h1>Reward Points</h1>
+      <div class="header-divider"></div>
+      <p>Earn points with every purchase and redeem them for exclusive discounts. The more you shop, the more you save.</p>
+    </div>
+
+    <!-- Not logged in banner -->
+    <div class="login-banner" id="loginBanner" style="display:none;">
+      <p>Sign in to view your points balance and redeem rewards.</p>
+      <a href="../auth/login.html">Sign In →</a>
+    </div>
+
+    <!-- Balance Card -->
+    <div class="balance-card" id="balanceCard">
+      <p class="balance-label">Your Current Balance</p>
+      <div class="balance-amount" id="balanceAmount">0</div>
+      <div class="balance-unit">Points</div>
+      <div class="balance-equiv" id="balanceEquiv">= ₹0 discount available</div>
+      <div class="balance-meta">
+        <div class="balance-meta-item">
+          <div class="balance-meta-value" id="lifetimeEarned">0</div>
+          <div class="balance-meta-label">Lifetime Earned</div>
         </div>
-        
-        <div class="earn-points">
-            <h2>Earn More Points</h2>
-            <ul>
-                <li>Every ₹100 spent = 10 points</li>
-                <li>Write a review = 50 points</li>
-                <li>Refer a friend = 100 points</li>
-                <li>Share on Instagram = 25 points</li>
-            </ul>
+        <div class="balance-meta-item">
+          <div class="balance-meta-value" id="lifetimeRedeemed">0</div>
+          <div class="balance-meta-label">Lifetime Redeemed</div>
         </div>
-    </main>
-    
-    <script type="module">
-        console.log('Rewards page loaded');
-    </script>
+        <div class="balance-meta-item">
+          <div class="balance-meta-value" id="memberSince">—</div>
+          <div class="balance-meta-label">Member Since</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main grid -->
+    <div class="rewards-grid">
+
+      <!-- Redeem column -->
+      <div>
+        <p class="section-eyebrow">Redeem</p>
+        <h2 class="section-title">Use Your Points</h2>
+        <p class="section-subtitle">Minimum 2,000 points required to redeem. Coupon codes are emailed instantly after redemption.</p>
+
+        <div class="redeem-grid">
+
+          <div class="redeem-card" id="tier1Card">
+            <div class="redeem-points" id="tier1Pts">2,000</div>
+            <div class="redeem-pts-label">Points</div>
+            <div class="redeem-divider"></div>
+            <div class="redeem-value">₹200 Coupon</div>
+            <div class="redeem-desc">10% value return</div>
+            <div class="redeem-saving" style="visibility:hidden;">—</div>
+            <button class="btn-redeem" id="btn1" onclick="redeemPoints(2000, 200)">Redeem</button>
+          </div>
+
+          <div class="redeem-card" id="tier2Card">
+            <div class="ribbon">Best Value</div>
+            <div class="redeem-points" id="tier2Pts">3,000</div>
+            <div class="redeem-pts-label">Points</div>
+            <div class="redeem-divider"></div>
+            <div class="redeem-value">₹350 Coupon</div>
+            <div class="redeem-desc">11.7% value return</div>
+            <div class="redeem-saving">Save extra ₹50 vs basic tier</div>
+            <button class="btn-redeem" id="btn2" onclick="redeemPoints(3000, 350)">Redeem</button>
+          </div>
+
+          <div class="redeem-card" id="tier3Card">
+            <div class="redeem-points" id="tier3Pts">5,000</div>
+            <div class="redeem-pts-label">Points</div>
+            <div class="redeem-divider"></div>
+            <div class="redeem-value">₹650 Coupon</div>
+            <div class="redeem-desc">13% value return</div>
+            <div class="redeem-saving">Maximum value per point</div>
+            <button class="btn-redeem" id="btn3" onclick="redeemPoints(5000, 650)">Redeem</button>
+          </div>
+
+        </div>
+        <p class="redeem-note">Coupon codes are valid for 30 days and apply to all products. Cannot be combined with other discounts.</p>
+      </div>
+
+      <!-- History sidebar -->
+      <div class="history-card">
+        <div class="history-header">
+          <h3>Points History</h3>
+        </div>
+        <div class="history-list" id="historyList">
+          <div class="history-empty">Loading…</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Earn section -->
+    <div class="earn-section">
+      <div style="margin-bottom:2rem;">
+        <p class="section-eyebrow">Earn More</p>
+        <h2 class="section-title">How to Earn Points</h2>
+      </div>
+      <div class="earn-grid">
+
+        <div class="earn-card">
+          <div class="earn-icon">🛒</div>
+          <div class="earn-pts">10</div>
+          <div class="earn-pts-label">Points per ₹100</div>
+          <div class="earn-divider"></div>
+          <div class="earn-action">Make a Purchase</div>
+          <div class="earn-desc">Earn on every order automatically. Points credited after delivery.</div>
+          <a href="../catalog.html" class="earn-btn">Shop Now</a>
+        </div>
+
+        <div class="earn-card">
+          <div class="earn-icon">⭐</div>
+          <div class="earn-pts">50</div>
+          <div class="earn-pts-label">Points</div>
+          <div class="earn-divider"></div>
+          <div class="earn-action">Write a Review</div>
+          <div class="earn-desc">Share your experience on a product you've purchased.</div>
+          <button class="earn-btn" onclick="alert('Review feature coming soon')">Write Review</button>
+        </div>
+
+        <div class="earn-card">
+          <div class="earn-icon">👥</div>
+          <div class="earn-pts">100</div>
+          <div class="earn-pts-label">Points</div>
+          <div class="earn-divider"></div>
+          <div class="earn-action">Refer a Friend</div>
+          <div class="earn-desc">Your friend gets 50 points too when they make their first order.</div>
+          <button class="earn-btn" onclick="copyReferral()">Copy Link</button>
+        </div>
+
+        <div class="earn-card">
+          <div class="earn-icon">📸</div>
+          <div class="earn-pts">25</div>
+          <div class="earn-pts-label">Points</div>
+          <div class="earn-divider"></div>
+          <div class="earn-action">Share on Instagram</div>
+          <div class="earn-desc">Post a photo with @atelier.akara and tag us to earn points.</div>
+          <a href="https://instagram.com/atelier.akara" target="_blank" class="earn-btn">Open Instagram</a>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-grid">
+        <div class="footer-section">
+          <h3>ATELIER ĀKĀRA</h3>
+          <p>Artifacts for the Modern Spaces</p>
+        </div>
+        <div class="footer-section">
+          <h4>Shop</h4>
+          <a href="../catalog.html">All Products</a>
+          <a href="../catalog.html?category=planters">Planters</a>
+          <a href="../catalog.html?category=vases">Vases</a>
+          <a href="../catalog.html?category=lighting">Lighting</a>
+        </div>
+        <div class="footer-section">
+          <h4>Information</h4>
+          <a href="../about.html">About Us</a>
+          <a href="../contact.html">Contact</a>
+          <a href="../privacy.html">Privacy Policy</a>
+          <a href="../terms.html">Terms of Service</a>
+        </div>
+        <div class="footer-section">
+          <h4>Connect</h4>
+          <a href="https://instagram.com/atelier.akara" target="_blank">Instagram</a>
+          <a href="mailto:support@akaraonline.co.in">Email Us</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>Precision Forge Labs &nbsp;|&nbsp; GST: 27GZCPS9353H1ZQ</p>
+        <p>© 2024 Atelier Ākāra. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const SUPABASE_URL      = '';
+    const SUPABASE_ANON_KEY = '';
+
+    let supabase = null;
+    let currentUser = null;
+    let userPoints  = 0;
+
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    // ─── Mobile menu ──────────────────────────────────
+    document.getElementById('menuToggle').addEventListener('click', () =>
+      document.getElementById('mobileNav').classList.toggle('open'));
+
+    // ─── Cart count ───────────────────────────────────
+    const cart = JSON.parse(localStorage.getItem('akara_cart') || '[]');
+    document.getElementById('cartCount').textContent = cart.reduce((s, i) => s + (i.qty || 1), 0);
+
+    // ─── Session ──────────────────────────────────────
+    async function init() {
+      if (!supabase) {
+        // Demo mode — show sample data
+        loadDemoData();
+        return;
+      }
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        document.getElementById('loginBanner').style.display = 'flex';
+        disableRedeemButtons();
+        loadHistory([]);
+        return;
+      }
+      currentUser = session.user;
+      await loadUserPoints(session.user.id);
+    }
+
+    function loadDemoData() {
+      setBalance(1250, 3500, 2250);
+      document.getElementById('memberSince').textContent = 'Dec 2024';
+      updateRedeemButtons(1250);
+      loadHistory([
+        { type:'earn',   desc:'Order INV-00123 delivered',   pts:480, date:'12 Jan 2025' },
+        { type:'earn',   desc:'Product review — Prism Vase', pts:50,  date:'10 Jan 2025' },
+        { type:'redeem', desc:'₹200 coupon redeemed',        pts:-2000,date:'5 Jan 2025' },
+        { type:'earn',   desc:'Order INV-00124 delivered',   pts:360, date:'28 Dec 2024' },
+        { type:'earn',   desc:'Welcome bonus',               pts:100, date:'20 Dec 2024' },
+      ]);
+    }
+
+    async function loadUserPoints(userId) {
+      try {
+        const { data } = await supabase
+          .from('reward_points')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
+
+        const balance   = data?.balance   || 0;
+        const earned    = data?.lifetime_earned   || 0;
+        const redeemed  = data?.lifetime_redeemed || 0;
+
+        setBalance(balance, earned, redeemed);
+
+        const joined = new Date(currentUser.created_at);
+        document.getElementById('memberSince').textContent =
+          joined.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
+
+        updateRedeemButtons(balance);
+        await loadHistory(userId);
+      } catch {
+        loadDemoData();
+      }
+    }
+
+    function setBalance(balance, earned, redeemed) {
+      userPoints = balance;
+      document.getElementById('balanceAmount').textContent   = balance.toLocaleString('en-IN');
+      document.getElementById('balanceEquiv').textContent    = `= ₹${Math.floor(balance / 10)} discount available`;
+      document.getElementById('lifetimeEarned').textContent  = earned.toLocaleString('en-IN');
+      document.getElementById('lifetimeRedeemed').textContent = redeemed.toLocaleString('en-IN');
+    }
+
+    function updateRedeemButtons(balance) {
+      const tiers = [
+        { btn: 'btn1', threshold: 2000 },
+        { btn: 'btn2', threshold: 3000 },
+        { btn: 'btn3', threshold: 5000 },
+      ];
+      tiers.forEach(({ btn, threshold }) => {
+        const el = document.getElementById(btn);
+        el.disabled = balance < threshold;
+      });
+    }
+
+    function disableRedeemButtons() {
+      ['btn1','btn2','btn3'].forEach(id => {
+        const el = document.getElementById(id);
+        el.disabled = true;
+        el.textContent = 'Sign in to redeem';
+      });
+    }
+
+    async function loadHistory(userIdOrArray) {
+      const list = document.getElementById('historyList');
+      let items = [];
+
+      if (Array.isArray(userIdOrArray)) {
+        items = userIdOrArray;
+      } else if (supabase) {
+        try {
+          const { data } = await supabase
+            .from('points_history')
+            .select('*')
+            .eq('user_id', userIdOrArray)
+            .order('created_at', { ascending: false })
+            .limit(20);
+          items = (data || []).map(r => ({
+            type: r.type,
+            desc: r.description,
+            pts:  r.points,
+            date: new Date(r.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })
+          }));
+        } catch { items = []; }
+      }
+
+      if (!items.length) {
+        list.innerHTML = '<div class="history-empty">No points activity yet</div>';
+        return;
+      }
+
+      list.innerHTML = items.map(i => `
+        <div class="history-item">
+          <div class="history-dot ${i.type}"></div>
+          <div class="history-info">
+            <p class="history-desc">${i.desc}</p>
+            <p class="history-date">${i.date}</p>
+          </div>
+          <span class="history-pts ${i.type}">
+            ${i.pts > 0 ? '+' : ''}${i.pts.toLocaleString('en-IN')} pts
+          </span>
+        </div>`).join('');
+    }
+
+    // ─── Redeem ───────────────────────────────────────
+    async function redeemPoints(cost, value) {
+      if (userPoints < cost) {
+        showToast(`You need ${cost.toLocaleString('en-IN')} points to redeem this reward`, 'error');
+        return;
+      }
+      if (!confirm(`Redeem ${cost.toLocaleString('en-IN')} points for a ₹${value} coupon?\n\nA coupon code will be sent to your email.`)) return;
+
+      if (!supabase || !currentUser) {
+        // Demo mode
+        userPoints -= cost;
+        setBalance(userPoints, parseInt(document.getElementById('lifetimeEarned').textContent.replace(/,/g,'')), cost);
+        updateRedeemButtons(userPoints);
+        showToast(`₹${value} coupon sent to your email!`);
+        return;
+      }
+
+      try {
+        // Deduct points
+        await supabase.from('reward_points').update({
+          balance: userPoints - cost,
+          lifetime_redeemed: parseInt(document.getElementById('lifetimeRedeemed').textContent.replace(/,/g,'')) + cost
+        }).eq('user_id', currentUser.id);
+
+        // Log history
+        await supabase.from('points_history').insert([{
+          user_id: currentUser.id,
+          type: 'redeem',
+          description: `₹${value} coupon redeemed`,
+          points: -cost
+        }]);
+
+        userPoints -= cost;
+        setBalance(userPoints,
+          parseInt(document.getElementById('lifetimeEarned').textContent.replace(/,/g,'')),
+          parseInt(document.getElementById('lifetimeRedeemed').textContent.replace(/,/g,'')) + cost
+        );
+        updateRedeemButtons(userPoints);
+        showToast(`₹${value} coupon sent to your email!`);
+        await loadHistory(currentUser.id);
+      } catch {
+        showToast('Redemption failed. Please try again.', 'error');
+      }
+    }
+
+    // ─── Referral ─────────────────────────────────────
+    function copyReferral() {
+      const code = currentUser ? `REF-${currentUser.id.slice(0,8).toUpperCase()}` : 'REF-AKARA';
+      const url  = `${window.location.origin}/?ref=${code}`;
+      navigator.clipboard.writeText(url).then(() => showToast('Referral link copied!')).catch(() => {
+        prompt('Copy your referral link:', url);
+      });
+    }
+
+    // ─── Toast ────────────────────────────────────────
+    function showToast(msg, type = '') {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className   = `toast${type ? ' ' + type : ''} visible`;
+      setTimeout(() => el.classList.remove('visible'), 3000);
+    }
+
+    init();
+  </script>
+
 </body>
 </html>
