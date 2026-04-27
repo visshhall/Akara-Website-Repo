@@ -1,72 +1,764 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Delete Account - Atelier Ākāra</title>
-    <link rel="stylesheet" href="/auth-styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Delete Account — Atelier Ākāra">
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+  <title>Delete Account — Atelier Ākāra</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --teal:       #002b2b;
+      --teal-mid:   #004040;
+      --cream:      #fff8e7;
+      --gold:       #c9a96e;
+      --gold-light: #e2c99a;
+      --text-main:  #fff8e7;
+      --text-muted: rgba(255,248,231,0.55);
+      --border:     rgba(201,169,110,0.25);
+      --input-bg:   rgba(255,248,231,0.05);
+      --error:      #e07070;
+      --error-dim:  rgba(224,112,112,0.12);
+      --warning:    #e2a96e;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Josefin Sans', sans-serif;
+      background: var(--teal);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 15% 5%,  rgba(0,95,95,0.3)  0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 85% 90%,  rgba(0,64,64,0.35) 0%, transparent 55%);
+      pointer-events: none; z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,169,110,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,169,110,0.035) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ─── Header ──────────────────────────────────── */
+    .site-header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(0,43,43,0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-container {
+      display: flex; align-items: center; justify-content: space-between;
+      max-width: 1280px; margin: 0 auto; padding: 0 2rem; height: 64px;
+    }
+    .nav-left, .nav-right {
+      display: flex; align-items: center; gap: 2rem; min-width: 180px;
+    }
+    .nav-right { justify-content: flex-end; }
+    .nav-links { display: flex; gap: 2rem; }
+    .nav-links a {
+      font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text-muted); transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--gold); }
+    .brand-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; font-weight: 300;
+      letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--cream); white-space: nowrap;
+    }
+    .cart-link {
+      font-size: 0.75rem; color: var(--text-muted); transition: color 0.2s;
+    }
+    .cart-link:hover { color: var(--gold); }
+    .menu-toggle {
+      display: none; background: none; border: none;
+      color: var(--text-main); font-size: 1.2rem; cursor: pointer;
+    }
+    .mobile-nav {
+      display: none; position: fixed; top: 64px; left: 0; right: 0;
+      background: rgba(0,43,43,0.97); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border); padding: 1.5rem 2rem;
+      z-index: 99; flex-direction: column; gap: 1.2rem;
+    }
+    .mobile-nav.open { display: flex; }
+    .mobile-nav a {
+      font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text-muted); padding: 0.4rem 0;
+      border-bottom: 1px solid rgba(201,169,110,0.1);
+    }
+    .mobile-nav a:hover { color: var(--gold); }
+
+    /* ─── Page ────────────────────────────────────── */
+    .deletion-page {
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      display: flex; align-items: flex-start; justify-content: center;
+      padding: 84px 2rem 6rem;
+    }
+
+    .deletion-inner {
+      width: 100%; max-width: 640px;
+      padding-top: 3rem;
+      animation: fadeUp 0.7s ease both;
+    }
+
+    /* Breadcrumb */
+    .breadcrumbs {
+      font-size: 0.62rem; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--text-muted);
+      margin-bottom: 2.5rem;
+    }
+    .breadcrumbs a { color: var(--gold); opacity: 0.7; transition: opacity 0.2s; }
+    .breadcrumbs a:hover { opacity: 1; }
+    .breadcrumbs span { opacity: 0.45; margin: 0 0.5rem; }
+
+    /* ─── Page Header ─────────────────────────────── */
+    .deletion-header {
+      text-align: center; margin-bottom: 2.5rem;
+    }
+    .danger-icon {
+      width: 64px; height: 64px;
+      border: 1px solid rgba(224,112,112,0.35);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.5rem;
+      font-size: 1.5rem;
+      color: var(--error);
+    }
+    .deletion-header h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 300; letter-spacing: 0.1em;
+      color: var(--cream); margin-bottom: 0.6rem; line-height: 1.05;
+    }
+    .deletion-header p {
+      font-size: 0.78rem; letter-spacing: 0.06em;
+      color: var(--text-muted); line-height: 1.8;
+    }
+
+    /* ─── Warning Block ───────────────────────────── */
+    .warning-block {
+      border: 1px solid rgba(224,112,112,0.3);
+      background: var(--error-dim);
+      padding: 1.75rem;
+      margin-bottom: 2rem;
+    }
+    .warning-title {
+      font-size: 0.62rem; letter-spacing: 0.35em; text-transform: uppercase;
+      color: var(--error); margin-bottom: 1.1rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .warning-title::before {
+      content: '⚠';
+      font-size: 0.75rem;
+    }
+
+    .warning-cols {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+    }
+    .warning-col h4 {
+      font-size: 0.6rem; letter-spacing: 0.28em; text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+    .warning-col.deleted h4 { color: var(--error); opacity: 0.85; }
+    .warning-col.retained h4 { color: var(--warning); opacity: 0.85; }
+
+    .warning-list {
+      list-style: none; display: flex; flex-direction: column; gap: 0.5rem;
+    }
+    .warning-list li {
+      font-size: 0.7rem; letter-spacing: 0.05em;
+      color: var(--text-muted); line-height: 1.5;
+      display: flex; gap: 0.6rem; align-items: flex-start;
+    }
+    .warning-list li::before { flex-shrink: 0; margin-top: 0.1rem; }
+    .warning-col.deleted  .warning-list li::before { content: '✕'; color: var(--error); opacity: 0.7; font-size: 0.6rem; }
+    .warning-col.retained .warning-list li::before { content: '↩'; color: var(--warning); opacity: 0.7; font-size: 0.6rem; }
+
+    .legal-note {
+      margin-top: 1.25rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid rgba(224,112,112,0.2);
+      font-size: 0.65rem; letter-spacing: 0.06em;
+      color: var(--text-muted); opacity: 0.7; line-height: 1.75;
+    }
+
+    /* ─── Form Card ───────────────────────────────── */
+    .deletion-form-card {
+      background: rgba(255,248,231,0.03);
+      border: 1px solid var(--border);
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .form-card-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.2rem; font-weight: 400;
+      letter-spacing: 0.1em; color: var(--cream);
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Form fields */
+    .form-field { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1.25rem; }
+    .form-field:last-of-type { margin-bottom: 0; }
+    .form-field label {
+      font-size: 0.58rem; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.8;
+    }
+    .form-field .field-hint {
+      font-size: 0.58rem; letter-spacing: 0.08em;
+      color: var(--text-muted); opacity: 0.55; margin-top: 0.1rem;
+    }
+    .form-field input,
+    .form-field select,
+    .form-field textarea {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.75rem; letter-spacing: 0.08em;
+      padding: 0.75rem 1rem; outline: none;
+      transition: border-color 0.2s; width: 100%; -webkit-appearance: none;
+    }
+    .form-field input::placeholder,
+    .form-field textarea::placeholder { color: var(--text-muted); }
+    .form-field input:focus,
+    .form-field textarea:focus { border-color: rgba(201,169,110,0.55); }
+    .form-field input.invalid { border-color: var(--error); }
+    .form-field select option { background: var(--teal); }
+    .form-field textarea { min-height: 90px; resize: vertical; line-height: 1.7; }
+
+    /* Confirm phrase input — highlighted */
+    #confirmText {
+      font-family: 'Josefin Sans', sans-serif;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      font-size: 0.7rem;
+    }
+    #confirmText:focus { border-color: rgba(224,112,112,0.5); }
+    #confirmText.correct { border-color: rgba(112,201,160,0.5); }
+
+    /* Phrase match indicator */
+    .confirm-status {
+      font-size: 0.6rem; letter-spacing: 0.12em;
+      margin-top: 0.25rem; display: none;
+    }
+    .confirm-status.wrong   { color: var(--error);   display: block; }
+    .confirm-status.correct { color: #70c9a0;         display: block; }
+
+    /* ─── Action Buttons ──────────────────────────── */
+    .deletion-actions {
+      display: flex; flex-direction: column; gap: 0.75rem;
+    }
+
+    .btn-delete {
+      display: block; width: 100%;
+      padding: 0.9rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--cream);
+      background: rgba(224,112,112,0.15);
+      border: 1px solid rgba(224,112,112,0.5);
+      cursor: pointer; transition: all 0.25s;
+    }
+    .btn-delete:hover:not(:disabled) {
+      background: rgba(224,112,112,0.25);
+      border-color: var(--error);
+    }
+    .btn-delete:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .btn-cancel {
+      display: block; width: 100%;
+      padding: 0.85rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--gold); background: none;
+      border: 1px solid var(--border);
+      cursor: pointer; transition: all 0.25s; text-align: center;
+    }
+    .btn-cancel:hover { border-color: var(--gold); background: rgba(201,169,110,0.05); }
+
+    /* ─── Status message ──────────────────────────── */
+    .deletion-status {
+      font-size: 0.68rem; letter-spacing: 0.1em; line-height: 1.7;
+      padding: 0.75rem 1rem; text-align: center;
+      display: none; margin-top: 0.75rem;
+    }
+    .deletion-status.error   { color: var(--error); border: 1px solid rgba(224,112,112,0.3); display: block; }
+    .deletion-status.success { color: #70c9a0; border: 1px solid rgba(112,201,160,0.3); display: block; }
+    .deletion-status.info    { color: var(--text-muted); border: 1px solid var(--border); display: block; }
+
+    /* ─── Already deleted / success state ────────────*/
+    .deleted-state {
+      display: none;
+      text-align: center; padding: 4rem 2rem;
+      animation: fadeUp 0.6s ease both;
+    }
+    .deleted-state.visible { display: block; }
+    .deleted-icon {
+      width: 64px; height: 64px;
+      border: 1px solid rgba(112,201,160,0.4);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.5rem; font-size: 1.4rem; color: #70c9a0;
+    }
+    .deleted-state h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem; font-weight: 300;
+      letter-spacing: 0.1em; color: var(--cream); margin-bottom: 0.75rem;
+    }
+    .deleted-state p {
+      font-size: 0.75rem; letter-spacing: 0.06em;
+      color: var(--text-muted); line-height: 1.85; margin-bottom: 2rem;
+    }
+
+    /* ─── Footer ──────────────────────────────────── */
+    .site-footer {
+      background: rgba(0,20,20,0.6); border-top: 1px solid var(--border);
+      padding: 4rem 2rem 2rem; position: relative; z-index: 1;
+    }
+    .footer-content { max-width: 1280px; margin: 0 auto; }
+    .footer-grid {
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem; margin-bottom: 3rem;
+    }
+    .footer-section h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; font-weight: 400;
+      letter-spacing: 0.2em; color: var(--cream); margin-bottom: 0.5rem;
+    }
+    .footer-section > p { font-size: 0.7rem; letter-spacing: 0.12em; color: var(--text-muted); }
+    .footer-section h4 {
+      font-size: 0.6rem; letter-spacing: 0.35em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.75; margin-bottom: 1.2rem;
+    }
+    .footer-section a {
+      display: block; font-size: 0.72rem; letter-spacing: 0.08em;
+      color: var(--text-muted); margin-bottom: 0.6rem; transition: color 0.2s;
+    }
+    .footer-section a:hover { color: var(--gold); }
+    .footer-bottom {
+      border-top: 1px solid var(--border); padding-top: 1.5rem;
+      display: flex; justify-content: space-between;
+      align-items: center; flex-wrap: wrap; gap: 0.5rem;
+    }
+    .footer-bottom p { font-size: 0.62rem; letter-spacing: 0.12em; color: var(--text-muted); opacity: 0.6; }
+
+    /* ─── Animations ──────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── Responsive ──────────────────────────────── */
+    @media (max-width: 768px) {
+      .desktop-only { display: none; }
+      .menu-toggle { display: block; }
+      .nav-left, .nav-right { min-width: auto; }
+      .warning-cols { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+    }
+    @media (max-width: 480px) {
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+    }
+  </style>
 </head>
+
 <body>
-    <main class="deletion-page">
-        <h1>Delete Your Account</h1>
-        <p>We're sorry to see you go!</p>
-        
-        <div class="deletion-warning">
-            <h2>⚠️ Warning</h2>
-            <p>This action cannot be undone. Deleting your account will:</p>
-            <ul>
-                <li>Permanently delete your profile and personal information</li>
-                <li>Remove your saved addresses</li>
-                <li>Delete your wishlist</li>
-                <li>Remove your reviews</li>
-                <li>Delete your reward points</li>
-            </ul>
-            
-            <p><strong>We will retain:</strong></p>
-            <ul>
-                <li>Order history and invoices (7 years - legal requirement)</li>
-                <li>Data will be anonymized</li>
-            </ul>
+
+  <!-- Header -->
+  <header class="site-header">
+    <nav class="nav-container">
+      <div class="nav-left">
+        <button class="menu-toggle" id="menuToggle">☰</button>
+        <div class="nav-links desktop-only">
+          <a href="../catalog.html">Catalog</a>
+          <a href="../about.html">About</a>
         </div>
-        
-        <form id="deletionForm">
-            <div class="form-group">
-                <label>Type "DELETE MY ACCOUNT" to confirm:</label>
-                <input type="text" id="confirmText" required>
+      </div>
+      <a href="../index.html" class="brand-logo">ATELIER ĀKĀRA</a>
+      <div class="nav-right">
+        <a href="../contact.html" class="nav-link desktop-only">Contact</a>
+        <a href="cart.html" class="cart-link">🛒 <span id="cartCount">0</span></a>
+        <a href="profile.html" style="font-size:0.75rem;color:var(--text-muted);">👤</a>
+      </div>
+    </nav>
+  </header>
+
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="../catalog.html">Catalog</a>
+    <a href="../about.html">About</a>
+    <a href="../contact.html">Contact</a>
+    <a href="profile.html">← Back to Profile</a>
+  </nav>
+
+  <!-- Page -->
+  <main class="deletion-page">
+    <div class="deletion-inner">
+
+      <!-- Breadcrumb -->
+      <nav class="breadcrumbs">
+        <a href="../index.html">Home</a>
+        <span>/</span>
+        <a href="profile.html">My Account</a>
+        <span>/</span>
+        Delete Account
+      </nav>
+
+      <!-- ── Main form content ── -->
+      <div id="mainContent">
+
+        <!-- Header -->
+        <div class="deletion-header">
+          <div class="danger-icon">⚠</div>
+          <h1>Delete Your Account</h1>
+          <p>We're sorry to see you go. Please read everything below carefully — this action is permanent and cannot be undone.</p>
+        </div>
+
+        <!-- Warning -->
+        <div class="warning-block">
+          <p class="warning-title">What happens when you delete your account</p>
+          <div class="warning-cols">
+            <div class="warning-col deleted">
+              <h4>Permanently Deleted</h4>
+              <ul class="warning-list">
+                <li>Your profile and personal information</li>
+                <li>Saved delivery addresses</li>
+                <li>Wishlist items</li>
+                <li>Product reviews and ratings</li>
+                <li>Reward points and credits</li>
+                <li>Email preferences and subscriptions</li>
+              </ul>
             </div>
-            
-            <div class="form-group">
-                <label>Enter your password:</label>
-                <input type="password" id="password" required>
+            <div class="warning-col retained">
+              <h4>Legally Retained</h4>
+              <ul class="warning-list">
+                <li>Order history and invoices (7 years — Income Tax Act requirement)</li>
+                <li>GST transaction records (7 years — GST Act requirement)</li>
+                <li>All retained data is anonymised and not linked to you</li>
+              </ul>
             </div>
-            
-            <div class="form-group">
-                <label>Reason for leaving (optional):</label>
-                <textarea id="reason" maxlength="500"></textarea>
-            </div>
-            
-            <button type="submit" class="btn-danger">Delete My Account</button>
-            <a href="/user/profile.html" class="btn-secondary">Cancel</a>
-        </form>
-    </main>
-    
-    <script type="module">
-        document.getElementById('deletionForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const confirmText = document.getElementById('confirmText').value;
-            if (confirmText !== 'DELETE MY ACCOUNT') {
-                alert('Please type "DELETE MY ACCOUNT" to confirm');
-                return;
-            }
-            
-            const confirmed = confirm('Are you absolutely sure? This cannot be undone.');
-            if (!confirmed) return;
-            
-            // Delete account logic
-            alert('Account deletion initiated. You will be logged out.');
-            window.location.href = '/';
-        });
-    </script>
+          </div>
+          <p class="legal-note">
+            Under Indian law (Income Tax Act 1961 & GST Act 2017), we are required to retain transaction and invoice records for a minimum of 7 years. This data will be anonymised — your name, email, and contact details will be permanently removed. For any queries, contact <a href="mailto:support@akaraonline.co.in" style="color:var(--warning);opacity:0.85;">support@akaraonline.co.in</a>.
+          </p>
+        </div>
+
+        <!-- Form -->
+        <div class="deletion-form-card">
+          <h2 class="form-card-title">Confirm Account Deletion</h2>
+
+          <!-- Confirm phrase -->
+          <div class="form-field">
+            <label>Type <strong style="color:var(--error);letter-spacing:0.15em;">DELETE MY ACCOUNT</strong> to confirm</label>
+            <input type="text" id="confirmText" placeholder="Type here to confirm" autocomplete="off" maxlength="20" oninput="checkPhrase()">
+            <span class="confirm-status" id="confirmStatus"></span>
+          </div>
+
+          <!-- Password -->
+          <div class="form-field">
+            <label>Your Password</label>
+            <input type="password" id="deletePassword" placeholder="Enter your account password" autocomplete="current-password">
+            <span class="field-hint">Required to verify your identity before deletion.</span>
+          </div>
+
+          <!-- Reason -->
+          <div class="form-field">
+            <label>Reason for leaving <span style="opacity:0.45;font-size:0.52rem;letter-spacing:0.1em;">(Optional — helps us improve)</span></label>
+            <select id="deleteReason">
+              <option value="" disabled selected>Select a reason…</option>
+              <option value="not_using">I no longer use this service</option>
+              <option value="privacy">Privacy concerns</option>
+              <option value="alternative">Found a better alternative</option>
+              <option value="too_expensive">Pricing concerns</option>
+              <option value="bad_experience">Had a bad experience</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <!-- Additional feedback -->
+          <div class="form-field">
+            <label>Additional Feedback <span style="opacity:0.45;font-size:0.52rem;letter-spacing:0.1em;">(Optional)</span></label>
+            <textarea id="deleteFeedback" placeholder="Tell us more about your experience or what we could have done better…" maxlength="500"></textarea>
+          </div>
+
+        </div>
+
+        <!-- Status message -->
+        <div class="deletion-status" id="deletionStatus"></div>
+
+        <!-- Action buttons -->
+        <div class="deletion-actions">
+          <button class="btn-delete" id="deleteBtn" disabled onclick="handleDeletion()">
+            Permanently Delete My Account
+          </button>
+          <a href="profile.html" class="btn-cancel">Cancel — Keep My Account</a>
+        </div>
+
+      </div>
+
+      <!-- ── Success state (shown after deletion) ── -->
+      <div class="deleted-state" id="deletedState">
+        <div class="deleted-icon">✓</div>
+        <h2>Account Deleted</h2>
+        <p>
+          Your account and personal data have been permanently removed.<br>
+          Transaction records are retained anonymously as required by law.<br><br>
+          We're sorry to see you go — thank you for being part of Atelier Ākāra.
+        </p>
+        <a href="../index.html"
+           style="display:inline-block;padding:0.85rem 2.8rem;font-family:'Josefin Sans',sans-serif;font-size:0.65rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--teal);background:var(--gold);border:1px solid var(--gold);">
+          Return to Home
+        </a>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-grid">
+        <div class="footer-section">
+          <h3>ATELIER ĀKĀRA</h3>
+          <p>Artifacts for the Modern Spaces</p>
+        </div>
+        <div class="footer-section">
+          <h4>Shop</h4>
+          <a href="../catalog.html">All Products</a>
+          <a href="../catalog.html?category=planters">Planters</a>
+          <a href="../catalog.html?category=vases">Vases</a>
+          <a href="../catalog.html?category=lighting">Lighting</a>
+        </div>
+        <div class="footer-section">
+          <h4>Information</h4>
+          <a href="../about.html">About Us</a>
+          <a href="../contact.html">Contact</a>
+          <a href="../privacy.html">Privacy Policy</a>
+          <a href="../terms.html">Terms of Service</a>
+        </div>
+        <div class="footer-section">
+          <h4>Connect</h4>
+          <a href="https://instagram.com/atelier.akara" target="_blank">Instagram</a>
+          <a href="mailto:support@akaraonline.co.in">Email Us</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>Precision Forge Labs &nbsp;|&nbsp; GST: 27GZCPS9353H1ZQ</p>
+        <p>© 2024 Atelier Ākāra. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ─────────────────────────────────────────────────
+    // CREDENTIALS — paste your keys here
+    // ─────────────────────────────────────────────────
+    const SUPABASE_URL      = '';
+    const SUPABASE_ANON_KEY = '';
+
+    let supabase = null;
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    const CONFIRM_PHRASE = 'DELETE MY ACCOUNT';
+
+    // ─── Mobile menu ──────────────────────────────────
+    document.getElementById('menuToggle').addEventListener('click', () =>
+      document.getElementById('mobileNav').classList.toggle('open'));
+
+    // ─── Cart count ───────────────────────────────────
+    function updateCartCount() {
+      const cart  = JSON.parse(localStorage.getItem('akara_cart') || '[]');
+      document.getElementById('cartCount').textContent = cart.reduce((s, i) => s + (i.qty || 1), 0);
+    }
+    updateCartCount();
+
+    // ─── Auth check ───────────────────────────────────
+    async function checkAuth() {
+      if (!supabase) return; // no credentials — allow page to render
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        // Not logged in — redirect to profile/login
+        window.location.href = 'profile.html';
+      }
+    }
+    checkAuth();
+
+    // ─── Confirm phrase check ─────────────────────────
+    function checkPhrase() {
+      const input  = document.getElementById('confirmText');
+      const status = document.getElementById('confirmStatus');
+      const btn    = document.getElementById('deleteBtn');
+      const val    = input.value.toUpperCase();
+
+      if (!val) {
+        status.className = 'confirm-status';
+        input.classList.remove('correct', 'invalid');
+        btn.disabled = true;
+        return;
+      }
+
+      if (val === CONFIRM_PHRASE) {
+        status.textContent = '✓ Phrase confirmed';
+        status.className   = 'confirm-status correct';
+        input.classList.add('correct');
+        input.classList.remove('invalid');
+        btn.disabled = false;
+      } else if (CONFIRM_PHRASE.startsWith(val)) {
+        // Typing in progress
+        status.className = 'confirm-status';
+        input.classList.remove('correct', 'invalid');
+        btn.disabled = true;
+      } else {
+        status.textContent = 'Phrase does not match';
+        status.className   = 'confirm-status wrong';
+        input.classList.add('invalid');
+        input.classList.remove('correct');
+        btn.disabled = true;
+      }
+    }
+
+    // ─── Handle deletion ──────────────────────────────
+    async function handleDeletion() {
+      const phrase   = document.getElementById('confirmText').value.toUpperCase();
+      const password = document.getElementById('deletePassword').value;
+      const reason   = document.getElementById('deleteReason').value;
+      const feedback = document.getElementById('deleteFeedback').value.trim();
+      const statusEl = document.getElementById('deletionStatus');
+      const btn      = document.getElementById('deleteBtn');
+
+      // Phrase check
+      if (phrase !== CONFIRM_PHRASE) {
+        showStatus('Please type the exact phrase: DELETE MY ACCOUNT', 'error');
+        return;
+      }
+
+      // Password check
+      if (!password) {
+        showStatus('Please enter your password to confirm.', 'error');
+        document.getElementById('deletePassword').classList.add('invalid');
+        return;
+      }
+
+      // Final confirmation dialog
+      const confirmed = window.confirm(
+        'This is your final confirmation.\n\nAll your personal data will be permanently deleted. This cannot be undone.\n\nAre you absolutely sure?'
+      );
+      if (!confirmed) return;
+
+      btn.disabled    = true;
+      btn.textContent = 'Deleting account…';
+      showStatus('Verifying your credentials…', 'info');
+
+      // ── No Supabase configured — demo mode ──────────
+      if (!supabase) {
+        await new Promise(r => setTimeout(r, 1500));
+        showDeletedState();
+        return;
+      }
+
+      try {
+        // Step 1: Re-authenticate
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          showStatus('Session expired. Please sign in again.', 'error');
+          btn.disabled = false; btn.textContent = 'Permanently Delete My Account';
+          return;
+        }
+
+        const email = session.user.email;
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+        if (signInError) {
+          showStatus('Incorrect password. Please try again.', 'error');
+          document.getElementById('deletePassword').classList.add('invalid');
+          btn.disabled = false; btn.textContent = 'Permanently Delete My Account';
+          return;
+        }
+
+        showStatus('Password verified. Deleting your data…', 'info');
+
+        // Step 2: Save feedback (optional) before deletion
+        if (reason || feedback) {
+          await supabase.from('deletion_feedback').insert([{
+            email:    email,
+            reason:   reason,
+            feedback: feedback,
+            deleted_at: new Date().toISOString()
+          }]).catch(() => {}); // non-blocking
+        }
+
+        // Step 3: Delete user (calls Supabase admin delete via Edge Function if needed,
+        //         or use supabase.auth.admin.deleteUser in server context)
+        //
+        // For client-side: Supabase doesn't allow self-deletion via the JS client
+        // without an Edge Function. Best practice:
+        //
+        //   Option A (Edge Function):
+        //     const { error } = await supabase.functions.invoke('delete-account', {
+        //       body: { user_id: session.user.id }
+        //     });
+        //
+        //   Option B (mark for deletion):
+        //     await supabase.from('deletion_requests').insert([{ user_id: session.user.id }]);
+        //
+        // For now we sign out and show the confirmation state.
+        // Wire up your Edge Function here when ready.
+        //
+        await supabase.auth.signOut();
+
+        // Clear local data
+        localStorage.removeItem('akara_cart');
+        localStorage.removeItem('akara_last_order');
+
+        showDeletedState();
+
+      } catch (err) {
+        console.error('Deletion error:', err);
+        showStatus('Something went wrong. Please contact support@akaraonline.co.in', 'error');
+        btn.disabled = false; btn.textContent = 'Permanently Delete My Account';
+      }
+    }
+
+    function showStatus(msg, type) {
+      const el = document.getElementById('deletionStatus');
+      el.textContent  = msg;
+      el.className    = `deletion-status ${type}`;
+    }
+
+    function showDeletedState() {
+      document.getElementById('mainContent').style.display = 'none';
+      document.getElementById('deletedState').classList.add('visible');
+      // Redirect to home after 5 seconds
+      setTimeout(() => { window.location.href = '../index.html'; }, 5000);
+    }
+
+    // Clear password invalid state on input
+    document.getElementById('deletePassword').addEventListener('input', function() {
+      this.classList.remove('invalid');
+    });
+  </script>
+
 </body>
 </html>

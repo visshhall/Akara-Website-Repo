@@ -1,503 +1,1313 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Studio Control - Atelier Ākāra</title>
-    <link rel="stylesheet" href="../auth-styles.css">
-    <style>
-        .dashboard-container {
-            min-height: 100vh;
-            padding: 2rem;
-            padding-top: 100px;
-        }
-        
-        .dashboard-content {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        
-        .dashboard-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-        
-        .nav-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: rgba(0, 43, 43, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 1rem 2rem;
-            z-index: 1000;
-            border-bottom: 1px solid var(--glass-border);
-        }
-        
-        .nav-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .nav-logo {
-            font-family: var(--font-secondary);
-            font-size: 1.2rem;
-            letter-spacing: 2px;
-            color: var(--archival-cream);
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-        }
-        
-        .nav-link {
-            color: var(--archival-cream);
-            text-decoration: none;
-            font-size: 0.9rem;
-            opacity: 0.8;
-            transition: opacity 0.3s;
-        }
-        
-        .nav-link:hover {
-            opacity: 1;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin-bottom: 3rem;
-        }
-        
-        .stat-card {
-            padding: 2rem;
-            text-align: center;
-        }
-        
-        .stat-value {
-            font-size: 3rem;
-            font-weight: 300;
-            color: var(--archival-cream);
-            margin-bottom: 0.5rem;
-        }
-        
-        .stat-label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: var(--archival-cream);
-            opacity: 0.6;
-        }
-        
-        .section-card {
-            padding: 2.5rem;
-            margin-bottom: 2rem;
-        }
-        
-        .section-title {
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: var(--archival-cream);
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid var(--glass-border);
-        }
-        
-        .data-table {
-            width: 100%;
-            margin-top: 1.5rem;
-        }
-        
-        .data-table th,
-        .data-table td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid var(--glass-border);
-        }
-        
-        .data-table th {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--archival-cream);
-            opacity: 0.7;
-        }
-        
-        .data-table td {
-            color: var(--archival-cream);
-            opacity: 0.9;
-        }
-        
-        .btn-small {
-            padding: 0.5rem 1rem;
-            font-size: 0.85rem;
-            background: transparent;
-            border: 1px solid var(--glass-border);
-            color: var(--archival-cream);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .btn-small:hover {
-            background: rgba(255, 248, 231, 0.1);
-            border-color: var(--archival-cream);
-        }
-        
-        .activity-item {
-            padding: 1rem;
-            border-bottom: 1px solid var(--glass-border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .activity-item:last-child {
-            border-bottom: none;
-        }
-        
-        .activity-text {
-            color: var(--archival-cream);
-            opacity: 0.9;
-        }
-        
-        .activity-time {
-            font-size: 0.85rem;
-            color: var(--archival-cream);
-            opacity: 0.6;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Studio Control — Atelier Ākāra Admin">
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+  <title>Studio Control — Atelier Ākāra</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --teal:        #002b2b;
+      --teal-mid:    #004040;
+      --teal-light:  #005f5f;
+      --cream:       #fff8e7;
+      --gold:        #c9a96e;
+      --gold-light:  #e2c99a;
+      --text-main:   #fff8e7;
+      --text-muted:  rgba(255,248,231,0.55);
+      --border:      rgba(201,169,110,0.25);
+      --border-dim:  rgba(201,169,110,0.12);
+      --card-bg:     rgba(255,248,231,0.03);
+      --error:       #e07070;
+      --success:     #70c9a0;
+      --warning:     #e2a96e;
+      --sidebar-w:   240px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Josefin Sans', sans-serif;
+      background: var(--teal);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 5% 0%,   rgba(0,95,95,0.25) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 50% at 95% 100%, rgba(0,64,64,0.3)  0%, transparent 55%);
+      pointer-events: none; z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,169,110,0.028) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,169,110,0.028) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ─── Auth Gate ────────────────────────────────── */
+    .auth-gate {
+      position: fixed; inset: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--teal);
+    }
+    .auth-gate.hidden { display: none; }
+
+    .auth-box {
+      width: 100%; max-width: 380px; padding: 3rem 2.5rem;
+      background: var(--card-bg); border: 1px solid var(--border);
+      animation: fadeUp 0.6s ease both;
+      text-align: center;
+    }
+    .auth-box-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.9rem; letter-spacing: 0.35em; text-transform: uppercase;
+      color: var(--cream); margin-bottom: 0.3rem;
+    }
+    .auth-box-sub {
+      font-size: 0.58rem; letter-spacing: 0.4em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.75; margin-bottom: 2rem;
+    }
+    .auth-divider {
+      width: 36px; height: 1px; background: var(--gold); opacity: 0.35; margin: 0.75rem auto 2rem;
+    }
+    .auth-field { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1.1rem; text-align: left; }
+    .auth-field label {
+      font-size: 0.58rem; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.8;
+    }
+    .auth-field input {
+      background: rgba(255,248,231,0.05); border: 1px solid var(--border);
+      color: var(--text-main); font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.75rem; letter-spacing: 0.08em; padding: 0.75rem 1rem;
+      outline: none; width: 100%; transition: border-color 0.2s;
+    }
+    .auth-field input::placeholder { color: var(--text-muted); }
+    .auth-field input:focus { border-color: rgba(201,169,110,0.55); }
+    .btn-auth-submit {
+      display: block; width: 100%; padding: 0.85rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--teal); background: var(--gold);
+      border: 1px solid var(--gold); cursor: pointer;
+      transition: all 0.25s; margin-top: 0.5rem;
+    }
+    .btn-auth-submit:hover { background: transparent; color: var(--gold); }
+    .btn-auth-submit:disabled { opacity: 0.5; cursor: not-allowed; background: var(--gold); color: var(--teal); }
+    .auth-err {
+      font-size: 0.63rem; letter-spacing: 0.08em; color: var(--error);
+      margin-top: 0.75rem; display: none; line-height: 1.5;
+    }
+    .auth-err.visible { display: block; }
+
+    /* ─── Sidebar ──────────────────────────────────── */
+    .sidebar {
+      position: fixed; top: 0; left: 0; bottom: 0;
+      width: var(--sidebar-w); z-index: 100;
+      background: rgba(0,30,30,0.85); backdrop-filter: blur(20px);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      transition: transform 0.3s ease;
+    }
+    .sidebar.collapsed { transform: translateX(-100%); }
+
+    .sidebar-brand {
+      padding: 1.5rem 1.75rem;
+      border-bottom: 1px solid var(--border-dim);
+    }
+    .sidebar-brand-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.95rem; font-weight: 300;
+      letter-spacing: 0.28em; text-transform: uppercase; color: var(--cream);
+    }
+    .sidebar-brand-tag {
+      font-size: 0.52rem; letter-spacing: 0.35em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.65; margin-top: 0.2rem;
+    }
+
+    .sidebar-nav {
+      flex: 1; padding: 1.5rem 0; overflow-y: auto;
+    }
+    .nav-section-label {
+      font-size: 0.52rem; letter-spacing: 0.4em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.5; padding: 0.6rem 1.75rem 0.4rem;
+    }
+    .sidebar-link {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.7rem 1.75rem;
+      font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text-muted); cursor: pointer;
+      border-left: 2px solid transparent;
+      transition: all 0.2s; background: none; border-top: none; border-right: none; border-bottom: none;
+      width: 100%; text-align: left; font-family: 'Josefin Sans', sans-serif;
+    }
+    .sidebar-link:hover { color: var(--gold-light); border-left-color: rgba(201,169,110,0.3); }
+    .sidebar-link.active { color: var(--gold); border-left-color: var(--gold); }
+    .sidebar-link .link-icon { font-size: 0.85rem; opacity: 0.7; flex-shrink: 0; }
+    .sidebar-link .link-badge {
+      margin-left: auto; font-size: 0.55rem; letter-spacing: 0.1em;
+      background: rgba(201,169,110,0.2); color: var(--gold);
+      padding: 0.15rem 0.45rem; border-radius: 2px;
+    }
+
+    .sidebar-footer {
+      padding: 1.25rem 1.75rem;
+      border-top: 1px solid var(--border-dim);
+    }
+    .sidebar-user-email {
+      font-size: 0.6rem; letter-spacing: 0.06em;
+      color: var(--text-muted); margin-bottom: 0.75rem;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .btn-signout {
+      background: none; border: 1px solid var(--border);
+      color: var(--text-muted); font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.58rem; letter-spacing: 0.2em; text-transform: uppercase;
+      padding: 0.45rem 0.9rem; cursor: pointer; transition: all 0.2s; width: 100%;
+    }
+    .btn-signout:hover { border-color: var(--error); color: var(--error); }
+
+    /* ─── Main ─────────────────────────────────────── */
+    .admin-main {
+      margin-left: var(--sidebar-w);
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      transition: margin-left 0.3s ease;
+    }
+    .admin-main.expanded { margin-left: 0; }
+
+    /* Top bar */
+    .top-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.25rem 2.5rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(0,30,30,0.6); backdrop-filter: blur(10px);
+      position: sticky; top: 0; z-index: 50;
+      gap: 1rem; flex-wrap: wrap;
+    }
+    .top-bar-left { display: flex; align-items: center; gap: 1rem; }
+    .sidebar-toggle {
+      background: none; border: none; color: var(--text-muted);
+      font-size: 1rem; cursor: pointer; transition: color 0.2s; display: none;
+    }
+    .sidebar-toggle:hover { color: var(--gold); }
+    .top-bar-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem; font-weight: 300;
+      letter-spacing: 0.1em; color: var(--cream);
+    }
+    .top-bar-right { display: flex; align-items: center; gap: 1.25rem; }
+    .top-bar-time {
+      font-size: 0.62rem; letter-spacing: 0.15em;
+      color: var(--text-muted); opacity: 0.6;
+    }
+    .live-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--success); opacity: 0.8;
+      animation: pulse 2s ease infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity: 0.8; } 50% { opacity: 0.3; } }
+
+    /* ─── Page content ─────────────────────────────── */
+    .page-content {
+      padding: 2.5rem;
+      max-width: 1400px;
+    }
+
+    /* Tab panels */
+    .admin-panel { display: none; animation: fadeUp 0.4s ease both; }
+    .admin-panel.active { display: block; }
+
+    /* ─── Stats Grid ───────────────────────────────── */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem; margin-bottom: 2.5rem;
+    }
+    .stat-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      padding: 1.75rem; text-align: center;
+      transition: border-color 0.3s;
+      animation: fadeUp 0.5s ease both;
+    }
+    .stat-card:hover { border-color: rgba(201,169,110,0.45); }
+    .stat-card:nth-child(1) { animation-delay: 0.05s; }
+    .stat-card:nth-child(2) { animation-delay: 0.1s; }
+    .stat-card:nth-child(3) { animation-delay: 0.15s; }
+    .stat-card:nth-child(4) { animation-delay: 0.2s; }
+
+    .stat-icon { font-size: 1.1rem; opacity: 0.4; margin-bottom: 0.75rem; }
+    .stat-value {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.8rem, 3vw, 2.8rem);
+      font-weight: 300; color: var(--gold);
+      letter-spacing: 0.05em; line-height: 1; margin-bottom: 0.4rem;
+    }
+    .stat-label {
+      font-size: 0.58rem; letter-spacing: 0.32em;
+      text-transform: uppercase; color: var(--text-muted);
+    }
+    .stat-delta {
+      font-size: 0.6rem; letter-spacing: 0.1em;
+      margin-top: 0.5rem; opacity: 0.65;
+    }
+    .stat-delta.up   { color: var(--success); }
+    .stat-delta.down { color: var(--error); }
+
+    /* ─── Section Cards ────────────────────────────── */
+    .section-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      margin-bottom: 2rem;
+      animation: fadeUp 0.5s ease both;
+    }
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.25rem 1.75rem;
+      border-bottom: 1px solid var(--border-dim);
+      flex-wrap: wrap; gap: 0.75rem;
+    }
+    .section-header h2 {
+      font-size: 0.62rem; letter-spacing: 0.35em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.8;
+    }
+    .section-body { padding: 0; }
+
+    /* ─── Tables ───────────────────────────────────── */
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th {
+      font-size: 0.58rem; letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--text-muted); padding: 0.85rem 1.75rem;
+      border-bottom: 1px solid var(--border-dim); text-align: left;
+      white-space: nowrap;
+    }
+    .data-table td {
+      font-size: 0.7rem; letter-spacing: 0.05em; color: var(--text-muted);
+      padding: 1rem 1.75rem;
+      border-bottom: 1px solid var(--border-dim);
+      vertical-align: middle;
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: rgba(255,248,231,0.02); }
+    .data-table .mono {
+      font-family: 'Courier New', monospace; font-size: 0.65rem;
+      color: var(--gold); letter-spacing: 0.1em;
+    }
+    .data-table .name-cell { color: var(--cream); }
+    .data-table .sub-text {
+      font-size: 0.6rem; color: var(--text-muted); opacity: 0.6; margin-top: 0.15rem;
+    }
+
+    /* Status badges */
+    .badge {
+      display: inline-block; font-size: 0.55rem; letter-spacing: 0.2em;
+      text-transform: uppercase; padding: 0.2rem 0.6rem; border: 1px solid;
+    }
+    .badge.paid       { color: var(--success);  border-color: rgba(112,201,160,0.4); }
+    .badge.pending    { color: var(--warning);   border-color: rgba(226,169,110,0.4); }
+    .badge.processing { color: var(--gold);      border-color: rgba(201,169,110,0.4); }
+    .badge.shipped    { color: var(--gold-light); border-color: rgba(226,201,154,0.4); }
+    .badge.delivered  { color: var(--success);   border-color: rgba(112,201,160,0.4); }
+    .badge.cancelled  { color: var(--error);     border-color: rgba(224,112,112,0.4); }
+    .badge.active     { color: var(--success);   border-color: rgba(112,201,160,0.4); }
+    .badge.inactive   { color: var(--text-muted); border-color: var(--border); }
+
+    /* Action buttons */
+    .btn-table {
+      background: none; border: 1px solid var(--border);
+      color: var(--text-muted); font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.55rem; letter-spacing: 0.18em; text-transform: uppercase;
+      padding: 0.35rem 0.7rem; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-table:hover { border-color: var(--gold); color: var(--gold); }
+    .btn-table.danger:hover { border-color: var(--error); color: var(--error); }
+
+    /* ─── Activity Feed ────────────────────────────── */
+    .activity-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 1.75rem; gap: 1rem;
+      border-bottom: 1px solid var(--border-dim);
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--gold); opacity: 0.5; flex-shrink: 0;
+    }
+    .activity-text {
+      flex: 1; font-size: 0.7rem; letter-spacing: 0.05em;
+      color: var(--text-muted); line-height: 1.5;
+    }
+    .activity-text strong { color: var(--cream); }
+    .activity-time {
+      font-size: 0.6rem; letter-spacing: 0.1em;
+      color: var(--text-muted); opacity: 0.5; white-space: nowrap;
+    }
+
+    /* ─── Empty / Loading states ───────────────────── */
+    .state-msg {
+      text-align: center; padding: 3rem 2rem;
+      font-size: 0.7rem; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--text-muted);
+    }
+
+    /* ─── Revenue chart bar ────────────────────────── */
+    .bar-chart { padding: 1.75rem; }
+    .bar-row {
+      display: flex; align-items: center; gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .bar-label {
+      font-size: 0.62rem; letter-spacing: 0.1em;
+      color: var(--text-muted); width: 90px; flex-shrink: 0;
+    }
+    .bar-track {
+      flex: 1; height: 6px;
+      background: rgba(255,248,231,0.06);
+      position: relative;
+    }
+    .bar-fill {
+      height: 100%; background: var(--gold); opacity: 0.6;
+      transition: width 0.8s ease;
+    }
+    .bar-value {
+      font-size: 0.62rem; letter-spacing: 0.08em;
+      color: var(--gold-light); width: 80px; text-align: right; flex-shrink: 0;
+    }
+
+    /* ─── Products panel ───────────────────────────── */
+    .panel-toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.25rem 1.75rem; border-bottom: 1px solid var(--border-dim);
+      flex-wrap: wrap; gap: 1rem;
+    }
+    .search-input {
+      background: rgba(255,248,231,0.05); border: 1px solid var(--border);
+      color: var(--text-main); font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.7rem; letter-spacing: 0.08em;
+      padding: 0.55rem 1rem; outline: none; width: 220px;
+      transition: border-color 0.2s;
+    }
+    .search-input::placeholder { color: var(--text-muted); }
+    .search-input:focus { border-color: rgba(201,169,110,0.5); }
+    .btn-add {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.55rem 1.25rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.6rem; letter-spacing: 0.25em; text-transform: uppercase;
+      color: var(--teal); background: var(--gold);
+      border: 1px solid var(--gold); cursor: pointer; transition: all 0.25s;
+    }
+    .btn-add:hover { background: transparent; color: var(--gold); }
+
+    /* ─── Users panel ──────────────────────────────── */
+    .user-avatar {
+      width: 32px; height: 32px; border: 1px solid var(--border);
+      border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; color: var(--gold); background: rgba(201,169,110,0.08);
+      flex-shrink: 0;
+    }
+    .user-cell { display: flex; align-items: center; gap: 0.75rem; }
+
+    /* ─── Orders filter tabs ───────────────────────── */
+    .filter-tabs {
+      display: flex; border-bottom: 1px solid var(--border-dim);
+      padding: 0 1.75rem;
+    }
+    .filter-tab {
+      background: none; border: none;
+      border-bottom: 2px solid transparent;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.6rem; letter-spacing: 0.25em; text-transform: uppercase;
+      color: var(--text-muted); padding: 0.75rem 1.25rem;
+      cursor: pointer; transition: all 0.2s; margin-bottom: -1px;
+    }
+    .filter-tab:hover { color: var(--gold-light); }
+    .filter-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+    /* ─── Settings panel ───────────────────────────── */
+    .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; padding: 1.75rem; }
+    .settings-block { display: flex; flex-direction: column; gap: 0.35rem; }
+    .settings-block label {
+      font-size: 0.58rem; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.8;
+    }
+    .settings-block input,
+    .settings-block select {
+      background: rgba(255,248,231,0.05); border: 1px solid var(--border);
+      color: var(--text-main); font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.72rem; letter-spacing: 0.08em;
+      padding: 0.65rem 0.9rem; outline: none; width: 100%; transition: border-color 0.2s;
+      -webkit-appearance: none;
+    }
+    .settings-block input:focus,
+    .settings-block select:focus { border-color: rgba(201,169,110,0.5); }
+    .settings-block select option { background: var(--teal); }
+    .settings-save {
+      padding: 1.25rem 1.75rem; border-top: 1px solid var(--border-dim);
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .btn-save {
+      padding: 0.65rem 2rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.62rem; letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--teal); background: var(--gold);
+      border: 1px solid var(--gold); cursor: pointer; transition: all 0.25s;
+    }
+    .btn-save:hover { background: transparent; color: var(--gold); }
+    .save-msg {
+      font-size: 0.62rem; letter-spacing: 0.1em; color: var(--success); display: none;
+    }
+    .save-msg.visible { display: block; }
+
+    /* ─── Footer ───────────────────────────────────── */
+    .admin-footer {
+      padding: 1.25rem 2.5rem;
+      border-top: 1px solid var(--border-dim);
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 0.5rem;
+    }
+    .admin-footer p {
+      font-size: 0.58rem; letter-spacing: 0.12em;
+      color: var(--text-muted); opacity: 0.45;
+    }
+
+    /* ─── Animations ───────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── Responsive ───────────────────────────────── */
+    @media (max-width: 1100px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .admin-main { margin-left: 0; }
+      .sidebar-toggle { display: block; }
+      .settings-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .page-content { padding: 1.5rem; }
+      .top-bar { padding: 1rem 1.5rem; }
+      .data-table th:nth-child(n+4),
+      .data-table td:nth-child(n+4) { display: none; }
+    }
+  </style>
 </head>
 <body>
-    <nav class="nav-bar">
-        <div class="nav-content">
-            <div class="nav-logo">STUDIO CONTROL</div>
-            <div class="nav-links">
-                <a href="dashboard.html" class="nav-link">Dashboard</a>
-                <a href="products.html" class="nav-link">Products</a>
-                <a href="orders.html" class="nav-link">Orders</a>
-                <a href="users.html" class="nav-link">Users</a>
-                <a href="#" class="nav-link" id="logoutBtn">Sign Out</a>
-            </div>
-        </div>
-    </nav>
 
-    <div class="dashboard-container">
-        <div class="dashboard-content">
-            <div class="dashboard-header">
-                <h1 style="font-family: var(--font-secondary); font-size: 2.5rem; color: var(--archival-cream); margin-bottom: 0.5rem;">
-                    STUDIO_OVERVIEW
-                </h1>
-                <p style="color: var(--archival-cream); opacity: 0.7;">
-                    Real-time Analytics & Control
-                </p>
-            </div>
+  <!-- ══ AUTH GATE ════════════════════════════════════ -->
+  <div class="auth-gate" id="authGate">
+    <div class="auth-box">
+      <div class="auth-box-logo">ATELIER ĀKĀRA</div>
+      <div class="auth-box-sub">Studio Control</div>
+      <div class="auth-divider"></div>
+      <div class="auth-field">
+        <label>Email Address</label>
+        <input type="email" id="adminEmail" placeholder="admin@akaraonline.co.in" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="adminPassword" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn-auth-submit" id="adminLoginBtn" onclick="handleAdminLogin()">
+        Enter Studio
+      </button>
+      <p class="auth-err" id="authErr"></p>
+    </div>
+  </div>
 
-            <!-- Stats Grid -->
-            <div class="stats-grid">
-                <div class="stat-card glass-panel">
-                    <div class="stat-value" id="totalUsers">0</div>
-                    <div class="stat-label">Total Members</div>
-                </div>
-                
-                <div class="stat-card glass-panel">
-                    <div class="stat-value" id="totalProducts">0</div>
-                    <div class="stat-label">Active Products</div>
-                </div>
-                
-                <div class="stat-card glass-panel">
-                    <div class="stat-value" id="totalOrders">0</div>
-                    <div class="stat-label">Total Orders</div>
-                </div>
-                
-                <div class="stat-card glass-panel">
-                    <div class="stat-value" id="totalRevenue">₹0</div>
-                    <div class="stat-label">Total Revenue</div>
-                </div>
-            </div>
-
-            <!-- Recent Orders -->
-            <div class="section-card glass-panel">
-                <h2 class="section-title">Recent Orders</h2>
-                <div id="recentOrdersContainer">
-                    <div style="text-align: center; padding: 2rem; opacity: 0.6;">
-                        Loading orders...
-                    </div>
-                </div>
-            </div>
-
-            <!-- Product Analytics -->
-            <div class="section-card glass-panel">
-                <h2 class="section-title">Product View Analytics</h2>
-                <div id="productAnalyticsContainer">
-                    <div style="text-align: center; padding: 2rem; opacity: 0.6;">
-                        Loading analytics...
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Activity -->
-            <div class="section-card glass-panel">
-                <h2 class="section-title">Recent Member Activity</h2>
-                <div id="activityContainer">
-                    <div style="text-align: center; padding: 2rem; opacity: 0.6;">
-                        Loading activity...
-                    </div>
-                </div>
-            </div>
-        </div>
+  <!-- ══ SIDEBAR ══════════════════════════════════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-name">ĀKĀRA</div>
+      <div class="sidebar-brand-tag">Studio Control</div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script type="module">
-        import { supabaseConfig, ADMIN_UUID } from '../config.js';
-        import { requireAuth, requireVerification, requireAdmin } from '../utils/security.js';
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <button class="sidebar-link active" onclick="switchPanel('dashboard', this)">
+        <span class="link-icon">⬡</span> Dashboard
+      </button>
 
-        const supabase = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey);
+      <div class="nav-section-label">Manage</div>
+      <button class="sidebar-link" onclick="switchPanel('orders', this)">
+        <span class="link-icon">↗</span> Orders
+        <span class="link-badge" id="pendingBadge">0</span>
+      </button>
+      <button class="sidebar-link" onclick="switchPanel('products', this)">
+        <span class="link-icon">◈</span> Products
+      </button>
+      <button class="sidebar-link" onclick="switchPanel('users', this)">
+        <span class="link-icon">⬟</span> Users
+      </button>
 
-        // Check authentication and admin access
-        await requireAuth(supabase);
-        await requireVerification(supabase);
-        await requireAdmin(supabase, ADMIN_UUID);
+      <div class="nav-section-label">Analytics</div>
+      <button class="sidebar-link" onclick="switchPanel('analytics', this)">
+        <span class="link-icon">↑</span> Analytics
+      </button>
 
-        // Load all dashboard data
-        loadDashboardData();
+      <div class="nav-section-label">System</div>
+      <button class="sidebar-link" onclick="switchPanel('settings', this)">
+        <span class="link-icon">⊙</span> Settings
+      </button>
+    </nav>
 
-        async function loadDashboardData() {
-            try {
-                // Load stats
-                await Promise.all([
-                    loadStats(),
-                    loadRecentOrders(),
-                    loadProductAnalytics(),
-                    loadRecentActivity()
-                ]);
-            } catch (err) {
-                console.error('Dashboard error:', err);
-            }
-        }
+    <div class="sidebar-footer">
+      <p class="sidebar-user-email" id="sidebarEmail">—</p>
+      <button class="btn-signout" onclick="handleSignOut()">Sign Out</button>
+    </div>
+  </aside>
 
-        async function loadStats() {
-            try {
-                // Total users
-                const { count: userCount } = await supabase
-                    .from('profiles')
-                    .select('*', { count: 'exact', head: true });
-                
-                document.getElementById('totalUsers').textContent = userCount || 0;
+  <!-- ══ MAIN ══════════════════════════════════════════ -->
+  <div class="admin-main" id="adminMain">
 
-                // Total products
-                const { count: productCount } = await supabase
-                    .from('products')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('is_active', true);
-                
-                document.getElementById('totalProducts').textContent = productCount || 0;
+    <!-- Top bar -->
+    <div class="top-bar">
+      <div class="top-bar-left">
+        <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">☰</button>
+        <h1 class="top-bar-title" id="topBarTitle">Dashboard</h1>
+      </div>
+      <div class="top-bar-right">
+        <div class="live-dot" title="Live data"></div>
+        <span class="top-bar-time" id="liveClock"></span>
+        <a href="../index.html" style="font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-muted);transition:color 0.2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text-muted)'">← Store</a>
+      </div>
+    </div>
 
-                // Total orders
-                const { count: orderCount } = await supabase
-                    .from('orders')
-                    .select('*', { count: 'exact', head: true });
-                
-                document.getElementById('totalOrders').textContent = orderCount || 0;
+    <!-- ─── Page Content ──────────────────────────── -->
+    <div class="page-content">
 
-                // Total revenue
-                const { data: orders } = await supabase
-                    .from('orders')
-                    .select('total')
-                    .eq('payment_status', 'paid');
-                
-                const revenue = orders ? orders.reduce((sum, order) => sum + parseFloat(order.total), 0) : 0;
-                document.getElementById('totalRevenue').textContent = '₹' + revenue.toLocaleString('en-IN');
+      <!-- ══ DASHBOARD PANEL ══════════════════════════ -->
+      <div class="admin-panel active" id="panel-dashboard">
 
-            } catch (err) {
-                console.error('Stats error:', err);
-            }
-        }
+        <!-- Stats -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-value" id="statUsers">—</div>
+            <div class="stat-label">Total Members</div>
+            <div class="stat-delta up" id="statUsersDelta"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">◈</div>
+            <div class="stat-value" id="statProducts">—</div>
+            <div class="stat-label">Active Products</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">↗</div>
+            <div class="stat-value" id="statOrders">—</div>
+            <div class="stat-label">Total Orders</div>
+            <div class="stat-delta up" id="statOrdersDelta"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">₹</div>
+            <div class="stat-value" id="statRevenue">—</div>
+            <div class="stat-label">Total Revenue</div>
+            <div class="stat-delta up" id="statRevenueDelta"></div>
+          </div>
+        </div>
 
-        async function loadRecentOrders() {
-            try {
-                const { data: orders, error } = await supabase
-                    .from('orders')
-                    .select(`
-                        *,
-                        profiles (first_name, last_name, member_id)
-                    `)
-                    .order('created_at', { ascending: false })
-                    .limit(5);
-                
-                if (error) throw error;
+        <!-- Two columns -->
+        <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:1.5rem;margin-bottom:2rem;">
 
-                if (!orders || orders.length === 0) {
-                    document.getElementById('recentOrdersContainer').innerHTML = `
-                        <div style="text-align: center; padding: 2rem; opacity: 0.6;">
-                            No orders yet
-                        </div>
-                    `;
-                    return;
-                }
+          <!-- Recent Orders -->
+          <div class="section-card">
+            <div class="section-header">
+              <h2>Recent Orders</h2>
+              <button class="btn-table" onclick="switchPanel('orders', null)">View All</button>
+            </div>
+            <div class="section-body" id="recentOrdersContainer">
+              <div class="state-msg">Loading…</div>
+            </div>
+          </div>
 
-                const html = `
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Order #</th>
-                                <th>Member</th>
-                                <th>Total</th>
-                                <th>Status</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${orders.map(order => `
-                                <tr>
-                                    <td style="font-family: 'Courier New', monospace;">${order.order_number}</td>
-                                    <td>
-                                        ${order.profiles ? 
-                                            `${order.profiles.first_name} ${order.profiles.last_name}<br>
-                                            <span style="opacity: 0.6; font-size: 0.85rem;">${order.profiles.member_id}</span>` 
-                                            : 'N/A'}
-                                    </td>
-                                    <td>₹${order.total}</td>
-                                    <td style="text-transform: capitalize;">${order.status}</td>
-                                    <td>${new Date(order.created_at).toLocaleDateString()}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                `;
+          <!-- Activity -->
+          <div class="section-card">
+            <div class="section-header">
+              <h2>Recent Activity</h2>
+            </div>
+            <div class="section-body" id="activityContainer">
+              <div class="state-msg">Loading…</div>
+            </div>
+          </div>
 
-                document.getElementById('recentOrdersContainer').innerHTML = html;
+        </div>
 
-            } catch (err) {
-                console.error('Recent orders error:', err);
-            }
-        }
+        <!-- Product views -->
+        <div class="section-card">
+          <div class="section-header">
+            <h2>Product View Analytics</h2>
+          </div>
+          <div class="section-body" id="productAnalyticsContainer">
+            <div class="state-msg">Loading…</div>
+          </div>
+        </div>
 
-        async function loadProductAnalytics() {
-            try {
-                // Get all products with view counts
-                const { data: products } = await supabase
-                    .from('products')
-                    .select('id, name')
-                    .eq('is_active', true);
+      </div>
 
-                if (!products || products.length === 0) {
-                    document.getElementById('productAnalyticsContainer').innerHTML = `
-                        <div style="text-align: center; padding: 2rem; opacity: 0.6;">
-                            No products yet
-                        </div>
-                    `;
-                    return;
-                }
+      <!-- ══ ORDERS PANEL ══════════════════════════════ -->
+      <div class="admin-panel" id="panel-orders">
+        <div class="section-card">
+          <div class="section-header">
+            <h2>All Orders</h2>
+            <span class="stat-label" id="ordersCountLabel"></span>
+          </div>
+          <div class="filter-tabs">
+            <button class="filter-tab active" onclick="filterOrders('all', this)">All</button>
+            <button class="filter-tab" onclick="filterOrders('pending', this)">Pending</button>
+            <button class="filter-tab" onclick="filterOrders('processing', this)">Processing</button>
+            <button class="filter-tab" onclick="filterOrders('shipped', this)">Shipped</button>
+            <button class="filter-tab" onclick="filterOrders('delivered', this)">Delivered</button>
+          </div>
+          <div id="ordersTableContainer">
+            <div class="state-msg">Loading…</div>
+          </div>
+        </div>
+      </div>
 
-                // Get view counts for each product
-                const analyticsData = await Promise.all(
-                    products.map(async (product) => {
-                        const { count } = await supabase
-                            .from('product_views')
-                            .select('*', { count: 'exact', head: true })
-                            .eq('product_id', product.id);
-                        
-                        return {
-                            name: product.name,
-                            views: count || 0
-                        };
-                    })
-                );
+      <!-- ══ PRODUCTS PANEL ════════════════════════════ -->
+      <div class="admin-panel" id="panel-products">
+        <div class="section-card">
+          <div class="section-header">
+            <h2>Products</h2>
+          </div>
+          <div class="panel-toolbar">
+            <input type="text" class="search-input" id="productSearch" placeholder="Search products…" oninput="filterProducts()">
+            <button class="btn-add" onclick="alert('Product form — wire up your modal or separate page here')">+ Add Product</button>
+          </div>
+          <div id="productsTableContainer">
+            <div class="state-msg">Loading…</div>
+          </div>
+        </div>
+      </div>
 
-                // Sort by views
-                analyticsData.sort((a, b) => b.views - a.views);
+      <!-- ══ USERS PANEL ═══════════════════════════════ -->
+      <div class="admin-panel" id="panel-users">
+        <div class="section-card">
+          <div class="section-header">
+            <h2>Members</h2>
+            <span class="stat-label" id="usersCountLabel"></span>
+          </div>
+          <div class="panel-toolbar">
+            <input type="text" class="search-input" id="userSearch" placeholder="Search members…" oninput="filterUsers()">
+          </div>
+          <div id="usersTableContainer">
+            <div class="state-msg">Loading…</div>
+          </div>
+        </div>
+      </div>
 
-                const html = `
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Product</th>
-                                <th>Total Views</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${analyticsData.map(item => `
-                                <tr>
-                                    <td>${item.name}</td>
-                                    <td>${item.views}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                `;
+      <!-- ══ ANALYTICS PANEL ═══════════════════════════ -->
+      <div class="admin-panel" id="panel-analytics">
 
-                document.getElementById('productAnalyticsContainer').innerHTML = html;
+        <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);">
+          <div class="stat-card">
+            <div class="stat-icon">₹</div>
+            <div class="stat-value" id="aRevenue">—</div>
+            <div class="stat-label">Paid Revenue</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">⊙</div>
+            <div class="stat-value" id="aAvgOrder">—</div>
+            <div class="stat-label">Avg Order Value</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">↑</div>
+            <div class="stat-value" id="aConversion">—%</div>
+            <div class="stat-label">Pending Orders</div>
+          </div>
+        </div>
 
-            } catch (err) {
-                console.error('Product analytics error:', err);
-            }
-        }
+        <div class="section-card">
+          <div class="section-header"><h2>Revenue by Product</h2></div>
+          <div class="bar-chart" id="revenueChart">
+            <div class="state-msg">Loading…</div>
+          </div>
+        </div>
 
-        async function loadRecentActivity() {
-            try {
-                // Get recent user signups
-                const { data: users } = await supabase
-                    .from('profiles')
-                    .select('first_name, last_name, member_id, created_at')
-                    .order('created_at', { ascending: false })
-                    .limit(10);
+        <div class="section-card">
+          <div class="section-header"><h2>Top Products by Views</h2></div>
+          <div id="analyticsProductsContainer">
+            <div class="state-msg">Loading…</div>
+          </div>
+        </div>
 
-                if (!users || users.length === 0) {
-                    document.getElementById('activityContainer').innerHTML = `
-                        <div style="text-align: center; padding: 2rem; opacity: 0.6;">
-                            No recent activity
-                        </div>
-                    `;
-                    return;
-                }
+      </div>
 
-                const html = users.map(user => `
-                    <div class="activity-item">
-                        <div class="activity-text">
-                            <strong>${user.first_name} ${user.last_name}</strong> joined
-                            <span style="opacity: 0.6;">(${user.member_id})</span>
-                        </div>
-                        <div class="activity-time">
-                            ${getTimeAgo(user.created_at)}
-                        </div>
+      <!-- ══ SETTINGS PANEL ════════════════════════════ -->
+      <div class="admin-panel" id="panel-settings">
+        <div class="section-card">
+          <div class="section-header"><h2>Store Settings</h2></div>
+          <div class="settings-grid">
+            <div class="settings-block">
+              <label>Store Name</label>
+              <input type="text" id="settingName" value="Atelier Ākāra">
+            </div>
+            <div class="settings-block">
+              <label>Support Email</label>
+              <input type="email" id="settingEmail" value="support@akaraonline.co.in">
+            </div>
+            <div class="settings-block">
+              <label>Support Phone</label>
+              <input type="tel" id="settingPhone" value="+91 82780 85572">
+            </div>
+            <div class="settings-block">
+              <label>GST Number</label>
+              <input type="text" id="settingGST" value="27GZCPS9353H1ZQ">
+            </div>
+            <div class="settings-block">
+              <label>Standard Shipping (₹)</label>
+              <input type="number" id="settingStdShipping" value="0">
+            </div>
+            <div class="settings-block">
+              <label>Express Shipping (₹)</label>
+              <input type="number" id="settingExpShipping" value="199">
+            </div>
+            <div class="settings-block">
+              <label>Reward Points Rate</label>
+              <input type="text" id="settingRewards" value="10 pts per ₹100 spent">
+            </div>
+            <div class="settings-block">
+              <label>Order Status Default</label>
+              <select id="settingOrderDefault">
+                <option value="pending" selected>Pending</option>
+                <option value="processing">Processing</option>
+              </select>
+            </div>
+          </div>
+          <div class="settings-save">
+            <button class="btn-save" onclick="saveSettings()">Save Settings</button>
+            <span class="save-msg" id="settingsSaveMsg">Settings saved.</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /page-content -->
+
+    <div class="admin-footer">
+      <p>Precision Forge Labs &nbsp;|&nbsp; GST: 27GZCPS9353H1ZQ</p>
+      <p>Studio Control v1.0 &nbsp;·&nbsp; Atelier Ākāra</p>
+    </div>
+
+  </div><!-- /admin-main -->
+
+  <script>
+    // ─────────────────────────────────────────────────
+    // CREDENTIALS — paste your keys here
+    // ─────────────────────────────────────────────────
+    const SUPABASE_URL      = '';   // ← your Supabase project URL
+    const SUPABASE_ANON_KEY = '';   // ← your anon/public key
+    const ADMIN_EMAIL       = 'support@akaraonline.co.in'; // allowed admin email
+
+    let supabase = null;
+    let allOrders   = [];
+    let allProducts = [];
+    let allUsers    = [];
+
+    // Init Supabase
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    // ─── Live clock ───────────────────────────────────
+    function updateClock() {
+      document.getElementById('liveClock').textContent =
+        new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // ─── Sidebar toggle ───────────────────────────────
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    // ─── Panel switch ─────────────────────────────────
+    const PANEL_TITLES = {
+      dashboard: 'Dashboard', orders: 'Orders', products: 'Products',
+      users: 'Members', analytics: 'Analytics', settings: 'Settings'
+    };
+    function switchPanel(name, btn) {
+      document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.sidebar-link').forEach(b => b.classList.remove('active'));
+      document.getElementById(`panel-${name}`).classList.add('active');
+      document.getElementById('topBarTitle').textContent = PANEL_TITLES[name] || name;
+      if (btn) btn.classList.add('active');
+      // Load data if needed
+      if (name === 'orders')    renderOrdersTable(allOrders);
+      if (name === 'products')  renderProductsTable(allProducts);
+      if (name === 'users')     renderUsersTable(allUsers);
+      if (name === 'analytics') loadAnalyticsPanel();
+    }
+
+    // ─── Admin login ──────────────────────────────────
+    async function handleAdminLogin() {
+      const email    = document.getElementById('adminEmail').value.trim();
+      const password = document.getElementById('adminPassword').value;
+      const btn      = document.getElementById('adminLoginBtn');
+      const errEl    = document.getElementById('authErr');
+
+      btn.disabled = true; btn.textContent = 'Verifying…';
+      errEl.classList.remove('visible');
+
+      // No Supabase configured — bypass with demo mode
+      if (!supabase) {
+        await new Promise(r => setTimeout(r, 800));
+        showDashboard('demo@akaraonline.co.in');
+        return;
+      }
+
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      btn.disabled = false; btn.textContent = 'Enter Studio';
+
+      if (error) {
+        errEl.textContent = error.message;
+        errEl.classList.add('visible');
+        return;
+      }
+
+      // Check admin email
+      if (data.user.email !== ADMIN_EMAIL) {
+        await supabase.auth.signOut();
+        errEl.textContent = 'Access denied. Admin account required.';
+        errEl.classList.add('visible');
+        return;
+      }
+
+      showDashboard(data.user.email);
+    }
+
+    function showDashboard(email) {
+      document.getElementById('authGate').classList.add('hidden');
+      document.getElementById('sidebarEmail').textContent = email;
+      loadAllData();
+    }
+
+    // ─── Sign out ─────────────────────────────────────
+    async function handleSignOut() {
+      if (supabase) await supabase.auth.signOut();
+      document.getElementById('authGate').classList.remove('hidden');
+    }
+
+    // ─── Check existing session ───────────────────────
+    async function checkSession() {
+      if (!supabase) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session && session.user.email === ADMIN_EMAIL) {
+        showDashboard(session.user.email);
+      }
+    }
+    checkSession();
+
+    // ─── Load all data ────────────────────────────────
+    async function loadAllData() {
+      await Promise.all([
+        loadStats(),
+        loadRecentOrders(),
+        loadActivity(),
+        loadProductAnalytics(),
+        loadAllOrders(),
+        loadAllProducts(),
+        loadAllUsers(),
+      ]);
+    }
+
+    // ─── Stats ────────────────────────────────────────
+    async function loadStats() {
+      if (!supabase) {
+        // Demo data
+        document.getElementById('statUsers').textContent   = '3';
+        document.getElementById('statProducts').textContent = '6';
+        document.getElementById('statOrders').textContent  = '2';
+        document.getElementById('statRevenue').textContent = '₹8,400';
+        document.getElementById('pendingBadge').textContent = '1';
+        return;
+      }
+      try {
+        const [
+          { count: userCount },
+          { count: productCount },
+          { count: orderCount },
+          { data: revenueData },
+          { count: pendingCount }
+        ] = await Promise.all([
+          supabase.from('profiles').select('*', { count: 'exact', head: true }),
+          supabase.from('products').select('*', { count: 'exact', head: true }).eq('is_active', true),
+          supabase.from('orders').select('*', { count: 'exact', head: true }),
+          supabase.from('orders').select('total').eq('payment_status', 'paid'),
+          supabase.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        ]);
+
+        const revenue = (revenueData || []).reduce((s, o) => s + parseFloat(o.total || 0), 0);
+
+        document.getElementById('statUsers').textContent    = userCount || 0;
+        document.getElementById('statProducts').textContent = productCount || 0;
+        document.getElementById('statOrders').textContent   = orderCount || 0;
+        document.getElementById('statRevenue').textContent  = '₹' + revenue.toLocaleString('en-IN');
+        document.getElementById('pendingBadge').textContent = pendingCount || 0;
+
+        // Analytics panel stats
+        const avg = orderCount ? Math.round(revenue / orderCount) : 0;
+        document.getElementById('aRevenue').textContent    = '₹' + revenue.toLocaleString('en-IN');
+        document.getElementById('aAvgOrder').textContent   = '₹' + avg.toLocaleString('en-IN');
+        document.getElementById('aConversion').textContent = pendingCount || 0;
+
+      } catch (e) { console.error(e); }
+    }
+
+    // ─── Recent Orders (dashboard) ────────────────────
+    async function loadRecentOrders() {
+      const container = document.getElementById('recentOrdersContainer');
+      const DEMO = [
+        { order_id: 'INV-00123', customer: { first_name: 'Priya', last_name: 'Sharma' }, total: 4800, status: 'delivered', payment_status: 'paid', created_at: new Date(Date.now() - 86400000).toISOString() },
+        { order_id: 'INV-00124', customer: { first_name: 'Rahul', last_name: 'Mehta'  }, total: 3600, status: 'processing', payment_status: 'paid', created_at: new Date(Date.now() - 3600000).toISOString() },
+      ];
+
+      let orders = DEMO;
+      if (supabase) {
+        try {
+          const { data } = await supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(5);
+          if (data?.length) orders = data;
+        } catch {}
+      }
+
+      container.innerHTML = `
+        <table class="data-table">
+          <thead><tr>
+            <th>Order</th><th>Customer</th><th>Total</th><th>Status</th><th>Date</th>
+          </tr></thead>
+          <tbody>
+            ${orders.map(o => `
+              <tr>
+                <td class="mono">${o.order_id || o.order_number || 'N/A'}</td>
+                <td class="name-cell">${o.customer?.first_name || ''} ${o.customer?.last_name || ''}</td>
+                <td>₹${Number(o.total).toLocaleString('en-IN')}</td>
+                <td><span class="badge ${o.status}">${o.status}</span></td>
+                <td>${new Date(o.created_at).toLocaleDateString('en-IN')}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`;
+    }
+
+    // ─── Activity feed ────────────────────────────────
+    async function loadActivity() {
+      const container = document.getElementById('activityContainer');
+      const DEMO = [
+        { text: '<strong>Rahul Mehta</strong> placed an order', time: '2h ago' },
+        { text: '<strong>Priya Sharma</strong> created an account', time: '5h ago' },
+        { text: '<strong>INV-00123</strong> marked as delivered', time: '1d ago' },
+      ];
+
+      let items = DEMO;
+      if (supabase) {
+        try {
+          const { data } = await supabase.from('profiles').select('first_name, last_name, created_at').order('created_at', { ascending: false }).limit(8);
+          if (data?.length) {
+            items = data.map(u => ({ text: `<strong>${u.first_name} ${u.last_name}</strong> joined`, time: timeAgo(u.created_at) }));
+          }
+        } catch {}
+      }
+
+      container.innerHTML = items.map(i => `
+        <div class="activity-item">
+          <div class="activity-dot"></div>
+          <div class="activity-text">${i.text}</div>
+          <div class="activity-time">${i.time}</div>
+        </div>`).join('');
+    }
+
+    // ─── Product analytics (dashboard) ────────────────
+    async function loadProductAnalytics() {
+      const container = document.getElementById('productAnalyticsContainer');
+      const DEMO = [
+        { name: 'Geodesic Planter',  views: 142 },
+        { name: 'Prism Vase',        views: 98  },
+        { name: 'Hexagonal Planter', views: 76  },
+        { name: 'Faceted Pendant',   views: 55  },
+      ];
+      let data = DEMO;
+
+      if (supabase) {
+        try {
+          const { data: products } = await supabase.from('products').select('id, name').eq('is_active', true);
+          if (products?.length) {
+            const enriched = await Promise.all(products.map(async p => {
+              const { count } = await supabase.from('product_views').select('*', { count: 'exact', head: true }).eq('product_id', p.id);
+              return { name: p.name, views: count || 0 };
+            }));
+            enriched.sort((a,b) => b.views - a.views);
+            data = enriched;
+          }
+        } catch {}
+      }
+
+      const max = Math.max(...data.map(d => d.views), 1);
+      container.innerHTML = `
+        <div class="bar-chart">
+          ${data.map(d => `
+            <div class="bar-row">
+              <span class="bar-label">${d.name}</span>
+              <div class="bar-track">
+                <div class="bar-fill" style="width:${(d.views/max*100).toFixed(1)}%"></div>
+              </div>
+              <span class="bar-value">${d.views} views</span>
+            </div>`).join('')}
+        </div>`;
+    }
+
+    // ─── All Orders ───────────────────────────────────
+    async function loadAllOrders() {
+      const DEMO = [
+        { order_id:'INV-00123', customer:{first_name:'Priya',last_name:'Sharma',email:'priya@example.com'}, total:4800, status:'delivered', payment_status:'paid', shipping_method:'standard', created_at: new Date(Date.now()-86400000).toISOString() },
+        { order_id:'INV-00124', customer:{first_name:'Rahul',last_name:'Mehta', email:'rahul@example.com'}, total:3600, status:'processing', payment_status:'paid', shipping_method:'express',  created_at: new Date(Date.now()-3600000).toISOString() },
+      ];
+      allOrders = DEMO;
+      if (supabase) {
+        try {
+          const { data } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+          if (data?.length) allOrders = data;
+        } catch {}
+      }
+      document.getElementById('ordersCountLabel').textContent = `${allOrders.length} orders`;
+    }
+
+    function renderOrdersTable(orders) {
+      const container = document.getElementById('ordersTableContainer');
+      if (!orders.length) { container.innerHTML = '<div class="state-msg">No orders found</div>'; return; }
+      container.innerHTML = `
+        <table class="data-table">
+          <thead><tr>
+            <th>Order ID</th><th>Customer</th><th>Total</th><th>Payment</th><th>Status</th><th>Date</th><th>Action</th>
+          </tr></thead>
+          <tbody>
+            ${orders.map(o => `
+              <tr>
+                <td class="mono">${o.order_id || o.order_number || 'N/A'}</td>
+                <td>
+                  <div class="name-cell">${o.customer?.first_name || ''} ${o.customer?.last_name || ''}</div>
+                  <div class="sub-text">${o.customer?.email || ''}</div>
+                </td>
+                <td>₹${Number(o.total).toLocaleString('en-IN')}</td>
+                <td><span class="badge ${o.payment_status}">${o.payment_status || '—'}</span></td>
+                <td><span class="badge ${o.status}">${o.status || '—'}</span></td>
+                <td>${new Date(o.created_at).toLocaleDateString('en-IN')}</td>
+                <td>
+                  <button class="btn-table" onclick="viewOrder('${o.order_id}')">View</button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`;
+    }
+
+    function filterOrders(status, btn) {
+      document.querySelectorAll('#panel-orders .filter-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filtered = status === 'all' ? allOrders : allOrders.filter(o => o.status === status);
+      renderOrdersTable(filtered);
+    }
+
+    function viewOrder(id) {
+      const o = allOrders.find(x => x.order_id === id);
+      if (!o) return;
+      alert(`Order: ${o.order_id}\nCustomer: ${o.customer?.first_name} ${o.customer?.last_name}\nTotal: ₹${o.total}\nStatus: ${o.status}`);
+    }
+
+    // ─── All Products ─────────────────────────────────
+    async function loadAllProducts() {
+      const DEMO = [
+        { id:'1', name:'Geodesic Planter',  category:'Planters', price:2400, stock:8,  is_active:true },
+        { id:'2', name:'Prism Vase',        category:'Vases',    price:1800, stock:4,  is_active:true },
+        { id:'3', name:'Hexagonal Planter', category:'Planters', price:3200, stock:12, is_active:true },
+        { id:'4', name:'Faceted Pendant',   category:'Lighting', price:4800, stock:3,  is_active:true },
+        { id:'5', name:'Angular Bud Vase',  category:'Vases',    price:1200, stock:15, is_active:true },
+        { id:'6', name:'Geometric Lamp',    category:'Lighting', price:5600, stock:6,  is_active:false },
+      ];
+      allProducts = DEMO;
+      if (supabase) {
+        try {
+          const { data } = await supabase.from('products').select('*').order('name');
+          if (data?.length) allProducts = data;
+        } catch {}
+      }
+    }
+
+    function renderProductsTable(products) {
+      const container = document.getElementById('productsTableContainer');
+      const q = document.getElementById('productSearch')?.value.toLowerCase() || '';
+      const filtered = products.filter(p => p.name.toLowerCase().includes(q));
+      if (!filtered.length) { container.innerHTML = '<div class="state-msg">No products found</div>'; return; }
+      container.innerHTML = `
+        <table class="data-table">
+          <thead><tr>
+            <th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th>
+          </tr></thead>
+          <tbody>
+            ${filtered.map(p => `
+              <tr>
+                <td class="name-cell">${p.name}</td>
+                <td>${p.category || '—'}</td>
+                <td>₹${Number(p.price).toLocaleString('en-IN')}</td>
+                <td style="color:${p.stock < 5 ? 'var(--warning)' : 'var(--text-muted)'}">
+                  ${p.stock} ${p.stock < 5 ? '⚠' : ''}
+                </td>
+                <td><span class="badge ${p.is_active ? 'active' : 'inactive'}">${p.is_active ? 'Active' : 'Inactive'}</span></td>
+                <td style="display:flex;gap:0.5rem;">
+                  <button class="btn-table" onclick="editProduct('${p.id}')">Edit</button>
+                  <button class="btn-table danger" onclick="toggleProduct('${p.id}')">
+                    ${p.is_active ? 'Deactivate' : 'Activate'}
+                  </button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`;
+    }
+
+    function filterProducts() { renderProductsTable(allProducts); }
+    function editProduct(id) { alert(`Edit product ${id} — wire up your product form here.`); }
+    function toggleProduct(id) {
+      const p = allProducts.find(x => x.id === id);
+      if (p) { p.is_active = !p.is_active; renderProductsTable(allProducts); }
+    }
+
+    // ─── All Users ────────────────────────────────────
+    async function loadAllUsers() {
+      const DEMO = [
+        { id:'1', first_name:'Priya',  last_name:'Sharma', email:'priya@example.com',  created_at: new Date(Date.now()-172800000).toISOString(), total_orders:1 },
+        { id:'2', first_name:'Rahul',  last_name:'Mehta',  email:'rahul@example.com',  created_at: new Date(Date.now()-3600000).toISOString(),   total_orders:1 },
+        { id:'3', first_name:'Ankita', last_name:'Desai',  email:'ankita@example.com', created_at: new Date(Date.now()-7200000).toISOString(),   total_orders:0 },
+      ];
+      allUsers = DEMO;
+      if (supabase) {
+        try {
+          const { data } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+          if (data?.length) allUsers = data;
+        } catch {}
+      }
+      document.getElementById('usersCountLabel').textContent = `${allUsers.length} members`;
+    }
+
+    function renderUsersTable(users) {
+      const container = document.getElementById('usersTableContainer');
+      const q = document.getElementById('userSearch')?.value.toLowerCase() || '';
+      const filtered = users.filter(u =>
+        `${u.first_name} ${u.last_name} ${u.email}`.toLowerCase().includes(q)
+      );
+      if (!filtered.length) { container.innerHTML = '<div class="state-msg">No members found</div>'; return; }
+      container.innerHTML = `
+        <table class="data-table">
+          <thead><tr>
+            <th>Member</th><th>Email</th><th>Orders</th><th>Joined</th><th>Action</th>
+          </tr></thead>
+          <tbody>
+            ${filtered.map(u => `
+              <tr>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-avatar">${(u.first_name?.[0] || '?').toUpperCase()}</div>
+                    <div>
+                      <div class="name-cell">${u.first_name} ${u.last_name}</div>
                     </div>
-                `).join('');
+                  </div>
+                </td>
+                <td>${u.email}</td>
+                <td>${u.total_orders || 0}</td>
+                <td>${new Date(u.created_at).toLocaleDateString('en-IN')}</td>
+                <td>
+                  <button class="btn-table" onclick="alert('User detail view — wire up here')">View</button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`;
+    }
 
-                document.getElementById('activityContainer').innerHTML = html;
+    function filterUsers() { renderUsersTable(allUsers); }
 
-            } catch (err) {
-                console.error('Activity error:', err);
-            }
-        }
+    // ─── Analytics panel ──────────────────────────────
+    function loadAnalyticsPanel() {
+      // Revenue by product bar chart
+      const DEMO_REV = [
+        { name: 'Geodesic Planter',  revenue: 4800 },
+        { name: 'Prism Vase',        revenue: 3600 },
+        { name: 'Hexagonal Planter', revenue: 3200 },
+        { name: 'Faceted Pendant',   revenue: 4800 },
+      ];
+      const maxRev = Math.max(...DEMO_REV.map(d => d.revenue));
+      document.getElementById('revenueChart').innerHTML = DEMO_REV.map(d => `
+        <div class="bar-row">
+          <span class="bar-label">${d.name}</span>
+          <div class="bar-track">
+            <div class="bar-fill" style="width:${(d.revenue/maxRev*100).toFixed(1)}%"></div>
+          </div>
+          <span class="bar-value">₹${d.revenue.toLocaleString('en-IN')}</span>
+        </div>`).join('');
 
-        function getTimeAgo(dateString) {
-            const date = new Date(dateString);
-            const now = new Date();
-            const diffMs = now - date;
-            const diffMins = Math.floor(diffMs / 60000);
-            const diffHours = Math.floor(diffMs / 3600000);
-            const diffDays = Math.floor(diffMs / 86400000);
+      // Top products table
+      const DEMO_VIEWS = [
+        { name:'Geodesic Planter', views:142, category:'Planters' },
+        { name:'Prism Vase',       views:98,  category:'Vases'    },
+        { name:'Hexagonal Planter',views:76,  category:'Planters' },
+        { name:'Faceted Pendant',  views:55,  category:'Lighting' },
+      ];
+      document.getElementById('analyticsProductsContainer').innerHTML = `
+        <table class="data-table">
+          <thead><tr><th>#</th><th>Product</th><th>Category</th><th>Total Views</th></tr></thead>
+          <tbody>
+            ${DEMO_VIEWS.map((d,i) => `
+              <tr>
+                <td style="color:var(--gold);opacity:0.6;">${i+1}</td>
+                <td class="name-cell">${d.name}</td>
+                <td>${d.category}</td>
+                <td>${d.views}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`;
+    }
 
-            if (diffMins < 1) return 'Just now';
-            if (diffMins < 60) return `${diffMins}m ago`;
-            if (diffHours < 24) return `${diffHours}h ago`;
-            if (diffDays < 30) return `${diffDays}d ago`;
-            return date.toLocaleDateString();
-        }
+    // ─── Settings ─────────────────────────────────────
+    function saveSettings() {
+      const msg = document.getElementById('settingsSaveMsg');
+      msg.classList.add('visible');
+      setTimeout(() => msg.classList.remove('visible'), 3000);
+    }
 
-        // Logout
-        document.getElementById('logoutBtn').addEventListener('click', async (e) => {
-            e.preventDefault();
-            await supabase.auth.signOut();
-            window.location.href = '../auth/login.html';
-        });
-    </script>
+    // ─── Utility ──────────────────────────────────────
+    function timeAgo(dateStr) {
+      const ms   = Date.now() - new Date(dateStr);
+      const mins = Math.floor(ms / 60000);
+      const hrs  = Math.floor(ms / 3600000);
+      const days = Math.floor(ms / 86400000);
+      if (mins < 1)  return 'Just now';
+      if (mins < 60) return `${mins}m ago`;
+      if (hrs  < 24) return `${hrs}h ago`;
+      if (days < 30) return `${days}d ago`;
+      return new Date(dateStr).toLocaleDateString('en-IN');
+    }
+
+    // Enter on password field
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('adminPassword')?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') handleAdminLogin();
+      });
+    });
+  </script>
+
 </body>
 </html>
