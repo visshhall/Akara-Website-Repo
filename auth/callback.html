@@ -1,146 +1,553 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verifying - Atelier Ākāra</title>
-    <link rel="stylesheet" href="../auth-styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Email Verification — Atelier Ākāra">
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+  <title>Verifying — Atelier Ākāra</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --teal:       #002b2b;
+      --cream:      #fff8e7;
+      --gold:       #c9a96e;
+      --gold-light: #e2c99a;
+      --text-main:  #fff8e7;
+      --text-muted: rgba(255,248,231,0.55);
+      --border:     rgba(201,169,110,0.25);
+      --error:      #e07070;
+      --success:    #70c9a0;
+      --info:       #7ab8c9;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Josefin Sans', sans-serif;
+      background: var(--teal);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    /* ─── Background ──────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 15% 5%,  rgba(0,95,95,0.3)  0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 85% 90%,  rgba(0,64,64,0.35) 0%, transparent 55%);
+      pointer-events: none; z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,169,110,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,169,110,0.035) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ─── Top bar ─────────────────────────────────── */
+    .top-bar {
+      position: relative; z-index: 10;
+      display: flex; align-items: center; justify-content: center;
+      padding: 1.25rem 2rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(0,43,43,0.6);
+      backdrop-filter: blur(12px);
+    }
+    .top-bar-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem; font-weight: 300;
+      letter-spacing: 0.32em; text-transform: uppercase;
+      color: var(--cream);
+    }
+
+    /* ─── Main ────────────────────────────────────── */
+    main {
+      position: relative; z-index: 1;
+      flex: 1;
+      display: flex; align-items: center; justify-content: center;
+      padding: 3rem 2rem;
+    }
+
+    /* ─── Auth box ────────────────────────────────── */
+    .auth-box {
+      width: 100%; max-width: 440px;
+      background: rgba(255,248,231,0.03);
+      border: 1px solid var(--border);
+      padding: 3rem 2.5rem;
+      text-align: center;
+      animation: fadeUp 0.7s ease both;
+    }
+
+    .auth-logo-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem; font-weight: 300;
+      letter-spacing: 0.35em; text-transform: uppercase;
+      color: var(--cream); margin-bottom: 0.35rem;
+    }
+    .auth-divider {
+      width: 36px; height: 1px;
+      background: var(--gold); opacity: 0.4;
+      margin: 0.6rem auto 1.5rem;
+    }
+
+    /* ─── Verifying state (default) ──────────────── */
+    .verifying-state { animation: fadeUp 0.5s ease both; }
+
+    .spinner-ring {
+      width: 56px; height: 56px;
+      border: 1.5px solid rgba(201,169,110,0.2);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1.5rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .verifying-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.6rem; font-weight: 300;
+      letter-spacing: 0.1em; color: var(--cream);
+      margin-bottom: 0.5rem;
+    }
+    .verifying-sub {
+      font-size: 0.68rem; letter-spacing: 0.1em;
+      color: var(--text-muted); line-height: 1.7;
+    }
+
+    /* Animated dots */
+    .dots span {
+      animation: blink 1.2s infinite;
+      opacity: 0;
+    }
+    .dots span:nth-child(2) { animation-delay: 0.2s; }
+    .dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes blink { 0%,80%,100% { opacity: 0; } 40% { opacity: 1; } }
+
+    /* ─── Success state ───────────────────────────── */
+    .success-state {
+      display: none; animation: fadeUp 0.5s ease both;
+    }
+    .success-state.visible { display: block; }
+
+    .result-icon {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.5rem;
+      font-size: 1.5rem;
+    }
+    .result-icon.success { border: 1px solid rgba(112,201,160,0.4); color: var(--success); }
+    .result-icon.error   { border: 1px solid rgba(224,112,112,0.35); color: var(--error); }
+
+    /* SVG checkmark animation */
+    .check-svg { width: 32px; height: 32px; }
+    .check-circle {
+      stroke: var(--success); stroke-width: 1.5; fill: none;
+      stroke-dasharray: 100; stroke-dashoffset: 100;
+      animation: drawCircle 0.6s ease forwards;
+    }
+    .check-mark {
+      stroke: var(--success); stroke-width: 2; fill: none;
+      stroke-linecap: round; stroke-linejoin: round;
+      stroke-dasharray: 30; stroke-dashoffset: 30;
+      animation: drawCheck 0.4s ease 0.5s forwards;
+    }
+    @keyframes drawCircle { to { stroke-dashoffset: 0; } }
+    @keyframes drawCheck  { to { stroke-dashoffset: 0; } }
+
+    .result-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.8rem; font-weight: 300;
+      letter-spacing: 0.1em; color: var(--cream);
+      margin-bottom: 0.5rem;
+    }
+    .result-sub {
+      font-size: 0.7rem; letter-spacing: 0.07em;
+      color: var(--text-muted); line-height: 1.8;
+      margin-bottom: 0.5rem;
+    }
+
+    /* Member ID pill */
+    .member-id-pill {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      border: 1px solid rgba(201,169,110,0.35);
+      background: rgba(201,169,110,0.06);
+      padding: 0.45rem 1rem;
+      margin: 1rem auto 0;
+    }
+    .member-id-label {
+      font-size: 0.55rem; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.7;
+    }
+    .member-id-value {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem; font-weight: 400;
+      letter-spacing: 0.12em; color: var(--gold-light);
+    }
+
+    /* Redirect progress */
+    .redirect-wrap { margin-top: 2rem; }
+    .redirect-track {
+      height: 2px; background: rgba(255,248,231,0.08);
+      overflow: hidden;
+    }
+    .redirect-fill {
+      height: 100%; background: var(--gold); width: 0%;
+      transition: width linear;
+    }
+    .redirect-text {
+      font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--text-muted); opacity: 0.45; margin-top: 0.5rem;
+    }
+
+    /* ─── Error state ─────────────────────────────── */
+    .error-state {
+      display: none; animation: fadeUp 0.5s ease both;
+    }
+    .error-state.visible { display: block; }
+
+    .error-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.6rem; font-weight: 300;
+      letter-spacing: 0.1em; color: var(--cream);
+      margin-bottom: 0.5rem;
+    }
+    .error-msg {
+      font-size: 0.7rem; letter-spacing: 0.06em;
+      color: var(--text-muted); line-height: 1.8;
+      margin-bottom: 1.75rem;
+    }
+
+    .error-actions {
+      display: flex; flex-direction: column; gap: 0.65rem;
+    }
+    .btn-primary {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; padding: 0.85rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--teal); background: var(--gold);
+      border: 1px solid var(--gold); cursor: pointer;
+      transition: all 0.25s; text-decoration: none;
+    }
+    .btn-primary:hover { background: transparent; color: var(--gold); }
+    .btn-secondary {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; padding: 0.75rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.62rem; letter-spacing: 0.25em; text-transform: uppercase;
+      color: var(--text-muted); border: 1px solid var(--border);
+      background: none; cursor: pointer; transition: all 0.25s;
+      text-decoration: none;
+    }
+    .btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* Error countdown */
+    .error-countdown {
+      font-size: 0.58rem; letter-spacing: 0.12em;
+      color: var(--text-muted); opacity: 0.4;
+      margin-top: 0.75rem;
+    }
+
+    /* ─── Footer strip ────────────────────────────── */
+    .auth-footer {
+      position: relative; z-index: 1; text-align: center;
+      padding: 1.25rem 2rem;
+      border-top: 1px solid rgba(201,169,110,0.1);
+    }
+    .auth-footer p {
+      font-size: 0.58rem; letter-spacing: 0.12em;
+      color: var(--text-muted); opacity: 0.45;
+    }
+
+    /* ─── Animations ──────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 480px) {
+      .auth-box { padding: 2.5rem 1.5rem; }
+    }
+  </style>
 </head>
+
 <body>
-    <div class="auth-container">
-        <div class="auth-box glass-panel">
-            <div class="auth-logo">
-                <h1>ATELIER ĀKĀRA</h1>
-                <p>Email Verification</p>
-            </div>
 
-            <div id="message-container" style="text-align: center;">
-                <div class="spinner" style="margin: 2rem auto; width: 40px; height: 40px; border-width: 4px;"></div>
-                <p style="color: var(--archival-cream); opacity: 0.9; margin-top: 1rem;">
-                    Verifying your email...
-                </p>
-            </div>
+  <!-- Top bar -->
+  <div class="top-bar">
+    <div class="top-bar-logo">ATELIER ĀKĀRA</div>
+  </div>
+
+  <!-- Main -->
+  <main>
+    <div class="auth-box">
+
+      <div class="auth-logo-name">ATELIER ĀKĀRA</div>
+      <div class="auth-divider"></div>
+
+      <!-- ── Verifying (default) ── -->
+      <div class="verifying-state" id="verifyingState">
+        <div class="spinner-ring"></div>
+        <h2 class="verifying-title">Verifying</h2>
+        <p class="verifying-sub">
+          Confirming your email address<span class="dots"><span>.</span><span>.</span><span>.</span></span>
+        </p>
+      </div>
+
+      <!-- ── Success ── -->
+      <div class="success-state" id="successState">
+        <div class="result-icon success">
+          <svg class="check-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle class="check-circle" cx="16" cy="16" r="14"/>
+            <polyline class="check-mark" points="9,16 14,21 23,11"/>
+          </svg>
         </div>
+        <h2 class="result-title">Email Verified</h2>
+        <p class="result-sub" id="successMsg">
+          Welcome to Atelier Ākāra. Your account is ready.
+        </p>
+        <div class="member-id-pill" id="memberIdPill" style="display:none;">
+          <span class="member-id-label">Member ID</span>
+          <span class="member-id-value" id="memberIdValue">—</span>
+        </div>
+        <div class="redirect-wrap">
+          <div class="redirect-track">
+            <div class="redirect-fill" id="redirectFill"></div>
+          </div>
+          <p class="redirect-text">Redirecting in <span id="redirectCount">3</span>s…</p>
+        </div>
+      </div>
+
+      <!-- ── Error ── -->
+      <div class="error-state" id="errorState">
+        <div class="result-icon error">✕</div>
+        <h2 class="error-title" id="errorTitle">Verification Failed</h2>
+        <p class="error-msg" id="errorMsg">
+          This link may have expired or already been used.
+        </p>
+        <div class="error-actions">
+          <a href="signup.html"        class="btn-primary">Create New Account</a>
+          <a href="login.html"         class="btn-secondary">Sign In</a>
+          <a href="reset-password.html" class="btn-secondary">Reset Password</a>
+        </div>
+        <p class="error-countdown" id="errorCountdown"></p>
+      </div>
+
     </div>
+  </main>
 
-    <!-- Supabase JS -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <script type="module">
-        import { supabaseConfig } from '../config.js';
+  <!-- Footer -->
+  <div class="auth-footer">
+    <p>Precision Forge Labs &nbsp;|&nbsp; GST: 27GZCPS9353H1ZQ &nbsp;·&nbsp; © <span id="year"></span> Atelier Ākāra</p>
+  </div>
 
-        // Initialize Supabase
-        const supabase = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey);
+  <script>
+    // ─────────────────────────────────────────────────
+    // CREDENTIALS
+    // ─────────────────────────────────────────────────
+    const SUPABASE_URL      = '';   // ← your Supabase project URL
+    const SUPABASE_ANON_KEY = '';   // ← your anon/public key
 
-        // Handle the callback
-        handleCallback();
+    let supabase = null;
 
-        async function handleCallback() {
-            try {
-                // Get the hash fragment from URL
-                const hashParams = new URLSearchParams(window.location.hash.substring(1));
-                const accessToken = hashParams.get('access_token');
-                const type = hashParams.get('type');
-                
-                if (!accessToken) {
-                    showMessage('Invalid verification link. Please try signing up again.', 'error');
-                    setTimeout(() => {
-                        window.location.href = 'signup.html';
-                    }, 3000);
-                    return;
-                }
+    document.getElementById('year').textContent = new Date().getFullYear();
 
-                // Get session
-                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-                
-                if (sessionError || !session) {
-                    showMessage('Verification failed. Please try again.', 'error');
-                    setTimeout(() => {
-                        window.location.href = 'login.html';
-                    }, 3000);
-                    return;
-                }
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
 
-                // Get user
-                const { data: { user }, error: userError } = await supabase.auth.getUser();
-                
-                if (userError || !user) {
-                    showMessage('User not found. Please try again.', 'error');
-                    setTimeout(() => {
-                        window.location.href = 'signup.html';
-                    }, 3000);
-                    return;
-                }
+    // ─── Run callback handler ─────────────────────────
+    handleCallback();
 
-                // Check if email is confirmed
-                if (!user.email_confirmed_at) {
-                    showMessage('Email not confirmed. Please check your inbox.', 'error');
-                    await supabase.auth.signOut();
-                    setTimeout(() => {
-                        window.location.href = 'login.html';
-                    }, 3000);
-                    return;
-                }
+    async function handleCallback() {
+      // Small delay — let Supabase parse the URL hash and
+      // establish the session from the access_token fragment
+      await new Promise(r => setTimeout(r, 500));
 
-                // Get or create profile
-                let { data: profile, error: profileError } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', user.id)
-                    .single();
+      // ── No Supabase configured — demo mode ───────────
+      if (!supabase) {
+        showSuccess({
+          email: 'demo@akaraonline.co.in',
+          member_id: 'AKR-00001',
+          is_admin: false,
+        });
+        return;
+      }
 
-                if (profileError) {
-                    console.error('Profile error:', profileError);
-                }
+      try {
+        // ── Step 1: Read hash params ─────────────────────
+        // Supabase puts access_token + type in the URL hash
+        // after the user clicks the confirmation email link.
+        const hash       = window.location.hash.substring(1);
+        const hashParams = new URLSearchParams(hash);
+        const type       = hashParams.get('type');       // 'signup' | 'recovery' | 'email_change'
+        const accessToken = hashParams.get('access_token');
 
-                // Update email_verified flag
-                if (profile) {
-                    await supabase
-                        .from('profiles')
-                        .update({ email_verified: true })
-                        .eq('id', user.id);
-                }
-
-                // Success!
-                showMessage('Email verified successfully! Welcome to Atelier Ākāra.', 'success');
-                
-                // Get Member ID for welcome message
-                if (profile && profile.member_id) {
-                    setTimeout(() => {
-                        document.getElementById('message-container').innerHTML += `
-                            <p style="color: var(--archival-cream); margin-top: 1rem; font-size: 0.9rem;">
-                                Your Member ID: <span class="member-id">${profile.member_id}</span>
-                            </p>
-                        `;
-                    }, 1000);
-                }
-
-                // Redirect based on type and role
-                setTimeout(() => {
-                    if (profile && profile.is_admin) {
-                        window.location.href = '../admin/dashboard.html';
-                    } else {
-                        window.location.href = '../user/profile.html';
-                    }
-                }, 3000);
-
-            } catch (err) {
-                console.error('Callback error:', err);
-                showMessage('An error occurred during verification. Please try logging in.', 'error');
-                setTimeout(() => {
-                    window.location.href = 'login.html';
-                }, 3000);
-            }
+        // If there's a recovery token, redirect to update-password
+        if (type === 'recovery' && accessToken) {
+          window.location.href = 'update-password.html' + window.location.hash;
+          return;
         }
 
-        function showMessage(text, type = 'info') {
-            const container = document.getElementById('message-container');
-            container.innerHTML = `
-                <div class="message message-${type}">
-                    ${text}
-                </div>
-            `;
+        // ── Step 2: Get session ───────────────────────────
+        const { data: { session }, error: sessionErr } = await supabase.auth.getSession();
+
+        if (sessionErr || !session) {
+          showError(
+            'Invalid or Expired Link',
+            'This verification link is invalid or has already been used. Please request a new one.',
+            'signup'
+          );
+          return;
         }
-    </script>
+
+        const user = session.user;
+
+        // ── Step 3: Check email confirmed ────────────────
+        if (!user.email_confirmed_at) {
+          showError(
+            'Email Not Confirmed',
+            'Your email address could not be confirmed. Please check your inbox or request a new verification email.',
+            'login'
+          );
+          await supabase.auth.signOut();
+          return;
+        }
+
+        // ── Step 4: Fetch / update profile ───────────────
+        let profile = null;
+
+        const { data: profileData, error: profileErr } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (!profileErr && profileData) {
+          profile = profileData;
+
+          // Mark email_verified = true
+          await supabase
+            .from('profiles')
+            .update({ email_verified: true })
+            .eq('id', user.id);
+
+        } else {
+          // Profile row doesn't exist yet — create it
+          const fullName  = user.user_metadata?.full_name || '';
+          const parts     = fullName.split(' ');
+          const memberId  = 'AKR-' + String(Date.now()).slice(-5);
+
+          const { data: newProfile } = await supabase
+            .from('profiles')
+            .insert([{
+              id:             user.id,
+              email:          user.email,
+              first_name:     parts[0] || '',
+              last_name:      parts.slice(1).join(' ') || '',
+              member_id:      memberId,
+              email_verified: true,
+              is_admin:       false,
+              reward_points:  0,
+              created_at:     new Date().toISOString(),
+            }])
+            .select()
+            .single();
+
+          profile = newProfile;
+        }
+
+        // ── Step 5: Success ───────────────────────────────
+        showSuccess(profile, user.email);
+
+      } catch (err) {
+        console.error('Callback error:', err);
+        showError(
+          'Something Went Wrong',
+          'An unexpected error occurred during verification. Please try signing in, or contact support@akaraonline.co.in if the problem persists.',
+          'login'
+        );
+      }
+    }
+
+    // ─── Show success ─────────────────────────────────
+    function showSuccess(profile, email) {
+      document.getElementById('verifyingState').style.display = 'none';
+      document.getElementById('successState').classList.add('visible');
+
+      // Personalise message
+      const firstName = profile?.first_name || (email ? email.split('@')[0] : '');
+      document.getElementById('successMsg').textContent =
+        firstName
+          ? `Welcome to Atelier Ākāra, ${firstName}. Your account is ready.`
+          : 'Welcome to Atelier Ākāra. Your account is ready.';
+
+      // Show member ID if available
+      if (profile?.member_id) {
+        document.getElementById('memberIdValue').textContent = profile.member_id;
+        document.getElementById('memberIdPill').style.display = 'inline-flex';
+      }
+
+      // Countdown redirect
+      const dest    = profile?.is_admin ? '../admin/dashboard.html' : '../user/profile.html';
+      let remaining = 3;
+
+      const fill = document.getElementById('redirectFill');
+      requestAnimationFrame(() => {
+        fill.style.transition = `width ${remaining}s linear`;
+        fill.style.width = '100%';
+      });
+
+      const tick = setInterval(() => {
+        remaining--;
+        document.getElementById('redirectCount').textContent = remaining;
+        if (remaining <= 0) {
+          clearInterval(tick);
+          window.location.href = dest;
+        }
+      }, 1000);
+    }
+
+    // ─── Show error ───────────────────────────────────
+    function showError(title, message, fallback) {
+      document.getElementById('verifyingState').style.display = 'none';
+      document.getElementById('errorState').classList.add('visible');
+      document.getElementById('errorTitle').textContent = title;
+      document.getElementById('errorMsg').textContent   = message;
+
+      // Auto-redirect after 8s to the most relevant page
+      const dest = fallback === 'signup' ? 'signup.html' : 'login.html';
+      let remaining = 8;
+      const countEl = document.getElementById('errorCountdown');
+      countEl.textContent = `Redirecting to ${fallback} in ${remaining}s…`;
+
+      const tick = setInterval(() => {
+        remaining--;
+        countEl.textContent = remaining > 0
+          ? `Redirecting in ${remaining}s…`
+          : 'Redirecting…';
+        if (remaining <= 0) {
+          clearInterval(tick);
+          window.location.href = dest;
+        }
+      }, 1000);
+    }
+  </script>
+
 </body>
 </html>

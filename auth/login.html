@@ -1,191 +1,769 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Studio Access - Atelier Ākāra</title>
-    <link rel="stylesheet" href="../auth-styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sign In — Atelier Ākāra">
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+  <title>Sign In — Atelier Ākāra</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --teal:       #002b2b;
+      --teal-mid:   #004040;
+      --cream:      #fff8e7;
+      --gold:       #c9a96e;
+      --gold-light: #e2c99a;
+      --text-main:  #fff8e7;
+      --text-muted: rgba(255,248,231,0.55);
+      --border:     rgba(201,169,110,0.25);
+      --border-dim: rgba(201,169,110,0.12);
+      --input-bg:   rgba(255,248,231,0.05);
+      --error:      #e07070;
+      --success:    #70c9a0;
+      --info:       #7ab8c9;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Josefin Sans', sans-serif;
+      background: var(--teal);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    /* ─── Background ──────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 15% 5%,  rgba(0,95,95,0.3)  0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 85% 90%,  rgba(0,64,64,0.35) 0%, transparent 55%);
+      pointer-events: none; z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,169,110,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,169,110,0.035) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ─── Top bar ─────────────────────────────────── */
+    .top-bar {
+      position: relative; z-index: 10;
+      display: flex; align-items: center; justify-content: center;
+      padding: 1.25rem 2rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(0,43,43,0.6);
+      backdrop-filter: blur(12px);
+    }
+    .top-bar-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem; font-weight: 300;
+      letter-spacing: 0.32em; text-transform: uppercase;
+      color: var(--cream);
+    }
+    .top-bar-store {
+      position: absolute; left: 2rem;
+      font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text-muted); transition: color 0.2s;
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+    .top-bar-store:hover { color: var(--gold); }
+    .top-bar-signup {
+      position: absolute; right: 2rem;
+      font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text-muted); transition: color 0.2s;
+    }
+    .top-bar-signup:hover { color: var(--gold); }
+
+    /* ─── Main ────────────────────────────────────── */
+    main {
+      position: relative; z-index: 1;
+      flex: 1;
+      display: flex; align-items: center; justify-content: center;
+      padding: 3rem 2rem;
+    }
+
+    /* ─── Two-column layout ───────────────────────── */
+    .auth-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      max-width: 860px;
+      width: 100%;
+      border: 1px solid var(--border);
+      animation: fadeUp 0.7s ease both;
+    }
+
+    /* ─── Left panel — brand ──────────────────────── */
+    .auth-brand {
+      background: rgba(0,64,64,0.35);
+      border-right: 1px solid var(--border);
+      padding: 3rem 2.5rem;
+      display: flex; flex-direction: column;
+      justify-content: space-between;
+      position: relative; overflow: hidden;
+    }
+
+    /* Watermark */
+    .auth-brand::before {
+      content: 'Ā';
+      position: absolute; bottom: -20px; right: -10px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 14rem; font-weight: 300;
+      color: rgba(201,169,110,0.05);
+      line-height: 1; pointer-events: none; user-select: none;
+      letter-spacing: 0;
+    }
+
+    .brand-top {}
+    .brand-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.2rem; font-weight: 300;
+      letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--cream); margin-bottom: 0.3rem;
+    }
+    .brand-tag {
+      font-size: 0.58rem; letter-spacing: 0.35em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.65;
+    }
+
+    .brand-divider {
+      width: 36px; height: 1px;
+      background: var(--gold); opacity: 0.3;
+      margin: 2rem 0;
+    }
+
+    .brand-headline {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.6rem, 2.5vw, 2.2rem);
+      font-weight: 300; letter-spacing: 0.06em;
+      color: var(--cream); line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+    .brand-desc {
+      font-size: 0.68rem; letter-spacing: 0.06em;
+      color: var(--text-muted); line-height: 1.85;
+    }
+
+    .brand-bottom {}
+    .brand-perks {
+      display: flex; flex-direction: column; gap: 0.6rem;
+      margin-top: 2rem;
+    }
+    .perk-item {
+      display: flex; align-items: center; gap: 0.65rem;
+      font-size: 0.62rem; letter-spacing: 0.06em;
+      color: var(--text-muted);
+    }
+    .perk-dot {
+      width: 4px; height: 4px; border-radius: 50%;
+      background: var(--gold); opacity: 0.6; flex-shrink: 0;
+    }
+
+    /* ─── Right panel — form ──────────────────────── */
+    .auth-form-panel {
+      background: rgba(255,248,231,0.02);
+      padding: 3rem 2.5rem;
+      display: flex; flex-direction: column;
+    }
+
+    .form-heading {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.6rem; font-weight: 300;
+      letter-spacing: 0.1em; color: var(--cream);
+      margin-bottom: 0.3rem;
+    }
+    .form-subheading {
+      font-size: 0.65rem; letter-spacing: 0.1em;
+      color: var(--text-muted); margin-bottom: 2rem;
+    }
+
+    /* ─── Message banner ──────────────────────────── */
+    .message-banner {
+      padding: 0.75rem 1rem;
+      font-size: 0.67rem; letter-spacing: 0.07em; line-height: 1.6;
+      border: 1px solid; margin-bottom: 1.25rem;
+      display: none; animation: fadeUp 0.3s ease both;
+    }
+    .message-banner.error   { color: var(--error);   border-color: rgba(224,112,112,0.35); background: rgba(224,112,112,0.07);  display: block; }
+    .message-banner.success { color: var(--success); border-color: rgba(112,201,160,0.35); background: rgba(112,201,160,0.07);  display: block; }
+    .message-banner.info    { color: var(--info);    border-color: rgba(122,184,201,0.35); background: rgba(122,184,201,0.06);  display: block; }
+
+    /* ─── Form fields ─────────────────────────────── */
+    .form-field {
+      display: flex; flex-direction: column; gap: 0.35rem;
+      margin-bottom: 1.1rem;
+    }
+    .form-field label {
+      font-size: 0.57rem; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.82;
+    }
+    .input-wrap { position: relative; }
+
+    .form-field input {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.75rem; letter-spacing: 0.08em;
+      padding: 0.72rem 2.8rem 0.72rem 1rem;
+      outline: none; width: 100%;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .form-field input::placeholder { color: var(--text-muted); }
+    .form-field input:focus {
+      border-color: rgba(201,169,110,0.55);
+      background: rgba(255,248,231,0.07);
+    }
+    .form-field input.valid   { border-color: rgba(112,201,160,0.45); }
+    .form-field input.invalid { border-color: rgba(224,112,112,0.5);  }
+
+    /* Show/hide toggle */
+    .toggle-vis {
+      position: absolute; right: 0.75rem; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      color: var(--text-muted); cursor: pointer;
+      font-size: 0.75rem; padding: 0.2rem;
+      transition: color 0.2s; line-height: 1;
+    }
+    .toggle-vis:hover { color: var(--gold); }
+
+    .field-err {
+      font-size: 0.59rem; letter-spacing: 0.08em;
+      color: var(--error); display: none;
+    }
+    .form-field.has-error .field-err  { display: block; }
+    .form-field.has-error input       { border-color: rgba(224,112,112,0.5); }
+
+    /* Forgot password row */
+    .forgot-row {
+      display: flex; justify-content: flex-end;
+      margin-top: -0.4rem; margin-bottom: 1.4rem;
+    }
+    .forgot-link {
+      font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--text-muted); transition: color 0.2s;
+    }
+    .forgot-link:hover { color: var(--gold); }
+
+    /* ─── Submit ──────────────────────────────────── */
+    .btn-submit {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0.6rem; width: 100%; padding: 0.88rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--teal); background: var(--gold);
+      border: 1px solid var(--gold);
+      cursor: pointer; transition: all 0.25s;
+      margin-bottom: 1.5rem;
+    }
+    .btn-submit:hover:not(:disabled) { background: transparent; color: var(--gold); }
+    .btn-submit:disabled { opacity: 0.45; cursor: not-allowed; background: var(--gold); color: var(--teal); }
+
+    /* Spinner */
+    .spinner {
+      width: 14px; height: 14px;
+      border: 1.5px solid currentColor;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── Divider ─────────────────────────────────── */
+    .or-divider {
+      display: flex; align-items: center; gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    .or-line { flex: 1; height: 1px; background: var(--border-dim); }
+    .or-text {
+      font-size: 0.55rem; letter-spacing: 0.25em; text-transform: uppercase;
+      color: var(--text-muted); opacity: 0.5;
+    }
+
+    /* ─── Sign up prompt ──────────────────────────── */
+    .signup-prompt {
+      display: flex; flex-direction: column; gap: 0.6rem;
+      margin-top: auto; padding-top: 1.5rem;
+      border-top: 1px solid var(--border-dim);
+    }
+    .signup-prompt p {
+      font-size: 0.63rem; letter-spacing: 0.08em;
+      color: var(--text-muted); text-align: center;
+    }
+    .btn-signup {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; padding: 0.75rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.62rem; letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--gold); border: 1px solid var(--border);
+      background: none; cursor: pointer; transition: all 0.25s;
+      text-decoration: none;
+    }
+    .btn-signup:hover { border-color: var(--gold); background: rgba(201,169,110,0.05); }
+
+    /* ─── Unverified state ────────────────────────── */
+    .unverified-state {
+      display: none; animation: fadeUp 0.5s ease both;
+    }
+    .unverified-state.visible { display: block; }
+    .unverified-icon {
+      width: 52px; height: 52px;
+      border: 1px solid rgba(122,184,201,0.35);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.25rem; font-size: 1.3rem; color: var(--info);
+    }
+    .unverified-state h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem; font-weight: 300;
+      letter-spacing: 0.1em; color: var(--cream);
+      text-align: center; margin-bottom: 0.6rem;
+    }
+    .unverified-state p {
+      font-size: 0.68rem; letter-spacing: 0.06em;
+      color: var(--text-muted); line-height: 1.8;
+      text-align: center; margin-bottom: 1.5rem;
+    }
+    .resend-row {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0.75rem; flex-wrap: wrap;
+    }
+    .btn-resend-verify {
+      background: none; border: 1px solid var(--border);
+      color: var(--gold); font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase;
+      padding: 0.5rem 1.2rem; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-resend-verify:hover { border-color: var(--gold); background: rgba(201,169,110,0.06); }
+    .btn-resend-verify:disabled { opacity: 0.35; cursor: not-allowed; }
+    .resend-countdown {
+      font-size: 0.58rem; letter-spacing: 0.1em;
+      color: var(--text-muted); opacity: 0.55;
+    }
+    .btn-back-login {
+      background: none; border: none;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.58rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text-muted); cursor: pointer; transition: color 0.2s;
+      margin-top: 0.75rem; display: block; text-align: center; width: 100%;
+    }
+    .btn-back-login:hover { color: var(--gold); }
+
+    /* ─── Footer strip ────────────────────────────── */
+    .auth-footer {
+      position: relative; z-index: 1; text-align: center;
+      padding: 1.25rem 2rem; border-top: 1px solid rgba(201,169,110,0.1);
+    }
+    .auth-footer p {
+      font-size: 0.58rem; letter-spacing: 0.12em;
+      color: var(--text-muted); opacity: 0.45;
+    }
+
+    /* ─── Animations ──────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── Responsive ──────────────────────────────── */
+    @media (max-width: 700px) {
+      .auth-layout { grid-template-columns: 1fr; }
+      .auth-brand  { display: none; }
+    }
+    @media (max-width: 480px) {
+      .auth-form-panel { padding: 2.5rem 1.5rem; }
+      .top-bar-store span,
+      .top-bar-signup { display: none; }
+    }
+  </style>
 </head>
+
 <body>
-    <div class="auth-container">
-        <div class="auth-box glass-panel">
-            <div class="auth-logo">
-                <h1>ATELIER ĀKĀRA</h1>
-                <p>Studio Access</p>
-            </div>
 
-            <div id="message-container"></div>
+  <!-- Top bar -->
+  <div class="top-bar">
+    <a href="../index.html" class="top-bar-store">← <span>Store</span></a>
+    <div class="top-bar-logo">ATELIER ĀKĀRA</div>
+    <a href="signup.html" class="top-bar-signup">Create Account →</a>
+  </div>
 
-            <form id="loginForm">
-                <div class="form-group">
-                    <label for="email" class="form-label">Email Address</label>
-                    <input 
-                        type="email" 
-                        id="email" 
-                        name="email" 
-                        class="form-input" 
-                        placeholder="your@email.com"
-                        required
-                        autocomplete="email"
-                    >
-                </div>
+  <!-- Main -->
+  <main>
+    <div class="auth-layout">
 
-                <div class="form-group">
-                    <label for="password" class="form-label">Password</label>
-                    <input 
-                        type="password" 
-                        id="password" 
-                        name="password" 
-                        class="form-input" 
-                        placeholder="Enter your password"
-                        required
-                        autocomplete="current-password"
-                    >
-                </div>
-
-                <div style="text-align: right; margin-bottom: 1.5rem;">
-                    <a href="reset-password.html" class="auth-link">Forgot password?</a>
-                </div>
-
-                <button type="submit" class="btn-primary" id="loginBtn">
-                    <span id="btnText">Access Studio</span>
-                    <span id="btnSpinner" class="spinner" style="display: none;"></span>
-                </button>
-            </form>
-
-            <div class="auth-footer">
-                <p style="color: var(--archival-cream); opacity: 0.8; margin-bottom: 1rem;">
-                    New to Atelier Ākāra?
-                </p>
-                <a href="signup.html" class="auth-link">Create Identity</a>
-            </div>
+      <!-- ── Left: Brand panel ── -->
+      <div class="auth-brand">
+        <div class="brand-top">
+          <div class="brand-name">ATELIER ĀKĀRA</div>
+          <div class="brand-tag">Studio Access</div>
+          <div class="brand-divider"></div>
+          <h2 class="brand-headline">Welcome<br>Back</h2>
+          <p class="brand-desc">
+            Sign in to manage your orders, track deliveries, redeem reward points, and access your saved addresses.
+          </p>
         </div>
+        <div class="brand-bottom">
+          <div class="brand-perks">
+            <div class="perk-item"><div class="perk-dot"></div> Order history & live tracking</div>
+            <div class="perk-item"><div class="perk-dot"></div> Saved delivery addresses</div>
+            <div class="perk-item"><div class="perk-dot"></div> Reward points & coupons</div>
+            <div class="perk-item"><div class="perk-dot"></div> GST invoices for B2B orders</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Right: Form panel ── -->
+      <div class="auth-form-panel">
+        <h2 class="form-heading">Sign In</h2>
+        <p class="form-subheading">Enter your credentials to continue</p>
+
+        <!-- Message banner -->
+        <div class="message-banner" id="messageBanner"></div>
+
+        <!-- ── Login form ── -->
+        <div id="loginFormContent">
+
+          <div class="form-field" id="field-email">
+            <label for="email">Email Address</label>
+            <div class="input-wrap">
+              <input
+                type="email"
+                id="email"
+                placeholder="your@email.com"
+                autocomplete="email"
+                maxlength="120"
+                oninput="onEmailInput()"
+                onkeydown="if(event.key==='Enter') focusPassword()"
+              >
+            </div>
+            <span class="field-err">Please enter a valid email address.</span>
+          </div>
+
+          <div class="form-field" id="field-password">
+            <label for="password">Password</label>
+            <div class="input-wrap">
+              <input
+                type="password"
+                id="password"
+                placeholder="Your password"
+                autocomplete="current-password"
+                maxlength="128"
+                oninput="onPasswordInput()"
+                onkeydown="if(event.key==='Enter') handleLogin()"
+              >
+              <button class="toggle-vis" type="button" onclick="toggleVis(this)" aria-label="Show password">👁</button>
+            </div>
+            <span class="field-err">Please enter your password.</span>
+          </div>
+
+          <div class="forgot-row">
+            <a href="reset-password.html" class="forgot-link">Forgot password?</a>
+          </div>
+
+          <button class="btn-submit" id="loginBtn" onclick="handleLogin()" disabled>
+            <span id="btnLabel">Access Studio</span>
+            <span class="spinner" id="btnSpinner" style="display:none;"></span>
+          </button>
+
+          <div class="signup-prompt">
+            <p>New to Atelier Ākāra?</p>
+            <a href="signup.html" class="btn-signup">Create Account</a>
+          </div>
+
+        </div>
+
+        <!-- ── Unverified email state ── -->
+        <div class="unverified-state" id="unverifiedState">
+          <div class="unverified-icon">✉</div>
+          <h3>Verify Your Email</h3>
+          <p>
+            Your email address hasn't been verified yet.<br>
+            Please check your inbox for the confirmation link we sent when you signed up.
+          </p>
+          <div class="resend-row">
+            <button class="btn-resend-verify" id="resendVerifyBtn" onclick="resendVerification()">Resend Email</button>
+            <span class="resend-countdown" id="resendCountdown"></span>
+          </div>
+          <button class="btn-back-login" onclick="showLoginForm()">← Back to Sign In</button>
+        </div>
+
+      </div>
     </div>
+  </main>
 
-    <!-- Supabase JS -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <script type="module">
-        import { supabaseConfig } from '../config.js';
-        import { sanitizeInput, isValidEmail, initializeFormSecurity } from '../utils/security.js';
+  <!-- Footer -->
+  <div class="auth-footer">
+    <p>Precision Forge Labs &nbsp;|&nbsp; GST: 27GZCPS9353H1ZQ &nbsp;·&nbsp; © <span id="year"></span> Atelier Ākāra</p>
+  </div>
 
-        // Initialize Supabase
-        const supabase = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey);
+  <script>
+    // ─────────────────────────────────────────────────
+    // CREDENTIALS
+    // ─────────────────────────────────────────────────
+    const SUPABASE_URL      = '';   // ← your Supabase project URL
+    const SUPABASE_ANON_KEY = '';   // ← your anon/public key
 
-        // Initialize form security (auto-trim)
-        const form = document.getElementById('loginForm');
-        initializeFormSecurity(form);
+    let supabase          = null;
+    let unverifiedEmail   = '';
+    let resendCooldown    = 0;
+    let resendTimer       = null;
 
-        // Check if already logged in
-        checkExistingSession();
+    // Copyright year
+    document.getElementById('year').textContent = new Date().getFullYear();
 
-        async function checkExistingSession() {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                // Check if email is verified
-                const { data: { user } } = await supabase.auth.getUser();
-                if (user && user.email_confirmed_at) {
-                    window.location.href = '../user/profile.html';
-                } else {
-                    showMessage('Please verify your email to access your account.', 'info');
-                    await supabase.auth.signOut();
-                }
-            }
+    // Init Supabase
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    // ─── Check existing session on load ──────────────
+    async function checkSession() {
+      if (!supabase) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const user = session.user;
+
+      // Check email verified
+      if (!user.email_confirmed_at) {
+        await supabase.auth.signOut();
+        showBanner('Please verify your email before signing in.', 'info');
+        return;
+      }
+
+      // Already signed in — redirect
+      redirectByRole(user.id);
+    }
+    checkSession();
+
+    // ─── Field validation ─────────────────────────────
+    function isValidEmail(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+    }
+
+    function onEmailInput() {
+      const val   = document.getElementById('email').value.trim();
+      const input = document.getElementById('email');
+      document.getElementById('field-email').classList.remove('has-error');
+      input.classList.remove('invalid');
+      if (!val) { input.classList.remove('valid'); updateBtn(); return; }
+      input.classList.toggle('valid',   isValidEmail(val));
+      input.classList.toggle('invalid', !isValidEmail(val) && val.length > 5);
+      updateBtn();
+    }
+
+    function onPasswordInput() {
+      const val   = document.getElementById('password').value;
+      const input = document.getElementById('password');
+      document.getElementById('field-password').classList.remove('has-error');
+      input.classList.remove('invalid');
+      if (!val) { input.classList.remove('valid'); updateBtn(); return; }
+      input.classList.add('valid');
+      updateBtn();
+    }
+
+    function updateBtn() {
+      const email    = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      document.getElementById('loginBtn').disabled = !(isValidEmail(email) && password.length > 0);
+    }
+
+    function focusPassword() {
+      document.getElementById('password').focus();
+    }
+
+    // ─── Show/hide password ───────────────────────────
+    function toggleVis(btn) {
+      const input = document.getElementById('password');
+      input.type = input.type === 'password' ? 'text' : 'password';
+      btn.textContent = input.type === 'password' ? '👁' : '🙈';
+    }
+
+    // ─── Handle login ─────────────────────────────────
+    async function handleLogin() {
+      const email    = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      // Client-side validation
+      let valid = true;
+      if (!isValidEmail(email)) {
+        document.getElementById('field-email').classList.add('has-error');
+        document.getElementById('email').classList.add('invalid');
+        valid = false;
+      }
+      if (!password) {
+        document.getElementById('field-password').classList.add('has-error');
+        document.getElementById('password').classList.add('invalid');
+        valid = false;
+      }
+      if (!valid) return;
+
+      setLoading(true);
+      hideBanner();
+
+      // ── Demo mode — no Supabase ───────────────────
+      if (!supabase) {
+        await new Promise(r => setTimeout(r, 1000));
+        showBanner('Demo mode: Supabase not configured. Add your credentials to activate login.', 'info');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+        if (error) {
+          handleAuthError(error, email);
+          setLoading(false);
+          return;
         }
 
-        // Handle form submission
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const email = sanitizeInput(document.getElementById('email').value);
-            const password = sanitizeInput(document.getElementById('password').value);
-            
-            // Validate
-            if (!isValidEmail(email)) {
-                showMessage('Please enter a valid email address.', 'error');
-                return;
-            }
-            
-            if (password.length === 0) {
-                showMessage('Please enter your password.', 'error');
-                return;
-            }
-            
-            setLoading(true);
-            
-            try {
-                // Sign in
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
-                
-                if (error) {
-                    if (error.message.includes('Invalid login credentials')) {
-                        showMessage('Invalid email or password.', 'error');
-                    } else if (error.message.includes('Email not confirmed')) {
-                        showMessage('Please verify your email before logging in. Check your inbox.', 'error');
-                    } else {
-                        showMessage(error.message, 'error');
-                    }
-                    setLoading(false);
-                    return;
-                }
-                
-                // Check if email is verified
-                if (!data.user.email_confirmed_at) {
-                    showMessage('Please verify your email before logging in. Check your inbox for the verification link.', 'error');
-                    await supabase.auth.signOut();
-                    setLoading(false);
-                    return;
-                }
-                
-                // Get profile
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', data.user.id)
-                    .single();
-                
-                // Redirect based on role
-                if (profile && profile.is_admin) {
-                    window.location.href = '../admin/dashboard.html';
-                } else {
-                    window.location.href = '../user/profile.html';
-                }
-                
-            } catch (err) {
-                console.error('Login error:', err);
-                showMessage('An unexpected error occurred. Please try again.', 'error');
-                setLoading(false);
-            }
-        });
+        const user = data.user;
 
-        function setLoading(loading) {
-            const btn = document.getElementById('loginBtn');
-            const btnText = document.getElementById('btnText');
-            const btnSpinner = document.getElementById('btnSpinner');
-            
-            btn.disabled = loading;
-            btnText.style.display = loading ? 'none' : 'inline';
-            btnSpinner.style.display = loading ? 'inline-block' : 'none';
+        // Email not verified
+        if (!user.email_confirmed_at) {
+          unverifiedEmail = email;
+          await supabase.auth.signOut();
+          setLoading(false);
+          showUnverifiedState();
+          return;
         }
 
-        function showMessage(text, type = 'info') {
-            const container = document.getElementById('message-container');
-            container.innerHTML = `
-                <div class="message message-${type}">
-                    ${text}
-                </div>
-            `;
-            
-            // Auto-hide after 5 seconds for non-error messages
-            if (type !== 'error') {
-                setTimeout(() => {
-                    container.innerHTML = '';
-                }, 5000);
-            }
+        // Redirect by role
+        await redirectByRole(user.id);
+
+      } catch (err) {
+        console.error('Login error:', err);
+        showBanner('An unexpected error occurred. Please try again.', 'error');
+        setLoading(false);
+      }
+    }
+
+    // ─── Error handling ───────────────────────────────
+    function handleAuthError(error, email) {
+      const msg = error.message || '';
+
+      if (msg.includes('Invalid login credentials') || msg.includes('invalid_credentials')) {
+        showBanner('Incorrect email or password. Please try again.', 'error');
+        document.getElementById('field-password').classList.add('has-error');
+        document.getElementById('password').value = '';
+        document.getElementById('password').classList.remove('valid');
+        updateBtn();
+
+      } else if (msg.includes('Email not confirmed') || msg.includes('email_not_confirmed')) {
+        unverifiedEmail = email;
+        showUnverifiedState();
+
+      } else if (msg.includes('Too many requests')) {
+        showBanner('Too many sign-in attempts. Please wait a few minutes and try again.', 'error');
+
+      } else {
+        showBanner(msg || 'Sign in failed. Please try again.', 'error');
+      }
+    }
+
+    // ─── Redirect by role ─────────────────────────────
+    async function redirectByRole(userId) {
+      if (!supabase) { window.location.href = '../user/profile.html'; return; }
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('id', userId)
+          .single();
+
+        if (profile?.is_admin) {
+          window.location.href = '../admin/dashboard.html';
+        } else {
+          window.location.href = '../user/profile.html';
         }
-    </script>
+      } catch {
+        window.location.href = '../user/profile.html';
+      }
+    }
+
+    // ─── Unverified state ─────────────────────────────
+    function showUnverifiedState() {
+      document.getElementById('loginFormContent').style.display = 'none';
+      document.getElementById('messageBanner').style.display    = 'none';
+      document.getElementById('unverifiedState').classList.add('visible');
+    }
+
+    function showLoginForm() {
+      document.getElementById('loginFormContent').style.display = 'flex';
+      document.getElementById('loginFormContent').style.flexDirection = 'column';
+      document.getElementById('unverifiedState').classList.remove('visible');
+      hideBanner();
+    }
+
+    async function resendVerification() {
+      if (!supabase || !unverifiedEmail || resendCooldown > 0) return;
+      try {
+        await supabase.auth.resend({ type: 'signup', email: unverifiedEmail });
+        showBanner('Verification email resent. Check your inbox and spam folder.', 'info');
+      } catch (e) {
+        console.error(e);
+      }
+      startResendCooldown(60);
+    }
+
+    function startResendCooldown(seconds) {
+      const btn       = document.getElementById('resendVerifyBtn');
+      const countdown = document.getElementById('resendCountdown');
+      resendCooldown  = seconds;
+      btn.disabled    = true;
+      countdown.textContent = `(${resendCooldown}s)`;
+
+      resendTimer = setInterval(() => {
+        resendCooldown--;
+        countdown.textContent = resendCooldown > 0 ? `(${resendCooldown}s)` : '';
+        if (resendCooldown <= 0) {
+          clearInterval(resendTimer);
+          btn.disabled = false;
+        }
+      }, 1000);
+    }
+
+    // ─── Helpers ──────────────────────────────────────
+    function setLoading(loading) {
+      const btn     = document.getElementById('loginBtn');
+      const label   = document.getElementById('btnLabel');
+      const spinner = document.getElementById('btnSpinner');
+      btn.disabled          = loading;
+      label.style.display   = loading ? 'none'         : 'inline';
+      spinner.style.display = loading ? 'inline-block' : 'none';
+    }
+
+    function showBanner(text, type) {
+      const el    = document.getElementById('messageBanner');
+      el.textContent = text;
+      el.className   = `message-banner ${type}`;
+      // Auto-hide non-error messages after 6 seconds
+      if (type !== 'error') setTimeout(() => hideBanner(), 6000);
+    }
+
+    function hideBanner() {
+      const el = document.getElementById('messageBanner');
+      el.className   = 'message-banner';
+      el.textContent = '';
+    }
+  </script>
+
 </body>
 </html>
