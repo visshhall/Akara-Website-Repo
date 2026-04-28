@@ -1,23 +1,592 @@
-<!-- Reusable Header Component -->
-<header class="site-header">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Header Component — Atelier Ākāra</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    /* ─────────────────────────────────────────────────
+       HEADER COMPONENT — Atelier Ākāra
+       Copy the <style> block and the <header> + <nav>
+       markup into any page that needs this header.
+       The <script> block at the bottom handles:
+         • Mobile menu toggle
+         • Active page highlighting
+         • Cart count from localStorage
+         • Auth state (user icon swap)
+    ───────────────────────────────────────────────── */
+
+    :root {
+      --teal:       #002b2b;
+      --cream:      #fff8e7;
+      --gold:       #c9a96e;
+      --gold-light: #e2c99a;
+      --text-main:  #fff8e7;
+      --text-muted: rgba(255,248,231,0.55);
+      --border:     rgba(201,169,110,0.25);
+    }
+
+    /* ─── Prevent body content jumping under fixed header */
+    body { margin-top: 64px; }
+
+    /* ─── Header shell ────────────────────────────── */
+    .site-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      height: 64px;
+      background: rgba(0,43,43,0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ─── Nav container ───────────────────────────── */
+    .nav-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      height: 100%;
+    }
+
+    /* ─── Left ────────────────────────────────────── */
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      min-width: 200px;
+    }
+
+    /* Hamburger — hidden on desktop */
+    .menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text-main);
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 0.25rem;
+      line-height: 1;
+      transition: color 0.2s;
+    }
+    .menu-toggle:hover { color: var(--gold); }
+
+    /* Desktop nav links */
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+    }
+    .nav-links a {
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 400;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+      position: relative;
+      padding-bottom: 2px;
+    }
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -2px; left: 0; right: 0;
+      height: 1px;
+      background: var(--gold);
+      transform: scaleX(0);
+      transition: transform 0.25s ease;
+    }
+    .nav-links a:hover { color: var(--gold-light); }
+    .nav-links a:hover::after { transform: scaleX(1); }
+    .nav-links a.active {
+      color: var(--gold);
+    }
+    .nav-links a.active::after { transform: scaleX(1); }
+
+    /* ─── Center — Brand ──────────────────────────── */
+    .nav-center {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .brand-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      font-weight: 300;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: var(--cream);
+      text-decoration: none;
+      white-space: nowrap;
+      transition: opacity 0.2s;
+    }
+    .brand-logo:hover { opacity: 0.8; }
+
+    /* ─── Right ───────────────────────────────────── */
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      min-width: 200px;
+      justify-content: flex-end;
+    }
+
+    /* Contact link (desktop only) */
+    .nav-right .nav-link {
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.68rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-right .nav-link:hover { color: var(--gold); }
+    .nav-right .nav-link.active { color: var(--gold); }
+
+    /* Cart icon */
+    .cart-link {
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: color 0.2s;
+      position: relative;
+    }
+    .cart-link:hover { color: var(--gold); }
+
+    /* Cart count badge */
+    #cartCount {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 4px;
+      background: var(--gold);
+      color: var(--teal);
+      font-size: 0.55rem;
+      font-family: 'Josefin Sans', sans-serif;
+      letter-spacing: 0;
+      font-weight: 500;
+      border-radius: 2px;
+      transition: transform 0.2s;
+    }
+    .cart-link:hover #cartCount { transform: scale(1.1); }
+    #cartCount.empty {
+      background: rgba(201,169,110,0.25);
+      color: var(--text-muted);
+    }
+
+    /* User icon */
+    #userLink {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    #userLink:hover { color: var(--gold); }
+    #userLink.signed-in { color: var(--gold); }
+
+    /* User display name (shown when signed in) */
+    .user-name {
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      display: none;
+    }
+    #userLink.signed-in .user-name { display: inline; }
+
+    /* ─── Mobile nav drawer ───────────────────────── */
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      top: 64px; left: 0; right: 0;
+      background: rgba(0,30,30,0.97);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      z-index: 99;
+      flex-direction: column;
+      padding: 0;
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.35s ease, padding 0.35s ease;
+    }
+    .mobile-nav.open {
+      display: flex;
+      max-height: 600px;
+      padding: 1rem 0;
+    }
+
+    .mobile-nav a {
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.72rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 0.9rem 2rem;
+      border-bottom: 1px solid rgba(201,169,110,0.08);
+      transition: color 0.2s, background 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .mobile-nav a:last-child { border-bottom: none; }
+    .mobile-nav a:hover { color: var(--gold); background: rgba(201,169,110,0.04); }
+    .mobile-nav a.active { color: var(--gold); }
+    .mobile-nav a .link-arrow { opacity: 0.3; font-size: 0.75rem; }
+
+    /* Mobile nav divider */
+    .mobile-nav-divider {
+      height: 1px;
+      background: rgba(201,169,110,0.12);
+      margin: 0.5rem 0;
+    }
+
+    /* ─── Announcement bar (optional) ────────────── */
+    .announcement-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 101;
+      background: var(--gold);
+      color: var(--teal);
+      text-align: center;
+      padding: 0.45rem 1rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.6rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      display: none; /* Set to flex to enable */
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+    }
+    .announcement-bar.visible {
+      display: flex;
+    }
+    .announcement-bar a {
+      color: var(--teal);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .announcement-close {
+      background: none; border: none;
+      color: var(--teal); cursor: pointer;
+      font-size: 0.8rem; padding: 0;
+      opacity: 0.6; transition: opacity 0.2s;
+      position: absolute; right: 1rem;
+    }
+    .announcement-close:hover { opacity: 1; }
+
+    /* When announcement bar is visible, push header down */
+    body.has-announcement { margin-top: 100px; }
+    body.has-announcement .site-header { top: 36px; }
+    body.has-announcement .mobile-nav  { top: 100px; }
+
+    /* ─── Scroll shadow ───────────────────────────── */
+    .site-header.scrolled {
+      background: rgba(0,30,30,0.97);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+    }
+
+    /* ─── Desktop-only / Mobile-only helpers ──────── */
+    @media (max-width: 768px) {
+      .desktop-only { display: none !important; }
+      .menu-toggle  { display: block; }
+      .nav-left     { min-width: auto; gap: 1rem; }
+      .nav-right    { min-width: auto; gap: 1.25rem; }
+      .nav-center   { position: static; transform: none; }
+      .nav-container { gap: 1rem; }
+      .user-name    { display: none !important; }
+    }
+
+    @media (max-width: 420px) {
+      .brand-logo { font-size: 0.9rem; letter-spacing: 0.22em; }
+      .nav-container { padding: 0 1.25rem; }
+    }
+
+    /* ───────────────────────────────────────────────
+       DEMO ONLY — body styles to show the component
+    ─────────────────────────────────────────────── */
+    body {
+      font-family: 'Josefin Sans', sans-serif;
+      background: #002b2b;
+      color: #fff8e7;
+    }
+    .demo-content {
+      max-width: 800px; margin: 4rem auto; padding: 0 2rem; text-align: center;
+    }
+    .demo-content h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.5rem; font-weight: 300; letter-spacing: 0.12em;
+      color: #fff8e7; margin-bottom: 1rem;
+    }
+    .demo-content p {
+      font-size: 0.75rem; letter-spacing: 0.1em; line-height: 1.9;
+      color: rgba(255,248,231,0.55);
+    }
+    .demo-content code {
+      display: block; text-align: left; margin-top: 2rem;
+      background: rgba(255,248,231,0.05); border: 1px solid rgba(201,169,110,0.25);
+      padding: 1.25rem 1.5rem; font-size: 0.7rem; letter-spacing: 0.05em;
+      line-height: 1.9; color: #c9a96e; white-space: pre-wrap;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ─────────────────────────────────────────────
+       OPTIONAL: Announcement bar
+       Add class="visible" to .announcement-bar
+       and class="has-announcement" to <body>
+       to enable it.
+  ──────────────────────────────────────────────── -->
+  <div class="announcement-bar" id="announcementBar">
+    <span>Free shipping on orders above ₹2,500 &nbsp;·&nbsp; <a href="../catalog.html">Shop Now</a></span>
+    <button class="announcement-close" onclick="closeAnnouncement()">✕</button>
+  </div>
+
+  <!-- ─────────────────────────────────────────────
+       HEADER COMPONENT
+       Copy from here ↓ to the closing </nav> tag
+       into any page. Adjust href paths as needed.
+       Paths shown are relative from /user/ pages.
+       From root pages, remove the leading ../
+  ──────────────────────────────────────────────── -->
+  <header class="site-header" id="siteHeader">
     <nav class="nav-container">
-        <div class="nav-left">
-            <button class="menu-toggle" id="menuToggle">☰</button>
-            <div class="nav-links desktop-only">
-                <a href="/catalog.html">Catalog</a>
-                <a href="/bundles.html">Bundles</a>
-                <a href="/about.html">About</a>
-            </div>
+
+      <!-- Left: hamburger + desktop nav links -->
+      <div class="nav-left">
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">☰</button>
+        <div class="nav-links desktop-only">
+          <a href="../catalog.html" data-page="catalog">Catalog</a>
+          <a href="../bundles.html" data-page="bundles">Bundles</a>
+          <a href="../about.html"   data-page="about">About</a>
         </div>
-        
-        <div class="nav-center">
-            <a href="/" class="brand-logo">ATELIER ĀKĀRA</a>
-        </div>
-        
-        <div class="nav-right">
-            <a href="/contact.html" class="nav-link desktop-only">Contact</a>
-            <a href="/user/cart.html" class="cart-link">🛒 <span id="cartCount">0</span></a>
-            <a href="/user/profile.html" id="userLink">👤</a>
-        </div>
+      </div>
+
+      <!-- Center: brand wordmark -->
+      <div class="nav-center">
+        <a href="../index.html" class="brand-logo">ATELIER ĀKĀRA</a>
+      </div>
+
+      <!-- Right: contact + cart + user -->
+      <div class="nav-right">
+        <a href="../contact.html" class="nav-link desktop-only" data-page="contact">Contact</a>
+        <a href="cart.html" class="cart-link" aria-label="Cart">
+          🛒 <span id="cartCount" class="empty">0</span>
+        </a>
+        <a href="profile.html" id="userLink" aria-label="My Account">
+          <span id="userIcon">👤</span>
+          <span class="user-name" id="userName"></span>
+        </a>
+      </div>
+
     </nav>
-</header>
+  </header>
+
+  <!-- Mobile nav drawer — sits right below header -->
+  <nav class="mobile-nav" id="mobileNav" aria-label="Mobile navigation">
+    <a href="../catalog.html" data-page="catalog">Catalog <span class="link-arrow">›</span></a>
+    <a href="../bundles.html" data-page="bundles">Bundles <span class="link-arrow">›</span></a>
+    <a href="../about.html"   data-page="about">About <span class="link-arrow">›</span></a>
+    <div class="mobile-nav-divider"></div>
+    <a href="../contact.html" data-page="contact">Contact <span class="link-arrow">›</span></a>
+    <a href="cart.html">Cart 🛒 <span class="link-arrow">›</span></a>
+    <a href="profile.html">My Account 👤 <span class="link-arrow">›</span></a>
+  </nav>
+  <!-- ─── End of header component ─────────────── -->
+
+
+  <!-- Demo page body (remove this from real pages) -->
+  <div class="demo-content">
+    <h1>Header Component</h1>
+    <p>This file is the standalone header component for Atelier Ākāra.<br>
+    Copy the <strong>&lt;style&gt;</strong> block and the <strong>&lt;header&gt; + &lt;nav&gt;</strong> markup into any page.<br>
+    The &lt;script&gt; block handles cart count, active states, scroll shadow, and auth.</p>
+    <code>Pages that use this header:
+index.html       → change hrefs from ../  to  /
+catalog.html     → change hrefs from ../  to  /
+about.html       → change hrefs from ../  to  /
+contact.html     → change hrefs from ../  to  /
+user/cart.html   → keep hrefs as ../   (current file)
+user/profile.html
+user/order.html
+user/ordersuccess.html
+user/reward.html
+
+data-page attribute drives active link highlighting.
+Set it to match the current page name on each page.</code>
+  </div>
+
+
+  <!-- ─────────────────────────────────────────────
+       HEADER SCRIPT — copy this into every page
+       Place just before </body>
+  ──────────────────────────────────────────────── -->
+  <script>
+    (function() {
+
+      // ── Mobile menu toggle ─────────────────────────
+      const menuToggle = document.getElementById('menuToggle');
+      const mobileNav  = document.getElementById('mobileNav');
+
+      menuToggle?.addEventListener('click', () => {
+        const isOpen = mobileNav.classList.toggle('open');
+        menuToggle.textContent = isOpen ? '✕' : '☰';
+        menuToggle.setAttribute('aria-expanded', isOpen);
+      });
+
+      // Close mobile nav when a link is clicked
+      mobileNav?.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+          mobileNav.classList.remove('open');
+          menuToggle.textContent = '☰';
+        });
+      });
+
+      // Close mobile nav on outside click
+      document.addEventListener('click', e => {
+        if (mobileNav?.classList.contains('open') &&
+            !mobileNav.contains(e.target) &&
+            !menuToggle?.contains(e.target)) {
+          mobileNav.classList.remove('open');
+          menuToggle.textContent = '☰';
+        }
+      });
+
+      // ── Active page highlighting ───────────────────
+      // Reads data-page attribute on each link and
+      // compares to current URL path segment.
+      const currentPath = window.location.pathname;
+      const currentPage = currentPath
+        .split('/')
+        .filter(Boolean)
+        .pop()
+        ?.replace('.html', '') || 'index';
+
+      document.querySelectorAll('[data-page]').forEach(link => {
+        if (link.dataset.page === currentPage) {
+          link.classList.add('active');
+        }
+      });
+
+      // Also mark Contact as active in nav-right
+      if (currentPage === 'contact') {
+        document.querySelector('.nav-right .nav-link')?.classList.add('active');
+      }
+
+      // ── Cart count from localStorage ──────────────
+      function updateCartCount() {
+        const cart  = JSON.parse(localStorage.getItem('akara_cart') || '[]');
+        const total = cart.reduce((sum, item) => sum + (item.qty || 1), 0);
+        const el    = document.getElementById('cartCount');
+        if (!el) return;
+        el.textContent = total;
+        if (total > 0) {
+          el.classList.remove('empty');
+        } else {
+          el.classList.add('empty');
+        }
+      }
+      updateCartCount();
+
+      // Re-check count whenever cart changes in another tab
+      window.addEventListener('storage', e => {
+        if (e.key === 'akara_cart') updateCartCount();
+      });
+
+      // ── Auth state — Supabase ──────────────────────
+      // If you have Supabase loaded on the page,
+      // this reads the session and updates the user icon.
+      // The Supabase CDN script must be loaded before this runs.
+      const SUPABASE_URL      = '';  // ← paste your Supabase URL
+      const SUPABASE_ANON_KEY = '';  // ← paste your anon key
+
+      if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
+        const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        client.auth.getSession().then(({ data: { session } }) => {
+          if (!session) return;
+          const userLink = document.getElementById('userLink');
+          const userIcon = document.getElementById('userIcon');
+          const userName = document.getElementById('userName');
+          if (!userLink) return;
+
+          userLink.classList.add('signed-in');
+          if (userIcon) userIcon.textContent = '●'; // filled dot = signed in
+
+          // Show first name if available
+          const name = session.user.user_metadata?.full_name || '';
+          if (userName && name) {
+            userName.textContent = name.split(' ')[0]; // first name only
+          }
+        });
+
+        // Listen for auth state changes (sign in / sign out on the same tab)
+        client.auth.onAuthStateChange((event, session) => {
+          updateCartCount();
+          const userLink = document.getElementById('userLink');
+          const userIcon = document.getElementById('userIcon');
+          if (!userLink) return;
+
+          if (session) {
+            userLink.classList.add('signed-in');
+            if (userIcon) userIcon.textContent = '●';
+          } else {
+            userLink.classList.remove('signed-in');
+            if (userIcon) userIcon.textContent = '👤';
+          }
+        });
+      }
+
+      // ── Scroll shadow ─────────────────────────────
+      const header = document.getElementById('siteHeader');
+      window.addEventListener('scroll', () => {
+        header?.classList.toggle('scrolled', window.scrollY > 8);
+      }, { passive: true });
+
+      // ── Announcement bar ──────────────────────────
+      window.closeAnnouncement = function() {
+        const bar = document.getElementById('announcementBar');
+        if (bar) {
+          bar.classList.remove('visible');
+          document.body.classList.remove('has-announcement');
+          sessionStorage.setItem('akara_announcement_closed', '1');
+        }
+      };
+
+      // Restore announcement if not dismissed this session
+      const bar = document.getElementById('announcementBar');
+      if (bar && !sessionStorage.getItem('akara_announcement_closed')) {
+        // Uncomment the lines below to enable the announcement bar:
+        // bar.classList.add('visible');
+        // document.body.classList.add('has-announcement');
+      }
+
+    })();
+  </script>
+
+</body>
+</html>
