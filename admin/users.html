@@ -1,93 +1,997 @@
+html
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Analytics - Atelier Ākāra</title>
-    <link rel="stylesheet" href="../auth-styles.css">
-    <style>
-        .users-container { min-height: 100vh; padding: 2rem; padding-top: 100px; }
-        .users-content { max-width: 1400px; margin: 0 auto; }
-        .nav-bar { position: fixed; top: 0; left: 0; right: 0; background: rgba(0, 43, 43, 0.95); backdrop-filter: blur(10px); padding: 1rem 2rem; z-index: 1000; border-bottom: 1px solid var(--glass-border); }
-        .nav-content { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
-        .nav-logo { font-family: var(--font-secondary); font-size: 1.2rem; letter-spacing: 2px; color: var(--archival-cream); }
-        .nav-links { display: flex; gap: 2rem; }
-        .nav-link { color: var(--archival-cream); text-decoration: none; font-size: 0.9rem; opacity: 0.8; transition: opacity 0.3s; }
-        .nav-link:hover { opacity: 1; }
-        .data-table { width: 100%; margin-top: 2rem; }
-        .data-table th, .data-table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--glass-border); }
-        .data-table th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--archival-cream); opacity: 0.7; }
-        .data-table td { color: var(--archival-cream); opacity: 0.9; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Member Directory — Atelier Ākāra Admin">
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+  <title>Member Directory — Studio Control</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --teal:       #002b2b;
+      --teal-mid:   #004040;
+      --cream:      #fff8e7;
+      --gold:       #c9a96e;
+      --gold-light: #e2c99a;
+      --text-main:  #fff8e7;
+      --text-muted: rgba(255,248,231,0.55);
+      --border:     rgba(201,169,110,0.25);
+      --border-dim: rgba(201,169,110,0.12);
+      --card-bg:    rgba(255,248,231,0.03);
+      --input-bg:   rgba(255,248,231,0.05);
+      --error:      #e07070;
+      --success:    #70c9a0;
+      --warning:    #e2a96e;
+      --sidebar-w:  240px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Josefin Sans', sans-serif;
+      background: var(--teal); color: var(--text-main);
+      min-height: 100vh; overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 5% 0%,   rgba(0,95,95,0.22) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 50% at 95% 100%, rgba(0,64,64,0.28) 0%, transparent 55%);
+      pointer-events: none; z-index: 0;
+    }
+    body::after {
+      content: ''; position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,169,110,0.028) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,169,110,0.028) 1px, transparent 1px);
+      background-size: 60px 60px; pointer-events: none; z-index: 0;
+    }
+
+    /* ─── Auth Gate ─────────────────────────────────── */
+    .auth-gate {
+      position: fixed; inset: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--teal);
+    }
+    .auth-gate.hidden { display: none; }
+    .auth-box {
+      width: 100%; max-width: 360px; padding: 3rem 2.5rem;
+      background: var(--card-bg); border: 1px solid var(--border);
+      animation: fadeUp 0.6s ease both; text-align: center;
+    }
+    .auth-box-logo { font-family: 'Cormorant Garamond', serif; font-size: 0.9rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--cream); margin-bottom: 0.2rem; }
+    .auth-box-sub  { font-size: 0.55rem; letter-spacing: 0.4em; text-transform: uppercase; color: var(--gold); opacity: 0.7; margin-bottom: 2rem; }
+    .auth-divider  { width: 32px; height: 1px; background: var(--gold); opacity: 0.3; margin: 0 auto 1.75rem; }
+    .auth-field    { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 1rem; text-align: left; }
+    .auth-field label { font-size: 0.56rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); opacity: 0.8; }
+    .auth-field input {
+      background: var(--input-bg); border: 1px solid var(--border);
+      color: var(--text-main); font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.75rem; letter-spacing: 0.08em; padding: 0.72rem 1rem;
+      outline: none; width: 100%; transition: border-color 0.2s;
+    }
+    .auth-field input::placeholder { color: var(--text-muted); }
+    .auth-field input:focus { border-color: rgba(201,169,110,0.55); }
+    .btn-auth {
+      display: block; width: 100%; padding: 0.82rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.63rem; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--teal); background: var(--gold);
+      border: 1px solid var(--gold); cursor: pointer; transition: all 0.25s; margin-top: 0.25rem;
+    }
+    .btn-auth:hover { background: transparent; color: var(--gold); }
+    .btn-auth:disabled { opacity: 0.5; cursor: not-allowed; background: var(--gold); color: var(--teal); }
+    .auth-err { font-size: 0.62rem; letter-spacing: 0.08em; color: var(--error); margin-top: 0.6rem; display: none; }
+    .auth-err.visible { display: block; }
+
+    /* ─── Sidebar ───────────────────────────────────── */
+    .sidebar {
+      position: fixed; top: 0; left: 0; bottom: 0;
+      width: var(--sidebar-w); z-index: 100;
+      background: rgba(0,30,30,0.88); backdrop-filter: blur(20px);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      transition: transform 0.3s ease;
+    }
+    .sidebar.collapsed { transform: translateX(-100%); }
+    .sidebar-brand { padding: 1.5rem 1.75rem; border-bottom: 1px solid var(--border-dim); }
+    .sidebar-brand-name { font-family: 'Cormorant Garamond', serif; font-size: 0.95rem; font-weight: 300; letter-spacing: 0.28em; text-transform: uppercase; color: var(--cream); }
+    .sidebar-brand-tag  { font-size: 0.5rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); opacity: 0.6; margin-top: 0.2rem; }
+    .sidebar-nav { flex: 1; padding: 1.25rem 0; overflow-y: auto; }
+    .nav-section-label { font-size: 0.5rem; letter-spacing: 0.4em; text-transform: uppercase; color: var(--gold); opacity: 0.5; padding: 0.5rem 1.75rem 0.3rem; }
+    .sidebar-link {
+      display: flex; align-items: center; gap: 0.7rem;
+      padding: 0.65rem 1.75rem;
+      font-size: 0.63rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text-muted); cursor: pointer;
+      border-left: 2px solid transparent;
+      transition: all 0.2s; background: none;
+      border-top: none; border-right: none; border-bottom: none;
+      width: 100%; text-align: left; font-family: 'Josefin Sans', sans-serif;
+      text-decoration: none;
+    }
+    .sidebar-link:hover  { color: var(--gold-light); border-left-color: rgba(201,169,110,0.3); }
+    .sidebar-link.active { color: var(--gold); border-left-color: var(--gold); }
+    .link-icon { font-size: 0.82rem; opacity: 0.7; flex-shrink: 0; }
+    .link-badge {
+      margin-left: auto; font-size: 0.52rem; letter-spacing: 0.1em;
+      background: rgba(201,169,110,0.18); color: var(--gold);
+      padding: 0.12rem 0.42rem; border-radius: 2px;
+    }
+    .sidebar-footer { padding: 1.25rem 1.75rem; border-top: 1px solid var(--border-dim); }
+    .sidebar-user-email { font-size: 0.58rem; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 0.6rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .btn-signout {
+      background: none; border: 1px solid var(--border);
+      color: var(--text-muted); font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.56rem; letter-spacing: 0.2em; text-transform: uppercase;
+      padding: 0.42rem 0.85rem; cursor: pointer; transition: all 0.2s; width: 100%;
+    }
+    .btn-signout:hover { border-color: var(--error); color: var(--error); }
+
+    /* ─── Main ──────────────────────────────────────── */
+    .admin-main {
+      margin-left: var(--sidebar-w); position: relative;
+      z-index: 1; min-height: 100vh; transition: margin-left 0.3s ease;
+    }
+    .admin-main.expanded { margin-left: 0; }
+
+    .top-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.25rem 2.5rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(0,30,30,0.6); backdrop-filter: blur(10px);
+      position: sticky; top: 0; z-index: 50; gap: 1rem; flex-wrap: wrap;
+    }
+    .top-bar-left { display: flex; align-items: center; gap: 1rem; }
+    .sidebar-toggle { background: none; border: none; color: var(--text-muted); font-size: 1rem; cursor: pointer; transition: color 0.2s; display: none; }
+    .sidebar-toggle:hover { color: var(--gold); }
+    .top-bar-title { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 300; letter-spacing: 0.1em; color: var(--cream); }
+    .breadcrumb { font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem; }
+    .breadcrumb a { color: var(--gold); opacity: 0.65; transition: opacity 0.2s; }
+    .breadcrumb a:hover { opacity: 1; }
+    .breadcrumb span { opacity: 0.3; }
+    .top-bar-right { display: flex; align-items: center; gap: 1.25rem; }
+    .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); opacity: 0.8; animation: pulse 2s ease infinite; }
+    @keyframes pulse { 0%,100% { opacity: 0.8; } 50% { opacity: 0.3; } }
+    .top-bar-time { font-size: 0.6rem; letter-spacing: 0.15em; color: var(--text-muted); opacity: 0.55; }
+
+    /* ─── Page Content ──────────────────────────────── */
+    .page-content { padding: 2.5rem; max-width: 1400px; }
+
+    /* ─── Stats ─────────────────────────────────────── */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(5, 1fr);
+      gap: 1.25rem; margin-bottom: 2.5rem;
+    }
+    .stat-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      padding: 1.5rem; text-align: center;
+      transition: border-color 0.3s;
+      animation: fadeUp 0.5s ease both;
+    }
+    .stat-card:hover { border-color: rgba(201,169,110,0.4); }
+    .stat-card:nth-child(1) { animation-delay: 0.05s; }
+    .stat-card:nth-child(2) { animation-delay: 0.10s; }
+    .stat-card:nth-child(3) { animation-delay: 0.15s; }
+    .stat-card:nth-child(4) { animation-delay: 0.20s; }
+    .stat-card:nth-child(5) { animation-delay: 0.25s; }
+    .stat-icon  { font-size: 0.95rem; opacity: 0.35; margin-bottom: 0.55rem; }
+    .stat-value {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.6rem, 2.5vw, 2.4rem);
+      font-weight: 300; color: var(--gold);
+      letter-spacing: 0.05em; line-height: 1; margin-bottom: 0.35rem;
+    }
+    .stat-label { font-size: 0.55rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--text-muted); }
+
+    /* ─── Section Card ──────────────────────────────── */
+    .section-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      margin-bottom: 2rem; animation: fadeUp 0.5s ease 0.2s both;
+    }
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.25rem 1.75rem; border-bottom: 1px solid var(--border-dim);
+      flex-wrap: wrap; gap: 0.75rem;
+    }
+    .section-header h2 { font-size: 0.6rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); opacity: 0.8; }
+    .section-header-right { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+
+    /* ─── Toolbar ───────────────────────────────────── */
+    .toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 1.75rem; border-bottom: 1px solid var(--border-dim);
+      flex-wrap: wrap; gap: 0.75rem;
+    }
+    .toolbar-left  { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+    .toolbar-right { display: flex; align-items: center; gap: 0.75rem; }
+
+    .search-wrap { position: relative; }
+    .search-icon { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.8rem; pointer-events: none; }
+    .search-input {
+      background: var(--input-bg); border: 1px solid var(--border);
+      color: var(--text-main); font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.68rem; letter-spacing: 0.08em;
+      padding: 0.55rem 1rem 0.55rem 2.2rem;
+      outline: none; width: 240px; transition: border-color 0.2s;
+    }
+    .search-input::placeholder { color: var(--text-muted); }
+    .search-input:focus { border-color: rgba(201,169,110,0.5); }
+
+    .sort-select {
+      background: var(--input-bg); border: 1px solid var(--border);
+      color: var(--text-muted); font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.62rem; letter-spacing: 0.1em;
+      padding: 0.5rem 0.8rem; outline: none; cursor: pointer; -webkit-appearance: none;
+    }
+    .sort-select option { background: var(--teal); }
+
+    .result-count { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); opacity: 0.55; }
+
+    /* Filter tabs */
+    .filter-tabs-wrap { border-bottom: 1px solid var(--border-dim); padding: 0 1.75rem; }
+    .filter-tabs { display: flex; }
+    .filter-tab {
+      background: none; border: none;
+      border-bottom: 2px solid transparent;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.58rem; letter-spacing: 0.25em; text-transform: uppercase;
+      color: var(--text-muted); padding: 0.65rem 1.1rem;
+      cursor: pointer; transition: all 0.2s; margin-bottom: -1px;
+    }
+    .filter-tab:hover { color: var(--gold-light); }
+    .filter-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+    /* ─── Table ─────────────────────────────────────── */
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th {
+      font-size: 0.56rem; letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--text-muted); padding: 0.82rem 1.75rem;
+      border-bottom: 1px solid var(--border-dim); text-align: left; white-space: nowrap;
+    }
+    .data-table td {
+      font-size: 0.68rem; letter-spacing: 0.05em; color: var(--text-muted);
+      padding: 1rem 1.75rem; border-bottom: 1px solid var(--border-dim); vertical-align: middle;
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: rgba(255,248,231,0.02); }
+
+    /* Cell styles */
+    .user-cell { display: flex; align-items: center; gap: 0.85rem; }
+    .user-avatar {
+      width: 34px; height: 34px; border: 1px solid var(--border);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-family: 'Cormorant Garamond', serif; font-size: 0.9rem;
+      color: var(--gold); background: rgba(201,169,110,0.08); flex-shrink: 0;
+    }
+    .user-name { font-size: 0.72rem; letter-spacing: 0.07em; color: var(--cream); }
+    .user-sub  { font-size: 0.58rem; letter-spacing: 0.08em; color: var(--text-muted); opacity: 0.6; margin-top: 0.1rem; }
+    .cell-mono { font-family: 'Courier New', monospace; font-size: 0.63rem; color: var(--gold); letter-spacing: 0.1em; }
+    .cell-email{ font-size: 0.65rem; letter-spacing: 0.04em; color: var(--text-muted); }
+    .cell-date { font-size: 0.65rem; color: var(--text-muted); }
+
+    /* Badges */
+    .badge { display: inline-block; font-size: 0.52rem; letter-spacing: 0.18em; text-transform: uppercase; padding: 0.2rem 0.55rem; border: 1px solid; }
+    .badge.verified   { color: var(--success);  border-color: rgba(112,201,160,0.4); }
+    .badge.pending    { color: var(--warning);   border-color: rgba(226,169,110,0.4); }
+    .badge.admin      { color: var(--gold-light);border-color: rgba(226,201,154,0.4); background: rgba(201,169,110,0.07); }
+    .badge.new-badge  { color: var(--gold);      border-color: rgba(201,169,110,0.4); }
+    .badge.suspended  { color: var(--error);     border-color: rgba(224,112,112,0.4); }
+
+    /* Action buttons */
+    .action-cell { display: flex; gap: 0.4rem; }
+    .btn-action {
+      background: none; border: 1px solid var(--border);
+      color: var(--text-muted); font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.52rem; letter-spacing: 0.18em; text-transform: uppercase;
+      padding: 0.3rem 0.6rem; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-action:hover { border-color: var(--gold); color: var(--gold); }
+    .btn-action.danger:hover { border-color: var(--error); color: var(--error); }
+
+    /* ─── User Detail Drawer ─────────────────────────── */
+    .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 150; display: none; }
+    .drawer-overlay.open { display: block; }
+    .user-drawer {
+      position: fixed; top: 0; right: 0; bottom: 0; width: 460px; max-width: 100%;
+      background: rgba(0,30,30,0.97); backdrop-filter: blur(20px);
+      border-left: 1px solid var(--border); z-index: 151;
+      overflow-y: auto; transform: translateX(100%); transition: transform 0.35s ease;
+    }
+    .user-drawer.open { transform: translateX(0); }
+    .drawer-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.5rem 2rem; border-bottom: 1px solid var(--border-dim);
+      position: sticky; top: 0; background: rgba(0,30,30,0.97); z-index: 1;
+    }
+    .drawer-title { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-weight: 300; letter-spacing: 0.1em; color: var(--cream); }
+    .drawer-close { background: none; border: 1px solid var(--border); color: var(--text-muted); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; font-size: 0.8rem; }
+    .drawer-close:hover { border-color: var(--gold); color: var(--gold); }
+    .drawer-body { padding: 2rem; }
+
+    .drawer-profile { display: flex; align-items: center; gap: 1.25rem; margin-bottom: 2rem; }
+    .drawer-avatar { width: 56px; height: 56px; border: 1px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; color: var(--gold); background: rgba(201,169,110,0.08); flex-shrink: 0; }
+    .drawer-profile-name { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 300; letter-spacing: 0.08em; color: var(--cream); }
+    .drawer-profile-id   { font-size: 0.6rem; letter-spacing: 0.15em; color: var(--gold); opacity: 0.65; margin-top: 0.2rem; }
+
+    .drawer-section { margin-bottom: 2rem; }
+    .drawer-section-label { font-size: 0.55rem; letter-spacing: 0.38em; text-transform: uppercase; color: var(--gold); opacity: 0.65; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-dim); }
+
+    .kv-row { display: flex; justify-content: space-between; align-items: baseline; padding: 0.55rem 0; border-bottom: 1px solid rgba(201,169,110,0.07); gap: 1rem; }
+    .kv-row:last-child { border-bottom: none; }
+    .kv-key { font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-muted); opacity: 0.65; flex-shrink: 0; }
+    .kv-val { font-size: 0.7rem; letter-spacing: 0.05em; color: var(--cream); text-align: right; }
+    .kv-val.gold  { color: var(--gold); }
+    .kv-val.green { color: var(--success); }
+    .kv-val.amber { color: var(--warning); }
+    .kv-val.muted { color: var(--text-muted); }
+    .kv-val.red   { color: var(--error); }
+
+    .drawer-actions { display: flex; flex-direction: column; gap: 0.6rem; }
+    .btn-drawer {
+      display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+      width: 100%; padding: 0.7rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.6rem; letter-spacing: 0.25em; text-transform: uppercase;
+      cursor: pointer; transition: all 0.25s;
+    }
+    .btn-drawer.primary   { color: var(--teal); background: var(--gold); border: 1px solid var(--gold); }
+    .btn-drawer.primary:hover { background: transparent; color: var(--gold); }
+    .btn-drawer.secondary { color: var(--text-muted); background: none; border: 1px solid var(--border); }
+    .btn-drawer.secondary:hover { border-color: var(--gold); color: var(--gold); }
+    .btn-drawer.danger    { color: var(--error); background: none; border: 1px solid rgba(224,112,112,0.3); }
+    .btn-drawer.danger:hover { border-color: var(--error); background: rgba(224,112,112,0.07); }
+
+    /* ─── Pagination ────────────────────────────────── */
+    .pagination { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.75rem; border-top: 1px solid var(--border-dim); flex-wrap: wrap; gap: 0.75rem; }
+    .page-info  { font-size: 0.62rem; letter-spacing: 0.1em; color: var(--text-muted); opacity: 0.55; }
+    .page-btns  { display: flex; gap: 0.4rem; }
+    .page-btn {
+      background: none; border: 1px solid var(--border);
+      color: var(--text-muted); font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.58rem; letter-spacing: 0.15em;
+      padding: 0.38rem 0.75rem; cursor: pointer; transition: all 0.2s;
+    }
+    .page-btn:hover  { border-color: var(--gold); color: var(--gold); }
+    .page-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(201,169,110,0.08); }
+    .page-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+
+    /* Utility buttons */
+    .btn-export {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.52rem 1.1rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.58rem; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--text-muted); border: 1px solid var(--border);
+      background: none; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-export:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* State messages */
+    .state-msg { text-align: center; padding: 4rem 2rem; font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-muted); }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 2rem; right: 2rem; z-index: 300; background: var(--gold); color: var(--teal); font-family: 'Josefin Sans', sans-serif; font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; padding: 0.75rem 1.5rem; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+    .toast.visible { opacity: 1; }
+
+    /* Footer */
+    .admin-footer { padding: 1.25rem 2.5rem; border-top: 1px solid var(--border-dim); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+    .admin-footer p { font-size: 0.56rem; letter-spacing: 0.12em; color: var(--text-muted); opacity: 0.4; }
+
+    /* Animations */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Responsive */
+    @media (max-width: 1100px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .admin-main { margin-left: 0; }
+      .sidebar-toggle { display: block; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .user-drawer { width: 100%; }
+    }
+    @media (max-width: 600px) {
+      .page-content { padding: 1.5rem; }
+      .search-input { width: 160px; }
+      .data-table th:nth-child(n+4),
+      .data-table td:nth-child(n+4) { display: none; }
+    }
+  </style>
 </head>
 <body>
-    <nav class="nav-bar">
-        <div class="nav-content">
-            <div class="nav-logo">STUDIO CONTROL</div>
-            <div class="nav-links">
-                <a href="dashboard.html" class="nav-link">Dashboard</a>
-                <a href="products.html" class="nav-link">Products</a>
-                <a href="orders.html" class="nav-link">Orders</a>
-                <a href="users.html" class="nav-link">Users</a>
-                <a href="#" class="nav-link" id="logoutBtn">Sign Out</a>
-            </div>
-        </div>
-    </nav>
 
-    <div class="users-container">
-        <div class="users-content">
-            <div style="text-align: center; margin-bottom: 3rem;">
-                <h1 style="font-family: var(--font-secondary); font-size: 2.5rem; color: var(--archival-cream);">MEMBER_DIRECTORY</h1>
-            </div>
-            <div class="glass-panel" style="padding: 2.5rem;">
-                <div id="usersContainer">Loading...</div>
-            </div>
+  <div class="toast" id="toast"></div>
+
+  <!-- ══ AUTH GATE ══════════════════════════════════════ -->
+  <div class="auth-gate" id="authGate">
+    <div class="auth-box">
+      <div class="auth-box-logo">ATELIER ĀKĀRA</div>
+      <div class="auth-box-sub">Studio Control</div>
+      <div class="auth-divider"></div>
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="adminEmail" placeholder="admin@akaraonline.co.in" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="adminPassword" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn-auth" id="adminLoginBtn" onclick="handleAdminLogin()">Enter Studio</button>
+      <p class="auth-err" id="authErr"></p>
+    </div>
+  </div>
+
+  <!-- Drawer overlay -->
+  <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+
+  <!-- ══ SIDEBAR ══════════════════════════════════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-name">ĀKĀRA</div>
+      <div class="sidebar-brand-tag">Studio Control</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="sidebar-link"><span class="link-icon">⬡</span> Dashboard</a>
+      <div class="nav-section-label">Manage</div>
+      <a href="#" class="sidebar-link"><span class="link-icon">↗</span> Orders</a>
+      <a href="#" class="sidebar-link"><span class="link-icon">◈</span> Products</a>
+      <a href="customers.html" class="sidebar-link"><span class="link-icon">🛍</span> Customers</a>
+      <a href="users.html" class="sidebar-link active"><span class="link-icon">👥</span> Members <span class="link-badge" id="totalBadge">0</span></a>
+      <div class="nav-section-label">Analytics</div>
+      <a href="#" class="sidebar-link"><span class="link-icon">↑</span> Analytics</a>
+      <div class="nav-section-label">System</div>
+      <a href="#" class="sidebar-link"><span class="link-icon">⊙</span> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <p class="sidebar-user-email" id="sidebarEmail">—</p>
+      <button class="btn-signout" onclick="handleSignOut()">Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN ══════════════════════════════════════════ -->
+  <div class="admin-main" id="adminMain">
+
+    <div class="top-bar">
+      <div class="top-bar-left">
+        <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">☰</button>
+        <div>
+          <div class="top-bar-title">Member Directory</div>
+          <nav class="breadcrumb">
+            <a href="dashboard.html">Dashboard</a>
+            <span>/</span>
+            Members
+          </nav>
         </div>
+      </div>
+      <div class="top-bar-right">
+        <div class="live-dot"></div>
+        <span class="top-bar-time" id="liveClock"></span>
+        <a href="../index.html" style="font-size:0.58rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-muted);transition:color 0.2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text-muted)'">← Store</a>
+      </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script type="module">
-        import { supabaseConfig, ADMIN_UUID } from '../config.js';
-        import { requireAuth, requireVerification, requireAdmin } from '../utils/security.js';
+    <div class="page-content">
 
-        const supabase = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey);
-        await requireAuth(supabase);
-        await requireVerification(supabase);
-        await requireAdmin(supabase, ADMIN_UUID);
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">👥</div>
+          <div class="stat-value" id="statTotal">—</div>
+          <div class="stat-label">Total Members</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✓</div>
+          <div class="stat-value" id="statVerified">—</div>
+          <div class="stat-label">Email Verified</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">⬡</div>
+          <div class="stat-value" id="statNew">—</div>
+          <div class="stat-label">New This Month</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">⊙</div>
+          <div class="stat-value" id="statAdmins">—</div>
+          <div class="stat-label">Admins</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">◈</div>
+          <div class="stat-value" id="statPending">—</div>
+          <div class="stat-label">Unverified</div>
+        </div>
+      </div>
 
-        loadUsers();
+      <!-- Table -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2>All Members</h2>
+          <div class="section-header-right">
+            <span class="result-count" id="resultCount"></span>
+            <button class="btn-export" onclick="exportCSV()">↓ Export CSV</button>
+          </div>
+        </div>
 
-        async function loadUsers() {
-            const { data: users } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
-            if (!users || users.length === 0) {
-                document.getElementById('usersContainer').innerHTML = '<p style="text-align: center; opacity: 0.6;">No users yet</p>';
-                return;
-            }
-            document.getElementById('usersContainer').innerHTML = `
-                <table class="data-table">
-                    <thead>
-                        <tr><th>Member ID</th><th>Name</th><th>Email</th><th>Joined</th><th>Status</th></tr>
-                    </thead>
-                    <tbody>
-                        ${users.map(u => `
-                            <tr>
-                                <td style="font-family: 'Courier New', monospace;">${u.member_id}</td>
-                                <td>${u.first_name} ${u.last_name}</td>
-                                <td>${u.email}</td>
-                                <td>${new Date(u.created_at).toLocaleDateString()}</td>
-                                <td>${u.email_verified ? '<span style="color:#10b981;">Verified</span>' : '<span style="color:#fbbf24;">Pending</span>'}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-        }
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <div class="search-wrap">
+              <span class="search-icon">⌕</span>
+              <input
+                type="text" class="search-input" id="searchInput"
+                placeholder="Name, email, member ID…"
+                maxlength="80" oninput="applyFilters()"
+              >
+            </div>
+            <select class="sort-select" id="sortSelect" onchange="applyFilters()">
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+              <option value="name_az">Name A–Z</option>
+              <option value="name_za">Name Z–A</option>
+            </select>
+          </div>
+        </div>
 
-        document.getElementById('logoutBtn').addEventListener('click', async (e) => {
-            e.preventDefault();
-            await supabase.auth.signOut();
-            window.location.href = '../auth/login.html';
-        });
-    </script>
+        <div class="filter-tabs-wrap">
+          <div class="filter-tabs">
+            <button class="filter-tab active" onclick="setFilter('all',this)">All</button>
+            <button class="filter-tab" onclick="setFilter('verified',this)">Verified</button>
+            <button class="filter-tab" onclick="setFilter('pending',this)">Unverified</button>
+            <button class="filter-tab" onclick="setFilter('admin',this)">Admins</button>
+            <button class="filter-tab" onclick="setFilter('new',this)">New (30d)</button>
+          </div>
+        </div>
+
+        <div id="tableContainer"><div class="state-msg">Loading members…</div></div>
+
+        <div class="pagination" id="paginationBar">
+          <span class="page-info" id="pageInfo"></span>
+          <div class="page-btns" id="pageBtns"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="admin-footer">
+      <p>Precision Forge Labs &nbsp;|&nbsp; GST: 27GZCPS9353H1ZQ</p>
+      <p>Studio Control v1.0 &nbsp;·&nbsp; Atelier Ākāra</p>
+    </div>
+  </div>
+
+  <!-- ══ USER DETAIL DRAWER ════════════════════════════ -->
+  <div class="user-drawer" id="userDrawer">
+    <div class="drawer-header">
+      <span class="drawer-title">Member Detail</span>
+      <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+  </div>
+
+  <script>
+    // ─────────────────────────────────────────────────
+    // CREDENTIALS
+    // ─────────────────────────────────────────────────
+    const SUPABASE_URL      = '';
+    const SUPABASE_ANON_KEY = '';
+    const ADMIN_EMAIL       = 'support@akaraonline.co.in';
+    const PAGE_SIZE         = 20;
+
+    let supabase          = null;
+    let allUsers          = [];
+    let filteredUsers     = [];
+    let activeFilter      = 'all';
+    let currentPage       = 1;
+
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    // ── Clock ─────────────────────────────────────────
+    setInterval(() => {
+      document.getElementById('liveClock').textContent =
+        new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    }, 1000);
+
+    // ── Sidebar ───────────────────────────────────────
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+    // ── Admin login ───────────────────────────────────
+    async function handleAdminLogin() {
+      const email    = document.getElementById('adminEmail').value.trim();
+      const password = document.getElementById('adminPassword').value;
+      const btn      = document.getElementById('adminLoginBtn');
+      const errEl    = document.getElementById('authErr');
+      btn.disabled = true; btn.textContent = 'Verifying…';
+      errEl.classList.remove('visible');
+
+      if (!supabase) {
+        await new Promise(r => setTimeout(r, 700));
+        showDashboard('demo@akaraonline.co.in');
+        return;
+      }
+
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      btn.disabled = false; btn.textContent = 'Enter Studio';
+
+      if (error) { errEl.textContent = error.message; errEl.classList.add('visible'); return; }
+      if (data.user.email !== ADMIN_EMAIL) {
+        await supabase.auth.signOut();
+        errEl.textContent = 'Access denied.'; errEl.classList.add('visible'); return;
+      }
+      showDashboard(data.user.email);
+    }
+
+    function showDashboard(email) {
+      document.getElementById('authGate').classList.add('hidden');
+      document.getElementById('sidebarEmail').textContent = email;
+      loadUsers();
+    }
+
+    async function handleSignOut() {
+      if (supabase) await supabase.auth.signOut();
+      document.getElementById('authGate').classList.remove('hidden');
+    }
+
+    async function checkSession() {
+      if (!supabase) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session && session.user.email === ADMIN_EMAIL) showDashboard(session.user.email);
+    }
+    checkSession();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('adminPassword')?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') handleAdminLogin();
+      });
+    });
+
+    // ── Load users ────────────────────────────────────
+    async function loadUsers() {
+      if (!supabase) {
+        allUsers = DEMO_USERS;
+        computeStats();
+        applyFilters();
+        return;
+      }
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (error) throw error;
+        allUsers = data || [];
+      } catch {
+        allUsers = DEMO_USERS;
+      }
+      computeStats();
+      applyFilters();
+    }
+
+    // ── Stats ─────────────────────────────────────────
+    function computeStats() {
+      const now   = Date.now();
+      const day30 = 30 * 86400000;
+      const verified = allUsers.filter(u => u.email_verified).length;
+      const newCount = allUsers.filter(u => now - new Date(u.created_at) < day30).length;
+      const admins   = allUsers.filter(u => u.is_admin).length;
+      const pending  = allUsers.length - verified;
+
+      document.getElementById('statTotal').textContent    = allUsers.length;
+      document.getElementById('statVerified').textContent = verified;
+      document.getElementById('statNew').textContent      = newCount;
+      document.getElementById('statAdmins').textContent   = admins;
+      document.getElementById('statPending').textContent  = pending;
+      document.getElementById('totalBadge').textContent   = allUsers.length;
+    }
+
+    // ── Filters ───────────────────────────────────────
+    function setFilter(filter, btn) {
+      activeFilter = filter;
+      document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentPage = 1;
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const q    = document.getElementById('searchInput').value.toLowerCase().trim();
+      const sort = document.getElementById('sortSelect').value;
+      const now  = Date.now();
+      const day30 = 30 * 86400000;
+
+      let result = allUsers.filter(u => {
+        const name   = `${u.first_name || ''} ${u.last_name || ''}`.toLowerCase();
+        const email  = (u.email || '').toLowerCase();
+        const mid    = (u.member_id || '').toLowerCase();
+        const matchQ = !q || name.includes(q) || email.includes(q) || mid.includes(q);
+
+        const matchF =
+          activeFilter === 'all'      ? true :
+          activeFilter === 'verified' ? u.email_verified :
+          activeFilter === 'pending'  ? !u.email_verified :
+          activeFilter === 'admin'    ? u.is_admin :
+          activeFilter === 'new'      ? (now - new Date(u.created_at) < day30) :
+          true;
+
+        return matchQ && matchF;
+      });
+
+      result.sort((a, b) => {
+        if (sort === 'oldest')  return new Date(a.created_at) - new Date(b.created_at);
+        if (sort === 'name_az') return `${a.first_name}${a.last_name}`.localeCompare(`${b.first_name}${b.last_name}`);
+        if (sort === 'name_za') return `${b.first_name}${b.last_name}`.localeCompare(`${a.first_name}${a.last_name}`);
+        return new Date(b.created_at) - new Date(a.created_at);
+      });
+
+      filteredUsers = result;
+      document.getElementById('resultCount').textContent =
+        `${result.length} member${result.length !== 1 ? 's' : ''}`;
+      renderPage(1);
+    }
+
+    // ── Render page ───────────────────────────────────
+    function renderPage(page) {
+      currentPage = page;
+      const total = filteredUsers.length;
+      const pages = Math.ceil(total / PAGE_SIZE);
+      const start = (page - 1) * PAGE_SIZE;
+      const slice = filteredUsers.slice(start, start + PAGE_SIZE);
+      const container = document.getElementById('tableContainer');
+
+      if (!slice.length) {
+        container.innerHTML = '<div class="state-msg">No members found</div>';
+        document.getElementById('paginationBar').style.display = 'none';
+        return;
+      }
+
+      document.getElementById('paginationBar').style.display = 'flex';
+      document.getElementById('pageInfo').textContent =
+        `${start + 1}–${Math.min(start + PAGE_SIZE, total)} of ${total}`;
+
+      const now   = Date.now();
+      const day30 = 30 * 86400000;
+
+      container.innerHTML = `
+        <table class="data-table">
+          <thead><tr>
+            <th>Member</th>
+            <th>Member ID</th>
+            <th>Email</th>
+            <th>Verification</th>
+            <th>Role</th>
+            <th>Joined</th>
+            <th>Actions</th>
+          </tr></thead>
+          <tbody>
+            ${slice.map((u, i) => {
+              const name    = `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'Unknown';
+              const initial = name[0].toUpperCase();
+              const joined  = new Date(u.created_at);
+              const isNew   = now - joined < day30;
+              const verBadge = u.email_verified
+                ? '<span class="badge verified">Verified</span>'
+                : '<span class="badge pending">Pending</span>';
+              const roleBadge = u.is_admin
+                ? '<span class="badge admin">Admin</span>'
+                : isNew
+                  ? '<span class="badge new-badge">New</span>'
+                  : '—';
+              return `
+                <tr style="animation:fadeUp 0.3s ease ${i * 0.025}s both;">
+                  <td>
+                    <div class="user-cell">
+                      <div class="user-avatar">${initial}</div>
+                      <div>
+                        <div class="user-name">${name}</div>
+                        <div class="user-sub">${u.email || ''}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="cell-mono">${u.member_id || '—'}</td>
+                  <td class="cell-email">${u.email || '—'}</td>
+                  <td>${verBadge}</td>
+                  <td>${roleBadge}</td>
+                  <td class="cell-date">${joined.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })}</td>
+                  <td>
+                    <div class="action-cell">
+                      <button class="btn-action" onclick="openDrawer(${start + i})">View</button>
+                      <button class="btn-action" onclick="copyEmail('${u.email}')">Copy</button>
+                    </div>
+                  </td>
+                </tr>`;
+            }).join('')}
+          </tbody>
+        </table>`;
+
+      // Pagination
+      const pageBtns = document.getElementById('pageBtns');
+      pageBtns.innerHTML = '';
+
+      const prev = document.createElement('button');
+      prev.className = 'page-btn'; prev.textContent = '←';
+      prev.disabled = page === 1;
+      prev.onclick  = () => renderPage(page - 1);
+      pageBtns.appendChild(prev);
+
+      const maxVisible = 5;
+      let startPage = Math.max(1, page - 2);
+      let endPage   = Math.min(pages, startPage + maxVisible - 1);
+      if (endPage - startPage < maxVisible - 1) startPage = Math.max(1, endPage - maxVisible + 1);
+
+      for (let p = startPage; p <= endPage; p++) {
+        const btn = document.createElement('button');
+        btn.className = 'page-btn' + (p === page ? ' active' : '');
+        btn.textContent = p;
+        btn.onclick = ((pg) => () => renderPage(pg))(p);
+        pageBtns.appendChild(btn);
+      }
+
+      const next = document.createElement('button');
+      next.className = 'page-btn'; next.textContent = '→';
+      next.disabled = page >= pages;
+      next.onclick  = () => renderPage(page + 1);
+      pageBtns.appendChild(next);
+    }
+
+    // ── Drawer ────────────────────────────────────────
+    function openDrawer(index) {
+      const u = filteredUsers[index];
+      if (!u) return;
+      const name    = `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'Unknown';
+      const initial = name[0].toUpperCase();
+      const joined  = new Date(u.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' });
+
+      document.getElementById('drawerBody').innerHTML = `
+        <div class="drawer-profile">
+          <div class="drawer-avatar">${initial}</div>
+          <div>
+            <div class="drawer-profile-name">${name}</div>
+            <div class="drawer-profile-id">${u.member_id || '—'}</div>
+          </div>
+        </div>
+
+        <div class="drawer-section">
+          <div class="drawer-section-label">Account</div>
+          <div class="kv-row"><span class="kv-key">Member ID</span>    <span class="kv-val gold">${u.member_id || '—'}</span></div>
+          <div class="kv-row"><span class="kv-key">Email</span>        <span class="kv-val">${u.email || '—'}</span></div>
+          <div class="kv-row"><span class="kv-key">Verified</span>     <span class="kv-val ${u.email_verified ? 'green' : 'amber'}">${u.email_verified ? '✓ Yes' : '✕ No'}</span></div>
+          <div class="kv-row"><span class="kv-key">Role</span>         <span class="kv-val ${u.is_admin ? 'gold' : ''}">${u.is_admin ? 'Admin' : 'Member'}</span></div>
+          <div class="kv-row"><span class="kv-key">Joined</span>       <span class="kv-val">${joined}</span></div>
+        </div>
+
+        <div class="drawer-section">
+          <div class="drawer-section-label">Profile</div>
+          <div class="kv-row"><span class="kv-key">First Name</span>   <span class="kv-val">${u.first_name || '—'}</span></div>
+          <div class="kv-row"><span class="kv-key">Last Name</span>    <span class="kv-val">${u.last_name  || '—'}</span></div>
+          <div class="kv-row"><span class="kv-key">Phone</span>        <span class="kv-val muted">${u.phone   || 'Not provided'}</span></div>
+          <div class="kv-row"><span class="kv-key">Company</span>      <span class="kv-val muted">${u.company || 'Not provided'}</span></div>
+          <div class="kv-row"><span class="kv-key">GSTIN</span>        <span class="kv-val muted">${u.gstin   || 'Not provided'}</span></div>
+        </div>
+
+        <div class="drawer-section">
+          <div class="drawer-section-label">Rewards</div>
+          <div class="kv-row"><span class="kv-key">Current Points</span>  <span class="kv-val gold">${u.reward_points   || 0} pts</span></div>
+          <div class="kv-row"><span class="kv-key">Lifetime Points</span> <span class="kv-val muted">${u.lifetime_points || 0} pts</span></div>
+          <div class="kv-row"><span class="kv-key">Redeemed</span>        <span class="kv-val muted">${u.redeemed_points || 0} pts</span></div>
+        </div>
+
+        <div class="drawer-section">
+          <div class="drawer-section-label">Actions</div>
+          <div class="drawer-actions">
+            <button class="btn-drawer primary"   onclick="copyEmail('${u.email}')">Copy Email Address</button>
+            <button class="btn-drawer secondary" onclick="window.location='mailto:${u.email}'">Send Email</button>
+            <button class="btn-drawer secondary" onclick="adjustPoints('${u.id}', ${u.reward_points || 0})">Adjust Points</button>
+            <button class="btn-drawer secondary" onclick="toggleAdmin('${u.id}', ${!!u.is_admin})">${u.is_admin ? 'Remove Admin Role' : 'Grant Admin Role'}</button>
+            <button class="btn-drawer danger"    onclick="confirmSuspend('${u.id}', '${name}')">Suspend Account</button>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('userDrawer').classList.add('open');
+      document.getElementById('drawerOverlay').classList.add('open');
+    }
+
+    function closeDrawer() {
+      document.getElementById('userDrawer').classList.remove('open');
+      document.getElementById('drawerOverlay').classList.remove('open');
+    }
+
+    // ── Actions ───────────────────────────────────────
+    function copyEmail(email) {
+      navigator.clipboard?.writeText(email).catch(() => {});
+      showToast('Email copied');
+    }
+
+    function adjustPoints(userId, current) {
+      const input = prompt(`Current points: ${current}\nEnter new points total:`);
+      if (input === null) return;
+      const val = parseInt(input);
+      if (isNaN(val) || val < 0) { showToast('Invalid value'); return; }
+      if (supabase) {
+        supabase.from('profiles').update({ reward_points: val }).eq('id', userId)
+          .then(() => {
+            const u = allUsers.find(x => x.id === userId);
+            if (u) u.reward_points = val;
+            showToast(`Points updated to ${val}`);
+          });
+      } else {
+        showToast(`Points updated to ${val} (demo)`);
+      }
+    }
+
+    function toggleAdmin(userId, isAdmin) {
+      if (!confirm(isAdmin ? 'Remove admin role from this user?' : 'Grant admin role to this user?')) return;
+      if (supabase) {
+        supabase.from('profiles').update({ is_admin: !isAdmin }).eq('id', userId)
+          .then(() => {
+            const u = allUsers.find(x => x.id === userId);
+            if (u) u.is_admin = !isAdmin;
+            computeStats();
+            showToast(isAdmin ? 'Admin role removed' : 'Admin role granted');
+            closeDrawer();
+          });
+      } else {
+        showToast('Admin toggle (demo — configure Supabase)');
+      }
+    }
+
+    function confirmSuspend(userId, name) {
+      if (!confirm(`Suspend account for ${name}?\n\nThis prevents sign-in. Reverse from Supabase Auth dashboard.`)) return;
+      showToast('Suspension initiated — complete in Supabase Auth dashboard');
+      closeDrawer();
+    }
+
+    // ── Export CSV ────────────────────────────────────
+    function exportCSV() {
+      const headers = ['Member ID', 'First Name', 'Last Name', 'Email', 'Verified', 'Role', 'Points', 'Joined'];
+      const rows = filteredUsers.map(u => [
+        u.member_id || '',
+        u.first_name || '',
+        u.last_name  || '',
+        u.email      || '',
+        u.email_verified ? 'Yes' : 'No',
+        u.is_admin ? 'Admin' : 'Member',
+        u.reward_points || 0,
+        new Date(u.created_at).toLocaleDateString('en-IN'),
+      ]);
+      const csv = [headers, ...rows]
+        .map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
+        .join('\n');
+      const a = document.createElement('a');
+      a.href     = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+      a.download = `akara_members_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+      showToast('CSV downloaded');
+    }
+
+    // ── Toast ─────────────────────────────────────────
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('visible');
+      setTimeout(() => t.classList.remove('visible'), 2500);
+    }
+
+    // ── Demo data ─────────────────────────────────────
+    const DEMO_USERS = [
+      { id:'1', first_name:'Admin',  last_name:'User',     email:'support@akaraonline.co.in', member_id:'AKR-00000', email_verified:true,  is_admin:true,  reward_points:0,    lifetime_points:0,    redeemed_points:0, created_at: new Date(Date.now()-60*86400000).toISOString() },
+      { id:'2', first_name:'Priya',  last_name:'Sharma',   email:'priya@example.com',         member_id:'AKR-00001', email_verified:true,  is_admin:false, reward_points:1240, lifetime_points:1790, redeemed_points:550, created_at: new Date(Date.now()-7*86400000).toISOString() },
+      { id:'3', first_name:'Rahul',  last_name:'Mehta',    email:'rahul@example.com',         member_id:'AKR-00002', email_verified:true,  is_admin:false, reward_points:360,  lifetime_points:360,  redeemed_points:0, created_at: new Date(Date.now()-2*86400000).toISOString() },
+      { id:'4', first_name:'Ankita', last_name:'Desai',    email:'ankita@example.com',        member_id:'AKR-00003', email_verified:false, is_admin:false, reward_points:0,    lifetime_points:0,    redeemed_points:0, created_at: new Date(Date.now()-1*86400000).toISOString() },
+      { id:'5', first_name:'Vikram', last_name:'Nair',     email:'vikram@example.com',        member_id:'AKR-00004', email_verified:true,  is_admin:false, reward_points:580,  lifetime_points:580,  redeemed_points:0, created_at: new Date(Date.now()-14*86400000).toISOString() },
+      { id:'6', first_name:'Sneha',  last_name:'Kulkarni', email:'sneha@example.com',         member_id:'AKR-00005', email_verified:true,  is_admin:false, reward_points:0,    lifetime_points:0,    redeemed_points:0, created_at: new Date(Date.now()-30*86400000).toISOString() },
+    ];
+  </script>
+
 </body>
 </html>
