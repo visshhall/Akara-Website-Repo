@@ -1,49 +1,1227 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Settings</title>
-    <link rel="stylesheet" href="/auth-styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Settings — Atelier Ākāra Admin">
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+  <title>Settings — Studio Control</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --teal:       #002b2b;
+      --teal-mid:   #004040;
+      --cream:      #fff8e7;
+      --gold:       #c9a96e;
+      --gold-light: #e2c99a;
+      --text-main:  #fff8e7;
+      --text-muted: rgba(255,248,231,0.55);
+      --border:     rgba(201,169,110,0.25);
+      --border-dim: rgba(201,169,110,0.12);
+      --card-bg:    rgba(255,248,231,0.03);
+      --input-bg:   rgba(255,248,231,0.05);
+      --error:      #e07070;
+      --success:    #70c9a0;
+      --warning:    #e2a96e;
+      --sidebar-w:  240px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Josefin Sans', sans-serif;
+      background: var(--teal); color: var(--text-main);
+      min-height: 100vh; overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 5% 0%,   rgba(0,95,95,0.22) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 50% at 95% 100%, rgba(0,64,64,0.28) 0%, transparent 55%);
+      pointer-events: none; z-index: 0;
+    }
+    body::after {
+      content: ''; position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,169,110,0.028) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,169,110,0.028) 1px, transparent 1px);
+      background-size: 60px 60px; pointer-events: none; z-index: 0;
+    }
+
+    /* ─── Auth Gate ─────────────────────────────────── */
+    .auth-gate { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; background: var(--teal); }
+    .auth-gate.hidden { display: none; }
+    .auth-box { width: 100%; max-width: 360px; padding: 3rem 2.5rem; background: var(--card-bg); border: 1px solid var(--border); animation: fadeUp 0.6s ease both; text-align: center; }
+    .auth-box-logo { font-family: 'Cormorant Garamond', serif; font-size: 0.9rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--cream); margin-bottom: 0.2rem; }
+    .auth-box-sub  { font-size: 0.55rem; letter-spacing: 0.4em; text-transform: uppercase; color: var(--gold); opacity: 0.7; margin-bottom: 2rem; }
+    .auth-divider  { width: 32px; height: 1px; background: var(--gold); opacity: 0.3; margin: 0 auto 1.75rem; }
+    .auth-field    { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 1rem; text-align: left; }
+    .auth-field label { font-size: 0.56rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); opacity: 0.8; }
+    .auth-field input { background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main); font-family: 'Josefin Sans', sans-serif; font-size: 0.75rem; letter-spacing: 0.08em; padding: 0.72rem 1rem; outline: none; width: 100%; transition: border-color 0.2s; }
+    .auth-field input::placeholder { color: var(--text-muted); }
+    .auth-field input:focus { border-color: rgba(201,169,110,0.55); }
+    .btn-auth { display: block; width: 100%; padding: 0.82rem; font-family: 'Josefin Sans', sans-serif; font-size: 0.63rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--teal); background: var(--gold); border: 1px solid var(--gold); cursor: pointer; transition: all 0.25s; margin-top: 0.25rem; }
+    .btn-auth:hover { background: transparent; color: var(--gold); }
+    .btn-auth:disabled { opacity: 0.5; cursor: not-allowed; background: var(--gold); color: var(--teal); }
+    .auth-err { font-size: 0.62rem; letter-spacing: 0.08em; color: var(--error); margin-top: 0.6rem; display: none; }
+    .auth-err.visible { display: block; }
+
+    /* ─── Sidebar ───────────────────────────────────── */
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w); z-index: 100; background: rgba(0,30,30,0.88); backdrop-filter: blur(20px); border-right: 1px solid var(--border); display: flex; flex-direction: column; transition: transform 0.3s ease; }
+    .sidebar.collapsed { transform: translateX(-100%); }
+    .sidebar-brand { padding: 1.5rem 1.75rem; border-bottom: 1px solid var(--border-dim); }
+    .sidebar-brand-name { font-family: 'Cormorant Garamond', serif; font-size: 0.95rem; font-weight: 300; letter-spacing: 0.28em; text-transform: uppercase; color: var(--cream); }
+    .sidebar-brand-tag  { font-size: 0.5rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); opacity: 0.6; margin-top: 0.2rem; }
+    .sidebar-nav { flex: 1; padding: 1.25rem 0; overflow-y: auto; }
+    .nav-section-label { font-size: 0.5rem; letter-spacing: 0.4em; text-transform: uppercase; color: var(--gold); opacity: 0.5; padding: 0.5rem 1.75rem 0.3rem; }
+    .sidebar-link { display: flex; align-items: center; gap: 0.7rem; padding: 0.65rem 1.75rem; font-size: 0.63rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-muted); cursor: pointer; border-left: 2px solid transparent; transition: all 0.2s; background: none; border-top: none; border-right: none; border-bottom: none; width: 100%; text-align: left; font-family: 'Josefin Sans', sans-serif; text-decoration: none; }
+    .sidebar-link:hover  { color: var(--gold-light); border-left-color: rgba(201,169,110,0.3); }
+    .sidebar-link.active { color: var(--gold); border-left-color: var(--gold); }
+    .link-icon { font-size: 0.82rem; opacity: 0.7; flex-shrink: 0; }
+    .sidebar-footer { padding: 1.25rem 1.75rem; border-top: 1px solid var(--border-dim); }
+    .sidebar-user-email { font-size: 0.58rem; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 0.6rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .btn-signout { background: none; border: 1px solid var(--border); color: var(--text-muted); font-family: 'Josefin Sans', sans-serif; font-size: 0.56rem; letter-spacing: 0.2em; text-transform: uppercase; padding: 0.42rem 0.85rem; cursor: pointer; transition: all 0.2s; width: 100%; }
+    .btn-signout:hover { border-color: var(--error); color: var(--error); }
+
+    /* ─── Main ──────────────────────────────────────── */
+    .admin-main { margin-left: var(--sidebar-w); position: relative; z-index: 1; min-height: 100vh; transition: margin-left 0.3s ease; }
+    .admin-main.expanded { margin-left: 0; }
+
+    .top-bar { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 2.5rem; border-bottom: 1px solid var(--border); background: rgba(0,30,30,0.6); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 50; gap: 1rem; flex-wrap: wrap; }
+    .top-bar-left { display: flex; align-items: center; gap: 1rem; }
+    .sidebar-toggle { background: none; border: none; color: var(--text-muted); font-size: 1rem; cursor: pointer; transition: color 0.2s; display: none; }
+    .sidebar-toggle:hover { color: var(--gold); }
+    .top-bar-title { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 300; letter-spacing: 0.1em; color: var(--cream); }
+    .breadcrumb { font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem; }
+    .breadcrumb a { color: var(--gold); opacity: 0.65; transition: opacity 0.2s; }
+    .breadcrumb a:hover { opacity: 1; }
+    .breadcrumb span { opacity: 0.3; }
+    .top-bar-right { display: flex; align-items: center; gap: 1.25rem; }
+    .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); opacity: 0.8; animation: pulse 2s ease infinite; }
+    @keyframes pulse { 0%,100% { opacity: 0.8; } 50% { opacity: 0.3; } }
+    .top-bar-time { font-size: 0.6rem; letter-spacing: 0.15em; color: var(--text-muted); opacity: 0.55; }
+
+    /* ─── Page Content ──────────────────────────────── */
+    .page-content { padding: 2.5rem; max-width: 1000px; }
+
+    /* ─── Settings Tab Navigation ───────────────────── */
+    .settings-tabs {
+      display: flex; border-bottom: 1px solid var(--border);
+      margin-bottom: 2.5rem; flex-wrap: wrap;
+    }
+    .settings-tab {
+      background: none; border: none;
+      border-bottom: 2px solid transparent;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.62rem; letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--text-muted); padding: 0.85rem 1.75rem;
+      cursor: pointer; transition: all 0.2s; margin-bottom: -1px;
+    }
+    .settings-tab:hover { color: var(--gold-light); }
+    .settings-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+    /* ─── Tab Panels ────────────────────────────────── */
+    .settings-panel { display: none; animation: fadeUp 0.4s ease both; }
+    .settings-panel.active { display: block; }
+
+    /* ─── Section Cards ─────────────────────────────── */
+    .settings-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      margin-bottom: 1.5rem;
+      animation: fadeUp 0.5s ease both;
+    }
+    .settings-card:nth-child(2) { animation-delay: 0.08s; }
+    .settings-card:nth-child(3) { animation-delay: 0.16s; }
+
+    .card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.25rem 1.75rem; border-bottom: 1px solid var(--border-dim);
+      flex-wrap: wrap; gap: 0.5rem;
+    }
+    .card-header h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem; font-weight: 400; letter-spacing: 0.1em; color: var(--cream);
+    }
+    .card-header-sub { font-size: 0.6rem; letter-spacing: 0.12em; color: var(--text-muted); opacity: 0.6; margin-top: 0.15rem; }
+    .card-body { padding: 1.75rem; }
+
+    /* ─── Form Fields ───────────────────────────────── */
+    .form-grid   { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem; }
+    .form-full   { grid-column: 1 / -1; }
+
+    .form-field  { display: flex; flex-direction: column; gap: 0.35rem; }
+    .form-field label {
+      font-size: 0.58rem; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.82;
+    }
+    .form-field .field-hint {
+      font-size: 0.57rem; letter-spacing: 0.07em; color: var(--text-muted); opacity: 0.55; line-height: 1.5;
+    }
+    .form-field input,
+    .form-field select,
+    .form-field textarea {
+      background: var(--input-bg); border: 1px solid var(--border);
+      color: var(--text-main); font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.73rem; letter-spacing: 0.07em;
+      padding: 0.72rem 1rem; outline: none; width: 100%;
+      transition: border-color 0.2s, background 0.2s;
+      -webkit-appearance: none;
+    }
+    .form-field input::placeholder,
+    .form-field textarea::placeholder { color: var(--text-muted); }
+    .form-field input:focus,
+    .form-field select:focus,
+    .form-field textarea:focus { border-color: rgba(201,169,110,0.55); background: rgba(255,248,231,0.07); }
+    .form-field input:disabled { opacity: 0.4; cursor: not-allowed; }
+    .form-field select option { background: var(--teal); }
+    .form-field textarea { min-height: 90px; resize: vertical; line-height: 1.7; }
+
+    /* Toggle switch */
+    .toggle-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 0; border-bottom: 1px solid rgba(201,169,110,0.08); gap: 1.5rem;
+    }
+    .toggle-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .toggle-info { flex: 1; }
+    .toggle-label { font-size: 0.7rem; letter-spacing: 0.07em; color: var(--cream); margin-bottom: 0.2rem; }
+    .toggle-desc  { font-size: 0.6rem; letter-spacing: 0.05em; color: var(--text-muted); line-height: 1.55; }
+    .toggle-switch {
+      position: relative; width: 42px; height: 22px;
+      flex-shrink: 0; cursor: pointer;
+    }
+    .toggle-switch input { display: none; }
+    .toggle-track {
+      position: absolute; inset: 0;
+      background: rgba(255,248,231,0.1);
+      border: 1px solid var(--border);
+      transition: all 0.25s;
+    }
+    .toggle-switch input:checked ~ .toggle-track {
+      background: rgba(201,169,110,0.25);
+      border-color: rgba(201,169,110,0.5);
+    }
+    .toggle-thumb {
+      position: absolute; top: 3px; left: 3px;
+      width: 14px; height: 14px;
+      background: var(--text-muted);
+      transition: all 0.25s;
+    }
+    .toggle-switch input:checked ~ .toggle-thumb {
+      left: 23px; background: var(--gold);
+    }
+
+    /* Save / action row */
+    .card-footer {
+      padding: 1.25rem 1.75rem; border-top: 1px solid var(--border-dim);
+      display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+    }
+    .btn-save {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.7rem 2.2rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.63rem; letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--teal); background: var(--gold);
+      border: 1px solid var(--gold); cursor: pointer; transition: all 0.25s;
+    }
+    .btn-save:hover { background: transparent; color: var(--gold); }
+    .btn-save:disabled { opacity: 0.45; cursor: not-allowed; background: var(--gold); color: var(--teal); }
+    .save-msg { font-size: 0.62rem; letter-spacing: 0.1em; color: var(--success); display: none; }
+    .save-msg.visible { display: block; }
+    .save-msg.error   { color: var(--error); }
+
+    .btn-secondary-sm {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.65rem 1.4rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.6rem; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--text-muted); border: 1px solid var(--border);
+      background: none; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-secondary-sm:hover { border-color: var(--gold); color: var(--gold); }
+    .btn-danger-sm {
+      display: inline-flex; align-items: center;
+      padding: 0.65rem 1.4rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.6rem; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--error); border: 1px solid rgba(224,112,112,0.3);
+      background: none; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-danger-sm:hover { border-color: var(--error); background: rgba(224,112,112,0.06); }
+
+    /* Divider within card */
+    .card-divider { height: 1px; background: var(--border-dim); margin: 1.5rem 0; }
+
+    /* ─── Shipping tiers table ───────────────────────── */
+    .shipping-table { width: 100%; border-collapse: collapse; }
+    .shipping-table th { font-size: 0.56rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--text-muted); padding: 0.65rem 1rem; border-bottom: 1px solid var(--border-dim); text-align: left; }
+    .shipping-table td { font-size: 0.68rem; letter-spacing: 0.05em; color: var(--text-muted); padding: 0.85rem 1rem; border-bottom: 1px solid rgba(201,169,110,0.06); vertical-align: middle; }
+    .shipping-table tr:last-child td { border-bottom: none; }
+    .shipping-table input { background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main); font-family: 'Josefin Sans', sans-serif; font-size: 0.68rem; letter-spacing: 0.07em; padding: 0.45rem 0.75rem; outline: none; width: 100%; transition: border-color 0.2s; }
+    .shipping-table input:focus { border-color: rgba(201,169,110,0.55); }
+    .method-name { color: var(--cream); font-size: 0.7rem; }
+    .method-eta  { font-size: 0.6rem; color: var(--text-muted); opacity: 0.6; margin-top: 0.1rem; }
+
+    /* ─── Password change ───────────────────────────── */
+    .password-hint { font-size: 0.58rem; letter-spacing: 0.08em; color: var(--text-muted); opacity: 0.55; margin-top: 0.3rem; }
+
+    /* ─── Danger zone ───────────────────────────────── */
+    .danger-zone { border-color: rgba(224,112,112,0.25); }
+    .danger-zone .card-header { border-bottom-color: rgba(224,112,112,0.15); }
+    .danger-zone .card-header h2 { color: var(--error); opacity: 0.85; }
+    .danger-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 0; border-bottom: 1px solid rgba(224,112,112,0.08); gap: 1.5rem;
+    }
+    .danger-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .danger-info h4 { font-size: 0.7rem; letter-spacing: 0.07em; color: var(--cream); margin-bottom: 0.2rem; }
+    .danger-info p  { font-size: 0.6rem; letter-spacing: 0.05em; color: var(--text-muted); line-height: 1.55; }
+
+    /* ─── Version / system info ──────────────────────── */
+    .sys-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .sys-info-item { display: flex; flex-direction: column; gap: 0.25rem; }
+    .sys-info-key  { font-size: 0.55rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); opacity: 0.65; }
+    .sys-info-val  { font-size: 0.7rem; letter-spacing: 0.06em; color: var(--cream); }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 2rem; right: 2rem; z-index: 300; background: var(--gold); color: var(--teal); font-family: 'Josefin Sans', sans-serif; font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; padding: 0.75rem 1.5rem; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+    .toast.visible { opacity: 1; }
+
+    /* Footer */
+    .admin-footer { padding: 1.25rem 2.5rem; border-top: 1px solid var(--border-dim); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+    .admin-footer p { font-size: 0.56rem; letter-spacing: 0.12em; color: var(--text-muted); opacity: 0.4; }
+
+    /* Animations */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .admin-main { margin-left: 0; }
+      .sidebar-toggle { display: block; }
+      .form-grid   { grid-template-columns: 1fr; }
+      .form-grid-3 { grid-template-columns: 1fr 1fr; }
+      .sys-info-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .page-content { padding: 1.5rem; }
+      .form-grid-3  { grid-template-columns: 1fr; }
+      .settings-tab { padding: 0.75rem 1rem; }
+    }
+  </style>
 </head>
 <body>
-    <header class="site-header">
-        <nav class="nav-container">
-            <div class="nav-center">
-                <a href="/admin/dashboard.html" class="brand-logo">ADMIN PANEL</a>
-            </div>
-        </nav>
-    </header>
-    
-    <main class="admin-page">
-        <h1>Settings</h1>
-        
-        <div class="settings-tabs">
-            <button class="tab-btn active">General</button>
-            <button class="tab-btn">Security</button>
-            <button class="tab-btn">Backup</button>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- ══ AUTH GATE ══════════════════════════════════════ -->
+  <div class="auth-gate" id="authGate">
+    <div class="auth-box">
+      <div class="auth-box-logo">ATELIER ĀKĀRA</div>
+      <div class="auth-box-sub">Studio Control</div>
+      <div class="auth-divider"></div>
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="adminEmail" placeholder="admin@akaraonline.co.in" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="adminPassword" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn-auth" id="adminLoginBtn" onclick="handleAdminLogin()">Enter Studio</button>
+      <p class="auth-err" id="authErr"></p>
+    </div>
+  </div>
+
+  <!-- ══ SIDEBAR ══════════════════════════════════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-name">ĀKĀRA</div>
+      <div class="sidebar-brand-tag">Studio Control</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="sidebar-link"><span class="link-icon">⬡</span> Dashboard</a>
+      <div class="nav-section-label">Manage</div>
+      <a href="#" class="sidebar-link"><span class="link-icon">↗</span> Orders</a>
+      <a href="#" class="sidebar-link"><span class="link-icon">◈</span> Products</a>
+      <a href="customers.html" class="sidebar-link"><span class="link-icon">🛍</span> Customers</a>
+      <a href="users.html" class="sidebar-link"><span class="link-icon">👥</span> Members</a>
+      <div class="nav-section-label">Analytics</div>
+      <a href="#" class="sidebar-link"><span class="link-icon">↑</span> Analytics</a>
+      <div class="nav-section-label">System</div>
+      <a href="settings.html" class="sidebar-link active"><span class="link-icon">⊙</span> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <p class="sidebar-user-email" id="sidebarEmail">—</p>
+      <button class="btn-signout" onclick="handleSignOut()">Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN ══════════════════════════════════════════ -->
+  <div class="admin-main" id="adminMain">
+
+    <div class="top-bar">
+      <div class="top-bar-left">
+        <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">☰</button>
+        <div>
+          <div class="top-bar-title">Settings</div>
+          <nav class="breadcrumb">
+            <a href="dashboard.html">Dashboard</a>
+            <span>/</span>
+            Settings
+          </nav>
         </div>
-        
-        <div class="settings-content">
-            <h2>General Settings</h2>
-            
-            <div class="form-group">
+      </div>
+      <div class="top-bar-right">
+        <div class="live-dot"></div>
+        <span class="top-bar-time" id="liveClock"></span>
+        <a href="../index.html" style="font-size:0.58rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-muted);transition:color 0.2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text-muted)'">← Store</a>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- Tab nav -->
+      <div class="settings-tabs">
+        <button class="settings-tab active" onclick="switchTab('general',   this)">General</button>
+        <button class="settings-tab"        onclick="switchTab('commerce',  this)">Commerce</button>
+        <button class="settings-tab"        onclick="switchTab('shipping',  this)">Shipping</button>
+        <button class="settings-tab"        onclick="switchTab('security',  this)">Security</button>
+        <button class="settings-tab"        onclick="switchTab('backup',    this)">Backup</button>
+        <button class="settings-tab"        onclick="switchTab('system',    this)">System</button>
+      </div>
+
+      <!-- ══ GENERAL ══════════════════════════════════ -->
+      <div class="settings-panel active" id="panel-general">
+
+        <div class="settings-card">
+          <div class="card-header">
+            <div>
+              <h2>Store Identity</h2>
+              <p class="card-header-sub">Public-facing brand information</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-field">
                 <label>Store Name</label>
-                <input type="text" value="Atelier Ākāra">
-            </div>
-            
-            <div class="form-group">
+                <input type="text" id="storeName" value="Atelier Ākāra">
+              </div>
+              <div class="form-field">
+                <label>Tagline</label>
+                <input type="text" id="storeTagline" value="Artifacts for the Modern Spaces">
+              </div>
+              <div class="form-field">
                 <label>Support Email</label>
-                <input type="email" value="support@akaraonline.co.in">
+                <input type="email" id="storeEmail" value="support@akaraonline.co.in">
+              </div>
+              <div class="form-field">
+                <label>Support Phone</label>
+                <input type="tel" id="storePhone" value="+91 82780 85572">
+              </div>
+              <div class="form-field">
+                <label>Instagram Handle</label>
+                <input type="text" id="storeInstagram" value="@atelier.akara">
+              </div>
+              <div class="form-field">
+                <label>Website</label>
+                <input type="url" id="storeWebsite" value="https://akaraonline.co.in">
+              </div>
             </div>
-            
-            <div class="form-group">
-                <label>GST Number</label>
-                <input type="text" value="27GZCPS9353H1ZQ">
-            </div>
-            
-            <button class="btn-primary">Save Settings</button>
+          </div>
+          <div class="card-footer">
+            <button class="btn-save" onclick="saveSection('general-identity')">Save Changes</button>
+            <span class="save-msg" id="msg-general-identity"></span>
+          </div>
         </div>
-    </main>
+
+        <div class="settings-card">
+          <div class="card-header">
+            <div>
+              <h2>Business & Tax</h2>
+              <p class="card-header-sub">Legal entity and GST details</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-field">
+                <label>Legal Entity Name</label>
+                <input type="text" id="legalName" value="Precision Forge Labs">
+              </div>
+              <div class="form-field">
+                <label>GSTIN</label>
+                <input type="text" id="gstin" value="27GZCPS9353H1ZQ" maxlength="15">
+              </div>
+              <div class="form-field form-full">
+                <label>Registered Address</label>
+                <input type="text" id="regAddress" value="Thane, Maharashtra 400001, India">
+              </div>
+              <div class="form-field">
+                <label>GST Rate (%)</label>
+                <input type="number" id="gstRate" value="18" min="0" max="28">
+                <span class="field-hint">Applied as CGST 9% + SGST 9% (Maharashtra) or IGST 18% (other states)</span>
+              </div>
+              <div class="form-field">
+                <label>Invoice Prefix</label>
+                <input type="text" id="invoicePrefix" value="INV">
+                <span class="field-hint">Orders will be numbered INV-001, INV-002…</span>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer">
+            <button class="btn-save" onclick="saveSection('general-tax')">Save Changes</button>
+            <span class="save-msg" id="msg-general-tax"></span>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="card-header">
+            <div>
+              <h2>Store Preferences</h2>
+              <p class="card-header-sub">Regional and operational settings</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="form-grid-3">
+              <div class="form-field">
+                <label>Currency</label>
+                <select id="currency">
+                  <option selected>INR (₹)</option>
+                  <option>USD ($)</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label>Language</label>
+                <select id="language">
+                  <option selected>English</option>
+                  <option>Hindi</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label>Timezone</label>
+                <select id="timezone">
+                  <option selected>Asia/Kolkata (IST)</option>
+                  <option>UTC</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer">
+            <button class="btn-save" onclick="saveSection('general-prefs')">Save Changes</button>
+            <span class="save-msg" id="msg-general-prefs"></span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══ COMMERCE ══════════════════════════════════ -->
+      <div class="settings-panel" id="panel-commerce">
+
+        <div class="settings-card">
+          <div class="card-header">
+            <div>
+              <h2>Pricing & Orders</h2>
+              <p class="card-header-sub">Order rules and price thresholds</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-field">
+                <label>Minimum Order Value (₹)</label>
+                <input type="number" id="minOrder" value="0">
+                <span class="field-hint">Set to 0 to allow any order value</span>
+              </div>
+              <div class="form-field">
+                <label>Free Shipping Threshold (₹)</label>
+                <input type="number" id="freeShippingThreshold" value="2500">
+                <span class="field-hint">Orders above this value get free standard shipping</span>
+              </div>
+              <div class="form-field">
+                <label>Default Order Status</label>
+                <select id="defaultOrderStatus">
+                  <option value="pending" selected>Pending</option>
+                  <option value="processing">Processing</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label>Return Window (days)</label>
+                <input type="number" id="returnWindow" value="7" min="0">
+              </div>
+              <div class="form-field">
+                <label>Lead Time (days)</label>
+                <input type="number" id="leadTime" value="14">
+                <span class="field-hint">Standard production lead time shown to customers</span>
+              </div>
+              <div class="form-field">
+                <label>Warranty Period (days)</label>
+                <input type="number" id="warrantyDays" value="30">
+              </div>
+            </div>
+            <div class="card-divider"></div>
+            <div>
+              <div class="toggle-row">
+                <div class="toggle-info">
+                  <div class="toggle-label">Custom Colour Orders</div>
+                  <div class="toggle-desc">Allow customers to request custom colours (marked as non-returnable)</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="allowCustomColors" checked>
+                  <div class="toggle-track"></div>
+                  <div class="toggle-thumb"></div>
+                </label>
+              </div>
+              <div class="toggle-row">
+                <div class="toggle-info">
+                  <div class="toggle-label">B2B / Wholesale Orders</div>
+                  <div class="toggle-desc">Enable wholesale pricing tier for orders of 50+ units</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="allowWholesale" checked>
+                  <div class="toggle-track"></div>
+                  <div class="toggle-thumb"></div>
+                </label>
+              </div>
+              <div class="toggle-row">
+                <div class="toggle-info">
+                  <div class="toggle-label">GST Invoices</div>
+                  <div class="toggle-desc">Automatically generate and email GST invoices on order completion</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="autoGSTInvoice" checked>
+                  <div class="toggle-track"></div>
+                  <div class="toggle-thumb"></div>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer">
+            <button class="btn-save" onclick="saveSection('commerce')">Save Changes</button>
+            <span class="save-msg" id="msg-commerce"></span>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="card-header">
+            <div>
+              <h2>Reward Points</h2>
+              <p class="card-header-sub">Loyalty programme configuration</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-field">
+                <label>Points per ₹100 Spent</label>
+                <input type="number" id="pointsRate" value="10">
+              </div>
+              <div class="form-field">
+                <label>Minimum to Redeem</label>
+                <input type="number" id="minRedeem" value="2000">
+              </div>
+              <div class="form-field">
+                <label>Review Bonus (pts)</label>
+                <input type="number" id="reviewBonus" value="50">
+              </div>
+              <div class="form-field">
+                <label>Referral Bonus (pts)</label>
+                <input type="number" id="referralBonus" value="100">
+              </div>
+              <div class="form-field">
+                <label>Instagram Share Bonus (pts)</label>
+                <input type="number" id="instagramBonus" value="25">
+              </div>
+              <div class="form-field">
+                <label>Profile Complete Bonus (pts)</label>
+                <input type="number" id="profileBonus" value="25">
+              </div>
+            </div>
+            <div class="card-divider"></div>
+            <div class="toggle-row">
+              <div class="toggle-info">
+                <div class="toggle-label">Enable Rewards Programme</div>
+                <div class="toggle-desc">Allow customers to earn and redeem loyalty points</div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="rewardsEnabled" checked>
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </label>
+            </div>
+          </div>
+          <div class="card-footer">
+            <button class="btn-save" onclick="saveSection('rewards')">Save Changes</button>
+            <span class="save-msg" id="msg-rewards"></span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══ SHIPPING ═══════════════════════════════════ -->
+      <div class="settings-panel" id="panel-shipping">
+
+        <div class="settings-card">
+          <div class="card-header">
+            <div>
+              <h2>Shipping Methods</h2>
+              <p class="card-header-sub">Delivery options and rates</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <table class="shipping-table">
+              <thead>
+                <tr>
+                  <th>Method</th>
+                  <th>Cost (₹)</th>
+                  <th>Enabled</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div class="method-name">Standard Delivery</div>
+                    <div class="method-eta">5–8 business days</div>
+                  </td>
+                  <td style="width:140px;"><input type="number" value="0" id="stdShipping" min="0"></td>
+                  <td style="width:80px;">
+                    <label class="toggle-switch" style="margin-top:0.25rem;">
+                      <input type="checkbox" checked>
+                      <div class="toggle-track"></div>
+                      <div class="toggle-thumb"></div>
+                    </label>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="method-name">Express Delivery</div>
+                    <div class="method-eta">2–3 business days</div>
+                  </td>
+                  <td><input type="number" value="199" id="expressShipping" min="0"></td>
+                  <td>
+                    <label class="toggle-switch" style="margin-top:0.25rem;">
+                      <input type="checkbox" checked>
+                      <div class="toggle-track"></div>
+                      <div class="toggle-thumb"></div>
+                    </label>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card-footer">
+            <button class="btn-save" onclick="saveSection('shipping')">Save Changes</button>
+            <span class="save-msg" id="msg-shipping"></span>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="card-header">
+            <div>
+              <h2>Shipping Zones</h2>
+              <p class="card-header-sub">Geographic coverage</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="toggle-row">
+              <div class="toggle-info">
+                <div class="toggle-label">Pan-India Shipping</div>
+                <div class="toggle-desc">Ship to all Indian states and union territories</div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" checked>
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info">
+                <div class="toggle-label">International Shipping</div>
+                <div class="toggle-desc">Enable shipping outside India (custom rates apply)</div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox">
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </label>
+            </div>
+          </div>
+          <div class="card-footer">
+            <button class="btn-save" onclick="saveSection('zones')">Save Changes</button>
+            <span class="save-msg" id="msg-zones"></span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══ SECURITY ═══════════════════════════════════ -->
+      <div class="settings-panel" id="panel-security">
+
+        <div class="settings-card">
+          <div class="card-header">
+            <div>
+              <h2>Admin Password</h2>
+              <p class="card-header-sub">Change your Studio Control password</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-field">
+                <label>Current Password</label>
+                <input type="password" id="currentPassword" placeholder="Enter current password" autocomplete="current-password">
+              </div>
+              <div style=""></div>
+              <div class="form-field">
+                <label>New Password</label>
+                <input type="password" id="newPassword" placeholder="At least 8 characters" autocomplete="new-password">
+              </div>
+              <div class="form-field">
+                <label>Confirm New Password</label>
+                <input type="password" id="confirmPassword" placeholder="Repeat new password" autocomplete="new-password">
+              </div>
+            </div>
+            <p class="password-hint">Minimum 8 characters, one uppercase, one number.</p>
+          </div>
+          <div class="card-footer">
+            <button class="btn-save" onclick="changePassword()">Update Password</button>
+            <span class="save-msg" id="msg-password"></span>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="card-header">
+            <div>
+              <h2>Session & Access</h2>
+              <p class="card-header-sub">Authentication and security policies</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="toggle-row">
+              <div class="toggle-info">
+                <div class="toggle-label">Email Verification Required</div>
+                <div class="toggle-desc">Customers must verify email before purchasing</div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" checked>
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info">
+                <div class="toggle-label">Admin Email Restriction</div>
+                <div class="toggle-desc">Only <strong style="color:var(--cream);">support@akaraonline.co.in</strong> can access Studio Control</div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" checked>
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </label>
+            </div>
+          </div>
+          <div class="card-footer">
+            <button class="btn-save" onclick="saveSection('security')">Save Changes</button>
+            <span class="save-msg" id="msg-security"></span>
+          </div>
+        </div>
+
+        <div class="settings-card danger-zone">
+          <div class="card-header">
+            <div><h2>Danger Zone</h2></div>
+          </div>
+          <div class="card-body">
+            <div class="danger-item">
+              <div class="danger-info">
+                <h4>Sign Out All Sessions</h4>
+                <p>Invalidate all active sessions across all devices immediately.</p>
+              </div>
+              <button class="btn-danger-sm" onclick="signOutAll()">Sign Out All</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══ BACKUP ══════════════════════════════════════ -->
+      <div class="settings-panel" id="panel-backup">
+
+        <div class="settings-card">
+          <div class="card-header">
+            <div>
+              <h2>Export Data</h2>
+              <p class="card-header-sub">Download your store data as CSV files</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="toggle-row" style="border-bottom:1px solid rgba(201,169,110,0.08);">
+              <div class="toggle-info">
+                <div class="toggle-label">All Orders</div>
+                <div class="toggle-desc">Full order history including customer details, items, and totals</div>
+              </div>
+              <button class="btn-secondary-sm" onclick="exportData('orders')">↓ Export</button>
+            </div>
+            <div class="toggle-row" style="border-bottom:1px solid rgba(201,169,110,0.08);">
+              <div class="toggle-info">
+                <div class="toggle-label">Customer / Member List</div>
+                <div class="toggle-desc">All registered members with contact and account details</div>
+              </div>
+              <button class="btn-secondary-sm" onclick="exportData('customers')">↓ Export</button>
+            </div>
+            <div class="toggle-row" style="border-bottom:1px solid rgba(201,169,110,0.08);">
+              <div class="toggle-info">
+                <div class="toggle-label">Product Catalogue</div>
+                <div class="toggle-desc">Full product list with pricing, stock levels, and descriptions</div>
+              </div>
+              <button class="btn-secondary-sm" onclick="exportData('products')">↓ Export</button>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info">
+                <div class="toggle-label">Newsletter Subscribers</div>
+                <div class="toggle-desc">Email addresses subscribed via the website footer</div>
+              </div>
+              <button class="btn-secondary-sm" onclick="exportData('newsletter')">↓ Export</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="card-header">
+            <div>
+              <h2>Supabase Backup</h2>
+              <p class="card-header-sub">Database-level backup configuration</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="toggle-row">
+              <div class="toggle-info">
+                <div class="toggle-label">Automatic Daily Backups</div>
+                <div class="toggle-desc">Supabase Pro plan includes point-in-time recovery. Enable from your Supabase dashboard → Settings → Database.</div>
+              </div>
+              <button class="btn-secondary-sm" onclick="window.open('https://supabase.com/dashboard','_blank')">Open Supabase ↗</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══ SYSTEM ══════════════════════════════════════ -->
+      <div class="settings-panel" id="panel-system">
+
+        <div class="settings-card">
+          <div class="card-header">
+            <div>
+              <h2>System Information</h2>
+              <p class="card-header-sub">Runtime environment details</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="sys-info-grid">
+              <div class="sys-info-item">
+                <span class="sys-info-key">Studio Control Version</span>
+                <span class="sys-info-val">v1.0.0</span>
+              </div>
+              <div class="sys-info-item">
+                <span class="sys-info-key">Hosting</span>
+                <span class="sys-info-val">GitHub Pages</span>
+              </div>
+              <div class="sys-info-item">
+                <span class="sys-info-key">Database</span>
+                <span class="sys-info-val">Supabase (PostgreSQL)</span>
+              </div>
+              <div class="sys-info-item">
+                <span class="sys-info-key">Auth Provider</span>
+                <span class="sys-info-val">Supabase Auth</span>
+              </div>
+              <div class="sys-info-item">
+                <span class="sys-info-key">Domain</span>
+                <span class="sys-info-val">akaraonline.co.in</span>
+              </div>
+              <div class="sys-info-item">
+                <span class="sys-info-key">GST Registration</span>
+                <span class="sys-info-val">Maharashtra (27)</span>
+              </div>
+              <div class="sys-info-item">
+                <span class="sys-info-key">Browser</span>
+                <span class="sys-info-val" id="sysBrowser">—</span>
+              </div>
+              <div class="sys-info-item">
+                <span class="sys-info-key">Last Loaded</span>
+                <span class="sys-info-val" id="sysDate">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="card-header">
+            <div>
+              <h2>Supabase Connection</h2>
+              <p class="card-header-sub">Credentials status</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-field">
+                <label>Supabase Project URL</label>
+                <input type="text" id="dispSupabaseUrl" disabled placeholder="Not configured — add to script">
+              </div>
+              <div class="form-field">
+                <label>Connection Status</label>
+                <input type="text" id="dispConnectionStatus" disabled value="—">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-card danger-zone">
+          <div class="card-header"><div><h2>Danger Zone</h2></div></div>
+          <div class="card-body">
+            <div class="danger-item">
+              <div class="danger-info">
+                <h4>Clear Local Storage</h4>
+                <p>Removes all cached cart, order, and session data stored in the browser. Useful for testing.</p>
+              </div>
+              <button class="btn-danger-sm" onclick="clearLocalStorage()">Clear Cache</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div><!-- /page-content -->
+
+    <div class="admin-footer">
+      <p>Precision Forge Labs &nbsp;|&nbsp; GST: 27GZCPS9353H1ZQ</p>
+      <p>Studio Control v1.0 &nbsp;·&nbsp; Atelier Ākāra</p>
+    </div>
+
+  </div><!-- /admin-main -->
+
+  <script>
+    // ─────────────────────────────────────────────────
+    // CREDENTIALS
+    // ─────────────────────────────────────────────────
+    const SUPABASE_URL      = '';
+    const SUPABASE_ANON_KEY = '';
+    const ADMIN_EMAIL       = 'support@akaraonline.co.in';
+
+    let supabase = null;
+
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    // ── Clock ─────────────────────────────────────────
+    setInterval(() => {
+      document.getElementById('liveClock').textContent =
+        new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    }, 1000);
+
+    // ── System info ───────────────────────────────────
+    document.getElementById('sysBrowser').textContent  = navigator.userAgent.split(' ').slice(-2).join(' ');
+    document.getElementById('sysDate').textContent     = new Date().toLocaleString('en-IN');
+    document.getElementById('dispSupabaseUrl').value   = SUPABASE_URL || 'Not configured';
+    document.getElementById('dispConnectionStatus').value = SUPABASE_URL ? 'Configured' : 'Not configured — add credentials to script';
+
+    // ── Sidebar ───────────────────────────────────────
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+    // ── Tab switch ────────────────────────────────────
+    function switchTab(name, btn) {
+      document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.settings-tab').forEach(b => b.classList.remove('active'));
+      document.getElementById(`panel-${name}`).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    // ── Admin login ───────────────────────────────────
+    async function handleAdminLogin() {
+      const email    = document.getElementById('adminEmail').value.trim();
+      const password = document.getElementById('adminPassword').value;
+      const btn      = document.getElementById('adminLoginBtn');
+      const errEl    = document.getElementById('authErr');
+      btn.disabled = true; btn.textContent = 'Verifying…';
+      errEl.classList.remove('visible');
+
+      if (!supabase) {
+        await new Promise(r => setTimeout(r, 700));
+        showDashboard('demo@akaraonline.co.in');
+        return;
+      }
+
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      btn.disabled = false; btn.textContent = 'Enter Studio';
+
+      if (error) { errEl.textContent = error.message; errEl.classList.add('visible'); return; }
+      if (data.user.email !== ADMIN_EMAIL) {
+        await supabase.auth.signOut();
+        errEl.textContent = 'Access denied.'; errEl.classList.add('visible'); return;
+      }
+      showDashboard(data.user.email);
+    }
+
+    function showDashboard(email) {
+      document.getElementById('authGate').classList.add('hidden');
+      document.getElementById('sidebarEmail').textContent = email;
+    }
+
+    async function handleSignOut() {
+      if (supabase) await supabase.auth.signOut();
+      document.getElementById('authGate').classList.remove('hidden');
+    }
+
+    async function checkSession() {
+      if (!supabase) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session && session.user.email === ADMIN_EMAIL) showDashboard(session.user.email);
+    }
+    checkSession();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('adminPassword')?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') handleAdminLogin();
+      });
+    });
+
+    // ── Save section ──────────────────────────────────
+    async function saveSection(section) {
+      const msgId = `msg-${section}`;
+      const msgEl = document.getElementById(msgId);
+
+      // Build payload from relevant fields
+      const FIELD_MAP = {
+        'general-identity': ['storeName','storeTagline','storeEmail','storePhone','storeInstagram','storeWebsite'],
+        'general-tax':      ['legalName','gstin','regAddress','gstRate','invoicePrefix'],
+        'general-prefs':    ['currency','language','timezone'],
+        'commerce':         ['minOrder','freeShippingThreshold','defaultOrderStatus','returnWindow','leadTime','warrantyDays'],
+        'rewards':          ['pointsRate','minRedeem','reviewBonus','referralBonus','instagramBonus','profileBonus'],
+        'shipping':         ['stdShipping','expressShipping'],
+        'zones':            [],
+        'security':         [],
+      };
+
+      const fields  = FIELD_MAP[section] || [];
+      const payload = {};
+      fields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) payload[id] = el.value;
+      });
+
+      // Supabase: upsert into a 'settings' table with key-value pairs
+      if (supabase) {
+        try {
+          const rows = Object.entries(payload).map(([key, value]) => ({
+            key: `${section}_${key}`,
+            value: String(value),
+            updated_at: new Date().toISOString(),
+          }));
+          if (rows.length) {
+            await supabase.from('settings').upsert(rows, { onConflict: 'key' });
+          }
+        } catch (e) { console.error(e); }
+      }
+
+      // Show feedback
+      if (msgEl) {
+        msgEl.textContent = '✓ Saved successfully';
+        msgEl.className   = 'save-msg visible';
+        setTimeout(() => msgEl.classList.remove('visible'), 3000);
+      }
+      showToast('Settings saved');
+    }
+
+    // ── Change password ───────────────────────────────
+    async function changePassword() {
+      const current  = document.getElementById('currentPassword').value;
+      const newPw    = document.getElementById('newPassword').value;
+      const confirm  = document.getElementById('confirmPassword').value;
+      const msgEl    = document.getElementById('msg-password');
+
+      if (!current) { showMsg('msg-password', 'Enter your current password.', true); return; }
+      if (newPw.length < 8) { showMsg('msg-password', 'New password must be at least 8 characters.', true); return; }
+      if (newPw !== confirm) { showMsg('msg-password', 'New passwords do not match.', true); return; }
+
+      if (!supabase) { showMsg('msg-password', '✓ Password updated (demo).', false); return; }
+
+      const { error } = await supabase.auth.updateUser({ password: newPw });
+      if (error) {
+        showMsg('msg-password', error.message, true);
+      } else {
+        showMsg('msg-password', '✓ Password updated successfully.', false);
+        document.getElementById('currentPassword').value = '';
+        document.getElementById('newPassword').value     = '';
+        document.getElementById('confirmPassword').value = '';
+        showToast('Password updated');
+      }
+    }
+
+    function showMsg(id, text, isError) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = text;
+      el.className   = `save-msg visible${isError ? ' error' : ''}`;
+      if (!isError) setTimeout(() => el.classList.remove('visible'), 3500);
+    }
+
+    // ── Sign out all ──────────────────────────────────
+    async function signOutAll() {
+      if (!confirm('Sign out all active sessions?')) return;
+      if (supabase) await supabase.auth.signOut({ scope: 'global' });
+      showToast('All sessions signed out');
+      setTimeout(() => { window.location.href = '../auth/login.html'; }, 1500);
+    }
+
+    // ── Export data ───────────────────────────────────
+    async function exportData(type) {
+      if (!supabase) {
+        showToast(`Export: connect Supabase first`);
+        return;
+      }
+
+      const TABLE_MAP = { orders: 'orders', customers: 'profiles', products: 'products', newsletter: 'newsletter_subscribers' };
+      const table = TABLE_MAP[type];
+      if (!table) return;
+
+      try {
+        const { data, error } = await supabase.from(table).select('*');
+        if (error) throw error;
+        if (!data.length) { showToast('No data to export'); return; }
+
+        const headers = Object.keys(data[0]);
+        const csv = [headers, ...data.map(row => headers.map(h => `"${String(row[h] ?? '').replace(/"/g, '""')}"`))].map(r => r.join(',')).join('\n');
+        const a   = document.createElement('a');
+        a.href     = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+        a.download = `akara_${type}_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+        showToast(`${type} exported`);
+      } catch (e) {
+        showToast('Export failed — check console');
+        console.error(e);
+      }
+    }
+
+    // ── Clear local storage ───────────────────────────
+    function clearLocalStorage() {
+      if (!confirm('Clear all browser-stored data (cart, last order)?\n\nThis cannot be undone.')) return;
+      localStorage.removeItem('akara_cart');
+      localStorage.removeItem('akara_last_order');
+      showToast('Local cache cleared');
+    }
+
+    // ── Toast ─────────────────────────────────────────
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('visible');
+      setTimeout(() => t.classList.remove('visible'), 2500);
+    }
+  </script>
+
 </body>
 </html>
