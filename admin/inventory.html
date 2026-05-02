@@ -1,42 +1,892 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventory Management - Admin</title>
-    <link rel="stylesheet" href="/auth-styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Inventory Management — Atelier Ākāra Admin">
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+  <title>Inventory — Studio Control</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --teal:       #002b2b;
+      --teal-mid:   #004040;
+      --cream:      #fff8e7;
+      --gold:       #c9a96e;
+      --gold-light: #e2c99a;
+      --text-main:  #fff8e7;
+      --text-muted: rgba(255,248,231,0.55);
+      --border:     rgba(201,169,110,0.25);
+      --border-dim: rgba(201,169,110,0.12);
+      --card-bg:    rgba(255,248,231,0.03);
+      --input-bg:   rgba(255,248,231,0.05);
+      --error:      #e07070;
+      --success:    #70c9a0;
+      --warning:    #e2a96e;
+      --sidebar-w:  240px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Josefin Sans', sans-serif;
+      background: var(--teal); color: var(--text-main);
+      min-height: 100vh; overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 5% 0%,   rgba(0,95,95,0.22) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 50% at 95% 100%, rgba(0,64,64,0.28) 0%, transparent 55%);
+      pointer-events: none; z-index: 0;
+    }
+    body::after {
+      content: ''; position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,169,110,0.028) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,169,110,0.028) 1px, transparent 1px);
+      background-size: 60px 60px; pointer-events: none; z-index: 0;
+    }
+
+    /* ─── Auth Gate ─────────────────────────────────── */
+    .auth-gate { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; background: var(--teal); }
+    .auth-gate.hidden { display: none; }
+    .auth-box { width: 100%; max-width: 360px; padding: 3rem 2.5rem; background: var(--card-bg); border: 1px solid var(--border); animation: fadeUp 0.6s ease both; text-align: center; }
+    .auth-box-logo { font-family: 'Cormorant Garamond', serif; font-size: 0.9rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--cream); margin-bottom: 0.2rem; }
+    .auth-box-sub  { font-size: 0.55rem; letter-spacing: 0.4em; text-transform: uppercase; color: var(--gold); opacity: 0.7; margin-bottom: 2rem; }
+    .auth-divider  { width: 32px; height: 1px; background: var(--gold); opacity: 0.3; margin: 0 auto 1.75rem; }
+    .auth-field    { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 1rem; text-align: left; }
+    .auth-field label { font-size: 0.56rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); opacity: 0.8; }
+    .auth-field input { background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main); font-family: 'Josefin Sans', sans-serif; font-size: 0.75rem; letter-spacing: 0.08em; padding: 0.72rem 1rem; outline: none; width: 100%; transition: border-color 0.2s; }
+    .auth-field input::placeholder { color: var(--text-muted); }
+    .auth-field input:focus { border-color: rgba(201,169,110,0.55); }
+    .btn-auth { display: block; width: 100%; padding: 0.82rem; font-family: 'Josefin Sans', sans-serif; font-size: 0.63rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--teal); background: var(--gold); border: 1px solid var(--gold); cursor: pointer; transition: all 0.25s; margin-top: 0.25rem; }
+    .btn-auth:hover { background: transparent; color: var(--gold); }
+    .btn-auth:disabled { opacity: 0.5; cursor: not-allowed; background: var(--gold); color: var(--teal); }
+    .auth-err { font-size: 0.62rem; letter-spacing: 0.08em; color: var(--error); margin-top: 0.6rem; display: none; }
+    .auth-err.visible { display: block; }
+
+    /* ─── Sidebar ───────────────────────────────────── */
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w); z-index: 100; background: rgba(0,30,30,0.88); backdrop-filter: blur(20px); border-right: 1px solid var(--border); display: flex; flex-direction: column; transition: transform 0.3s ease; }
+    .sidebar.collapsed { transform: translateX(-100%); }
+    .sidebar-brand { padding: 1.5rem 1.75rem; border-bottom: 1px solid var(--border-dim); }
+    .sidebar-brand-name { font-family: 'Cormorant Garamond', serif; font-size: 0.95rem; font-weight: 300; letter-spacing: 0.28em; text-transform: uppercase; color: var(--cream); }
+    .sidebar-brand-tag  { font-size: 0.5rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); opacity: 0.6; margin-top: 0.2rem; }
+    .sidebar-nav { flex: 1; padding: 1.25rem 0; overflow-y: auto; }
+    .nav-section-label { font-size: 0.5rem; letter-spacing: 0.4em; text-transform: uppercase; color: var(--gold); opacity: 0.5; padding: 0.5rem 1.75rem 0.3rem; }
+    .sidebar-link { display: flex; align-items: center; gap: 0.7rem; padding: 0.65rem 1.75rem; font-size: 0.63rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-muted); cursor: pointer; border-left: 2px solid transparent; transition: all 0.2s; background: none; border-top: none; border-right: none; border-bottom: none; width: 100%; text-align: left; font-family: 'Josefin Sans', sans-serif; text-decoration: none; }
+    .sidebar-link:hover  { color: var(--gold-light); border-left-color: rgba(201,169,110,0.3); }
+    .sidebar-link.active { color: var(--gold); border-left-color: var(--gold); }
+    .link-icon { font-size: 0.82rem; opacity: 0.7; flex-shrink: 0; }
+    .link-badge { margin-left: auto; font-size: 0.52rem; letter-spacing: 0.1em; background: rgba(224,112,112,0.2); color: var(--error); padding: 0.12rem 0.42rem; border-radius: 2px; }
+    .sidebar-footer { padding: 1.25rem 1.75rem; border-top: 1px solid var(--border-dim); }
+    .sidebar-user-email { font-size: 0.58rem; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 0.6rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .btn-signout { background: none; border: 1px solid var(--border); color: var(--text-muted); font-family: 'Josefin Sans', sans-serif; font-size: 0.56rem; letter-spacing: 0.2em; text-transform: uppercase; padding: 0.42rem 0.85rem; cursor: pointer; transition: all 0.2s; width: 100%; }
+    .btn-signout:hover { border-color: var(--error); color: var(--error); }
+
+    /* ─── Main ──────────────────────────────────────── */
+    .admin-main { margin-left: var(--sidebar-w); position: relative; z-index: 1; min-height: 100vh; transition: margin-left 0.3s ease; }
+    .admin-main.expanded { margin-left: 0; }
+
+    .top-bar { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 2.5rem; border-bottom: 1px solid var(--border); background: rgba(0,30,30,0.6); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 50; gap: 1rem; flex-wrap: wrap; }
+    .top-bar-left { display: flex; align-items: center; gap: 1rem; }
+    .sidebar-toggle { background: none; border: none; color: var(--text-muted); font-size: 1rem; cursor: pointer; transition: color 0.2s; display: none; }
+    .sidebar-toggle:hover { color: var(--gold); }
+    .top-bar-title { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 300; letter-spacing: 0.1em; color: var(--cream); }
+    .breadcrumb { font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem; }
+    .breadcrumb a { color: var(--gold); opacity: 0.65; transition: opacity 0.2s; }
+    .breadcrumb a:hover { opacity: 1; }
+    .breadcrumb span { opacity: 0.3; }
+    .top-bar-right { display: flex; align-items: center; gap: 1.25rem; }
+    .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); opacity: 0.8; animation: pulse 2s ease infinite; }
+    @keyframes pulse { 0%,100% { opacity: 0.8; } 50% { opacity: 0.3; } }
+    .top-bar-time { font-size: 0.6rem; letter-spacing: 0.15em; color: var(--text-muted); opacity: 0.55; }
+
+    /* ─── Page Content ──────────────────────────────── */
+    .page-content { padding: 2.5rem; max-width: 1400px; }
+
+    /* ─── Stats ─────────────────────────────────────── */
+    .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.25rem; margin-bottom: 2.5rem; }
+    .stat-card { background: var(--card-bg); border: 1px solid var(--border); padding: 1.5rem; text-align: center; transition: border-color 0.3s; animation: fadeUp 0.5s ease both; }
+    .stat-card:hover { border-color: rgba(201,169,110,0.4); }
+    .stat-card:nth-child(1) { animation-delay: 0.05s; }
+    .stat-card:nth-child(2) { animation-delay: 0.10s; }
+    .stat-card:nth-child(3) { animation-delay: 0.15s; }
+    .stat-card:nth-child(4) { animation-delay: 0.20s; }
+    .stat-card:nth-child(5) { animation-delay: 0.25s; }
+    .stat-icon  { font-size: 0.95rem; opacity: 0.35; margin-bottom: 0.55rem; }
+    .stat-value { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.6rem, 2.5vw, 2.4rem); font-weight: 300; color: var(--gold); letter-spacing: 0.05em; line-height: 1; margin-bottom: 0.35rem; }
+    .stat-label { font-size: 0.55rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--text-muted); }
+    .stat-card.alert .stat-value { color: var(--error); }
+
+    /* ─── Section Card ──────────────────────────────── */
+    .section-card { background: var(--card-bg); border: 1px solid var(--border); margin-bottom: 2rem; animation: fadeUp 0.5s ease 0.2s both; }
+    .section-header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.75rem; border-bottom: 1px solid var(--border-dim); flex-wrap: wrap; gap: 0.75rem; }
+    .section-header h2 { font-size: 0.6rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); opacity: 0.8; }
+    .section-header-right { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+
+    /* ─── Toolbar ───────────────────────────────────── */
+    .toolbar { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.75rem; border-bottom: 1px solid var(--border-dim); flex-wrap: wrap; gap: 0.75rem; }
+    .toolbar-left { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+
+    .search-wrap { position: relative; }
+    .search-icon { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.8rem; pointer-events: none; }
+    .search-input { background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main); font-family: 'Josefin Sans', sans-serif; font-size: 0.68rem; letter-spacing: 0.08em; padding: 0.55rem 1rem 0.55rem 2.2rem; outline: none; width: 220px; transition: border-color 0.2s; }
+    .search-input::placeholder { color: var(--text-muted); }
+    .search-input:focus { border-color: rgba(201,169,110,0.5); }
+
+    .sort-select { background: var(--input-bg); border: 1px solid var(--border); color: var(--text-muted); font-family: 'Josefin Sans', sans-serif; font-size: 0.62rem; letter-spacing: 0.1em; padding: 0.5rem 0.8rem; outline: none; cursor: pointer; -webkit-appearance: none; }
+    .sort-select option { background: var(--teal); }
+    .result-count { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); opacity: 0.55; }
+
+    /* Filter tabs */
+    .filter-tabs-wrap { border-bottom: 1px solid var(--border-dim); padding: 0 1.75rem; }
+    .filter-tabs { display: flex; flex-wrap: wrap; }
+    .filter-tab { background: none; border: none; border-bottom: 2px solid transparent; font-family: 'Josefin Sans', sans-serif; font-size: 0.58rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-muted); padding: 0.65rem 1.1rem; cursor: pointer; transition: all 0.2s; margin-bottom: -1px; }
+    .filter-tab:hover { color: var(--gold-light); }
+    .filter-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+    /* ─── Table ─────────────────────────────────────── */
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th { font-size: 0.56rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--text-muted); padding: 0.82rem 1.75rem; border-bottom: 1px solid var(--border-dim); text-align: left; white-space: nowrap; }
+    .data-table td { font-size: 0.68rem; letter-spacing: 0.05em; color: var(--text-muted); padding: 0.9rem 1.75rem; border-bottom: 1px solid var(--border-dim); vertical-align: middle; }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: rgba(255,248,231,0.02); }
+
+    .cell-mono  { font-family: 'Courier New', monospace; font-size: 0.63rem; color: var(--gold); letter-spacing: 0.1em; }
+    .cell-name  { font-size: 0.72rem; letter-spacing: 0.07em; color: var(--cream); }
+    .cell-sub   { font-size: 0.58rem; letter-spacing: 0.07em; color: var(--text-muted); opacity: 0.6; margin-top: 0.1rem; }
+
+    /* Stock number — inline editable */
+    .stock-cell { display: flex; align-items: center; gap: 0.6rem; }
+    .stock-input {
+      background: var(--input-bg); border: 1px solid var(--border-dim);
+      color: var(--text-main); font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.72rem; letter-spacing: 0.08em;
+      padding: 0.32rem 0.6rem; outline: none; width: 70px;
+      transition: border-color 0.2s, background 0.2s;
+      -moz-appearance: textfield;
+      text-align: center;
+    }
+    .stock-input::-webkit-inner-spin-button,
+    .stock-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+    .stock-input:focus { border-color: rgba(201,169,110,0.55); background: rgba(255,248,231,0.07); }
+    .stock-input.changed { border-color: rgba(201,169,110,0.5); color: var(--gold); }
+    .stock-input.saving { opacity: 0.5; }
+
+    /* Stock status dot */
+    .stock-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .stock-dot.ok      { background: var(--success); }
+    .stock-dot.low     { background: var(--warning); animation: pulse 1.5s infinite; }
+    .stock-dot.out     { background: var(--error); }
+
+    /* Badges */
+    .badge { display: inline-block; font-size: 0.52rem; letter-spacing: 0.18em; text-transform: uppercase; padding: 0.2rem 0.55rem; border: 1px solid; }
+    .badge.active    { color: var(--success);  border-color: rgba(112,201,160,0.4); }
+    .badge.inactive  { color: var(--text-muted);border-color: var(--border); }
+    .badge.low-stock { color: var(--warning);  border-color: rgba(226,169,110,0.4); }
+    .badge.out-stock { color: var(--error);    border-color: rgba(224,112,112,0.4); }
+
+    /* Action buttons */
+    .action-cell { display: flex; gap: 0.4rem; }
+    .btn-action { background: none; border: 1px solid var(--border); color: var(--text-muted); font-family: 'Josefin Sans', sans-serif; font-size: 0.52rem; letter-spacing: 0.18em; text-transform: uppercase; padding: 0.3rem 0.6rem; cursor: pointer; transition: all 0.2s; }
+    .btn-action:hover { border-color: var(--gold); color: var(--gold); }
+    .btn-action.save { border-color: rgba(201,169,110,0.4); color: var(--gold); }
+    .btn-action.save:hover { background: rgba(201,169,110,0.1); }
+    .btn-action.danger:hover { border-color: var(--error); color: var(--error); }
+
+    /* ─── Bulk Update Modal ─────────────────────────── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; display: none; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: rgba(0,30,30,0.97); backdrop-filter: blur(20px); border: 1px solid var(--border); padding: 2.5rem; width: 100%; max-width: 480px; animation: fadeUp 0.35s ease both; }
+    .modal-title { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 300; letter-spacing: 0.1em; color: var(--cream); margin-bottom: 0.3rem; }
+    .modal-sub   { font-size: 0.65rem; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 2rem; }
+    .modal-field { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1.1rem; }
+    .modal-field label { font-size: 0.57rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); opacity: 0.82; }
+    .modal-field select,
+    .modal-field input {
+      background: var(--input-bg); border: 1px solid var(--border);
+      color: var(--text-main); font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.73rem; letter-spacing: 0.07em;
+      padding: 0.72rem 1rem; outline: none; width: 100%;
+      transition: border-color 0.2s; -webkit-appearance: none;
+    }
+    .modal-field select option { background: var(--teal); }
+    .modal-field input:focus, .modal-field select:focus { border-color: rgba(201,169,110,0.55); }
+    .modal-actions { display: flex; gap: 0.75rem; margin-top: 1.5rem; }
+    .btn-modal-confirm { flex: 1; padding: 0.82rem; font-family: 'Josefin Sans', sans-serif; font-size: 0.63rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--teal); background: var(--gold); border: 1px solid var(--gold); cursor: pointer; transition: all 0.25s; }
+    .btn-modal-confirm:hover { background: transparent; color: var(--gold); }
+    .btn-modal-cancel  { flex: 1; padding: 0.82rem; font-family: 'Josefin Sans', sans-serif; font-size: 0.62rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-muted); border: 1px solid var(--border); background: none; cursor: pointer; transition: all 0.25s; }
+    .btn-modal-cancel:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ─── Low stock alert bar ───────────────────────── */
+    .alert-bar {
+      background: rgba(224,112,112,0.08); border: 1px solid rgba(224,112,112,0.28);
+      padding: 0.85rem 1.75rem; margin-bottom: 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem; flex-wrap: wrap;
+      animation: fadeUp 0.5s ease both;
+    }
+    .alert-bar-left { display: flex; align-items: center; gap: 0.75rem; }
+    .alert-icon { color: var(--error); font-size: 0.9rem; }
+    .alert-text { font-size: 0.68rem; letter-spacing: 0.07em; color: var(--text-muted); }
+    .alert-text strong { color: var(--error); }
+    .btn-alert-filter { background: none; border: 1px solid rgba(224,112,112,0.35); color: var(--error); font-family: 'Josefin Sans', sans-serif; font-size: 0.58rem; letter-spacing: 0.2em; text-transform: uppercase; padding: 0.38rem 0.9rem; cursor: pointer; transition: all 0.2s; }
+    .btn-alert-filter:hover { background: rgba(224,112,112,0.1); }
+
+    /* ─── Pagination ────────────────────────────────── */
+    .pagination { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.75rem; border-top: 1px solid var(--border-dim); flex-wrap: wrap; gap: 0.75rem; }
+    .page-info  { font-size: 0.62rem; letter-spacing: 0.1em; color: var(--text-muted); opacity: 0.55; }
+    .page-btns  { display: flex; gap: 0.4rem; }
+    .page-btn { background: none; border: 1px solid var(--border); color: var(--text-muted); font-family: 'Josefin Sans', sans-serif; font-size: 0.58rem; letter-spacing: 0.15em; padding: 0.38rem 0.75rem; cursor: pointer; transition: all 0.2s; }
+    .page-btn:hover  { border-color: var(--gold); color: var(--gold); }
+    .page-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(201,169,110,0.08); }
+    .page-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+
+    /* Utility */
+    .btn-export { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.52rem 1.1rem; font-family: 'Josefin Sans', sans-serif; font-size: 0.58rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-muted); border: 1px solid var(--border); background: none; cursor: pointer; transition: all 0.2s; }
+    .btn-export:hover { border-color: var(--gold); color: var(--gold); }
+    .btn-bulk   { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.52rem 1.1rem; font-family: 'Josefin Sans', sans-serif; font-size: 0.58rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); border: 1px solid rgba(201,169,110,0.4); background: rgba(201,169,110,0.06); cursor: pointer; transition: all 0.2s; }
+    .btn-bulk:hover { border-color: var(--gold); background: rgba(201,169,110,0.1); }
+    .state-msg { text-align: center; padding: 4rem 2rem; font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-muted); }
+    .toast { position: fixed; bottom: 2rem; right: 2rem; z-index: 300; background: var(--gold); color: var(--teal); font-family: 'Josefin Sans', sans-serif; font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; padding: 0.75rem 1.5rem; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+    .toast.visible { opacity: 1; }
+    .admin-footer { padding: 1.25rem 2.5rem; border-top: 1px solid var(--border-dim); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+    .admin-footer p { font-size: 0.56rem; letter-spacing: 0.12em; color: var(--text-muted); opacity: 0.4; }
+
+    /* Checkbox */
+    .row-check { width: 15px; height: 15px; accent-color: var(--gold); cursor: pointer; }
+    .select-all-check { width: 15px; height: 15px; accent-color: var(--gold); cursor: pointer; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 1100px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 900px) { .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); } .admin-main { margin-left: 0; } .sidebar-toggle { display: block; } .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .page-content { padding: 1.5rem; } .search-input { width: 150px; } .data-table th:nth-child(n+5), .data-table td:nth-child(n+5) { display: none; } }
+  </style>
 </head>
 <body>
-    <header class="site-header">
-        <nav class="nav-container">
-            <div class="nav-center">
-                <a href="/admin/dashboard.html" class="brand-logo">ADMIN PANEL</a>
-            </div>
-        </nav>
-    </header>
-    
-    <main class="admin-page">
-        <h1>Inventory Management</h1>
-        
-        <div class="inventory-controls">
-            <button class="btn-primary">Bulk Update</button>
-            <button class="btn-secondary">Export CSV</button>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- ══ AUTH GATE ══════════════════════════════════════ -->
+  <div class="auth-gate" id="authGate">
+    <div class="auth-box">
+      <div class="auth-box-logo">ATELIER ĀKĀRA</div>
+      <div class="auth-box-sub">Studio Control</div>
+      <div class="auth-divider"></div>
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="adminEmail" placeholder="admin@akaraonline.co.in" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="adminPassword" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn-auth" id="adminLoginBtn" onclick="handleAdminLogin()">Enter Studio</button>
+      <p class="auth-err" id="authErr"></p>
+    </div>
+  </div>
+
+  <!-- ══ BULK UPDATE MODAL ══════════════════════════════ -->
+  <div class="modal-overlay" id="bulkModal">
+    <div class="modal">
+      <h2 class="modal-title">Bulk Update</h2>
+      <p class="modal-sub" id="bulkSubtitle">Update stock for selected items</p>
+      <div class="modal-field">
+        <label>Action</label>
+        <select id="bulkAction" onchange="onBulkActionChange()">
+          <option value="set">Set stock to exact value</option>
+          <option value="add">Add to current stock</option>
+          <option value="subtract">Subtract from current stock</option>
+          <option value="activate">Mark as Active</option>
+          <option value="deactivate">Mark as Inactive</option>
+        </select>
+      </div>
+      <div class="modal-field" id="bulkValueField">
+        <label>Value</label>
+        <input type="number" id="bulkValue" value="0" min="0" placeholder="Enter quantity">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-modal-confirm" onclick="applyBulkUpdate()">Apply</button>
+        <button class="btn-modal-cancel"  onclick="closeBulkModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SIDEBAR ══════════════════════════════════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-name">ĀKĀRA</div>
+      <div class="sidebar-brand-tag">Studio Control</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="sidebar-link"><span class="link-icon">⬡</span> Dashboard</a>
+      <div class="nav-section-label">Manage</div>
+      <a href="admin-orders.html" class="sidebar-link"><span class="link-icon">↗</span> Orders</a>
+      <a href="inventory.html" class="sidebar-link active"><span class="link-icon">◈</span> Inventory <span class="link-badge" id="lowBadge">0</span></a>
+      <a href="customers.html" class="sidebar-link"><span class="link-icon">🛍</span> Customers</a>
+      <a href="users.html" class="sidebar-link"><span class="link-icon">👥</span> Members</a>
+      <div class="nav-section-label">Analytics</div>
+      <a href="#" class="sidebar-link"><span class="link-icon">↑</span> Analytics</a>
+      <div class="nav-section-label">System</div>
+      <a href="settings.html" class="sidebar-link"><span class="link-icon">⊙</span> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <p class="sidebar-user-email" id="sidebarEmail">—</p>
+      <button class="btn-signout" onclick="handleSignOut()">Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN ══════════════════════════════════════════ -->
+  <div class="admin-main" id="adminMain">
+
+    <div class="top-bar">
+      <div class="top-bar-left">
+        <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+        <div>
+          <div class="top-bar-title">Inventory</div>
+          <nav class="breadcrumb">
+            <a href="dashboard.html">Dashboard</a>
+            <span>/</span> Inventory
+          </nav>
         </div>
-        
-        <table class="inventory-table">
-            <thead>
-                <tr>
-                    <th>Product ID</th>
-                    <th>Product Name</th>
-                    <th>Variant</th>
-                    <th>Stock</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="inventoryTable">
-                <!-- Inventory loaded here -->
-            </tbody>
-        </table>
-    </main>
+      </div>
+      <div class="top-bar-right">
+        <div class="live-dot"></div>
+        <span class="top-bar-time" id="liveClock"></span>
+        <a href="../index.html" style="font-size:0.58rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-muted);transition:color 0.2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text-muted)'">← Store</a>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-icon">◈</div><div class="stat-value" id="statTotal">—</div><div class="stat-label">Total Products</div></div>
+        <div class="stat-card"><div class="stat-icon">✓</div><div class="stat-value" id="statActive">—</div><div class="stat-label">Active</div></div>
+        <div class="stat-card"><div class="stat-icon">⬡</div><div class="stat-value" id="statInStock">—</div><div class="stat-label">In Stock</div></div>
+        <div class="stat-card alert" id="statLowCard"><div class="stat-icon">⚠</div><div class="stat-value" id="statLow">—</div><div class="stat-label">Low Stock (≤5)</div></div>
+        <div class="stat-card alert" id="statOutCard"><div class="stat-icon">✕</div><div class="stat-value" id="statOut">—</div><div class="stat-label">Out of Stock</div></div>
+      </div>
+
+      <!-- Alert bar (shown when low/out stock exists) -->
+      <div class="alert-bar" id="alertBar" style="display:none;">
+        <div class="alert-bar-left">
+          <span class="alert-icon">⚠</span>
+          <span class="alert-text"><strong id="alertCount">0 items</strong> need restocking — low or out of stock</span>
+        </div>
+        <button class="btn-alert-filter" onclick="setFilter('needs_restock', document.querySelector('[data-f=needs_restock]'))">View All →</button>
+      </div>
+
+      <!-- Inventory Table -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2>All Products</h2>
+          <div class="section-header-right">
+            <span class="result-count" id="resultCount"></span>
+            <button class="btn-bulk" onclick="openBulkModal()" id="bulkBtn" style="display:none;">⬡ Bulk Update</button>
+            <button class="btn-export" onclick="exportCSV()">↓ Export CSV</button>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <div class="search-wrap">
+              <span class="search-icon">⌕</span>
+              <input type="text" class="search-input" id="searchInput"
+                placeholder="Search products, SKU…" maxlength="80" oninput="applyFilters()">
+            </div>
+            <select class="sort-select" id="sortSelect" onchange="applyFilters()">
+              <option value="name_az">Name A–Z</option>
+              <option value="name_za">Name Z–A</option>
+              <option value="stock_asc">Stock: Low to High</option>
+              <option value="stock_desc">Stock: High to Low</option>
+              <option value="price_asc">Price: Low to High</option>
+              <option value="price_desc">Price: High to Low</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filter-tabs-wrap">
+          <div class="filter-tabs">
+            <button class="filter-tab active"  data-f="all"           onclick="setFilter('all',this)">All</button>
+            <button class="filter-tab"         data-f="active"        onclick="setFilter('active',this)">Active</button>
+            <button class="filter-tab"         data-f="inactive"      onclick="setFilter('inactive',this)">Inactive</button>
+            <button class="filter-tab"         data-f="in_stock"      onclick="setFilter('in_stock',this)">In Stock</button>
+            <button class="filter-tab"         data-f="low_stock"     onclick="setFilter('low_stock',this)">Low Stock</button>
+            <button class="filter-tab"         data-f="out_of_stock"  onclick="setFilter('out_of_stock',this)">Out of Stock</button>
+            <button class="filter-tab"         data-f="needs_restock" onclick="setFilter('needs_restock',this)">Needs Restock</button>
+          </div>
+        </div>
+
+        <div id="tableContainer"><div class="state-msg">Loading inventory…</div></div>
+
+        <div class="pagination" id="paginationBar">
+          <span class="page-info" id="pageInfo"></span>
+          <div class="page-btns" id="pageBtns"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="admin-footer">
+      <p>Precision Forge Labs &nbsp;|&nbsp; GST: 27GZCPS9353H1ZQ</p>
+      <p>Studio Control v1.0 &nbsp;·&nbsp; Atelier Ākāra</p>
+    </div>
+  </div>
+
+  <script>
+    // ─────────────────────────────────────────────────
+    // CREDENTIALS
+    // ─────────────────────────────────────────────────
+    const SUPABASE_URL      = '';
+    const SUPABASE_ANON_KEY = '';
+    const ADMIN_EMAIL       = 'support@akaraonline.co.in';
+    const PAGE_SIZE         = 20;
+    const LOW_STOCK_THRESHOLD = 5;
+
+    let supabase          = null;
+    let allProducts       = [];
+    let filteredProducts  = [];
+    let activeFilter      = 'all';
+    let currentPage       = 1;
+    let selectedIds       = new Set();
+    let pendingChanges    = {};  // { productId: newStockValue }
+
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    // ── Clock ─────────────────────────────────────────
+    setInterval(() => {
+      document.getElementById('liveClock').textContent =
+        new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    }, 1000);
+
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+    // ── Admin login ───────────────────────────────────
+    async function handleAdminLogin() {
+      const email = document.getElementById('adminEmail').value.trim();
+      const pass  = document.getElementById('adminPassword').value;
+      const btn   = document.getElementById('adminLoginBtn');
+      const errEl = document.getElementById('authErr');
+      btn.disabled = true; btn.textContent = 'Verifying…';
+      errEl.classList.remove('visible');
+
+      if (!supabase) {
+        await new Promise(r => setTimeout(r, 700));
+        showDashboard('demo@akaraonline.co.in');
+        return;
+      }
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
+      btn.disabled = false; btn.textContent = 'Enter Studio';
+      if (error) { errEl.textContent = error.message; errEl.classList.add('visible'); return; }
+      if (data.user.email !== ADMIN_EMAIL) { await supabase.auth.signOut(); errEl.textContent = 'Access denied.'; errEl.classList.add('visible'); return; }
+      showDashboard(data.user.email);
+    }
+
+    function showDashboard(email) {
+      document.getElementById('authGate').classList.add('hidden');
+      document.getElementById('sidebarEmail').textContent = email;
+      loadInventory();
+    }
+
+    async function handleSignOut() {
+      if (supabase) await supabase.auth.signOut();
+      document.getElementById('authGate').classList.remove('hidden');
+    }
+
+    async function checkSession() {
+      if (!supabase) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session && session.user.email === ADMIN_EMAIL) showDashboard(session.user.email);
+    }
+    checkSession();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('adminPassword')?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') handleAdminLogin();
+      });
+    });
+
+    // ── Load inventory ────────────────────────────────
+    async function loadInventory() {
+      if (!supabase) { allProducts = DEMO_PRODUCTS; computeStats(); applyFilters(); return; }
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .select('*')
+          .order('name', { ascending: true });
+        if (error) throw error;
+        allProducts = data || [];
+      } catch { allProducts = DEMO_PRODUCTS; }
+      computeStats();
+      applyFilters();
+    }
+
+    // ── Stats ─────────────────────────────────────────
+    function computeStats() {
+      const total   = allProducts.length;
+      const active  = allProducts.filter(p => p.is_active !== false).length;
+      const inStock = allProducts.filter(p => (p.stock || 0) > 0).length;
+      const low     = allProducts.filter(p => (p.stock || 0) > 0 && (p.stock || 0) <= LOW_STOCK_THRESHOLD).length;
+      const out     = allProducts.filter(p => (p.stock || 0) === 0).length;
+
+      document.getElementById('statTotal').textContent  = total;
+      document.getElementById('statActive').textContent = active;
+      document.getElementById('statInStock').textContent= inStock;
+      document.getElementById('statLow').textContent    = low;
+      document.getElementById('statOut').textContent    = out;
+      document.getElementById('lowBadge').textContent   = low + out;
+
+      const alertCount = low + out;
+      const alertBar   = document.getElementById('alertBar');
+      if (alertCount > 0) {
+        document.getElementById('alertCount').textContent = `${alertCount} item${alertCount !== 1 ? 's' : ''}`;
+        alertBar.style.display = 'flex';
+      } else {
+        alertBar.style.display = 'none';
+      }
+    }
+
+    // ── Filters ───────────────────────────────────────
+    function setFilter(filter, btn) {
+      activeFilter = filter;
+      document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+      btn?.classList.add('active');
+      currentPage = 1;
+      selectedIds.clear();
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const q    = document.getElementById('searchInput').value.toLowerCase().trim();
+      const sort = document.getElementById('sortSelect').value;
+
+      let result = allProducts.filter(p => {
+        const name = (p.name || '').toLowerCase();
+        const sku  = (p.sku  || '').toLowerCase();
+        const cat  = (p.category || '').toLowerCase();
+        const matchQ = !q || name.includes(q) || sku.includes(q) || cat.includes(q);
+
+        const stock   = p.stock || 0;
+        const active  = p.is_active !== false;
+        const matchF =
+          activeFilter === 'all'          ? true :
+          activeFilter === 'active'       ? active :
+          activeFilter === 'inactive'     ? !active :
+          activeFilter === 'in_stock'     ? stock > 0 :
+          activeFilter === 'low_stock'    ? (stock > 0 && stock <= LOW_STOCK_THRESHOLD) :
+          activeFilter === 'out_of_stock' ? stock === 0 :
+          activeFilter === 'needs_restock'? stock <= LOW_STOCK_THRESHOLD :
+          true;
+
+        return matchQ && matchF;
+      });
+
+      result.sort((a, b) => {
+        if (sort === 'name_za')    return (b.name||'').localeCompare(a.name||'');
+        if (sort === 'stock_asc')  return (a.stock||0) - (b.stock||0);
+        if (sort === 'stock_desc') return (b.stock||0) - (a.stock||0);
+        if (sort === 'price_asc')  return (a.price||0) - (b.price||0);
+        if (sort === 'price_desc') return (b.price||0) - (a.price||0);
+        return (a.name||'').localeCompare(b.name||''); // name_az default
+      });
+
+      filteredProducts = result;
+      document.getElementById('resultCount').textContent =
+        `${result.length} product${result.length !== 1 ? 's' : ''}`;
+      renderPage(1);
+    }
+
+    // ── Render page ───────────────────────────────────
+    function renderPage(page) {
+      currentPage = page;
+      const total = filteredProducts.length;
+      const pages = Math.ceil(total / PAGE_SIZE);
+      const start = (page - 1) * PAGE_SIZE;
+      const slice = filteredProducts.slice(start, start + PAGE_SIZE);
+      const container = document.getElementById('tableContainer');
+
+      if (!slice.length) {
+        container.innerHTML = '<div class="state-msg">No products found</div>';
+        document.getElementById('paginationBar').style.display = 'none';
+        return;
+      }
+
+      document.getElementById('paginationBar').style.display = 'flex';
+      document.getElementById('pageInfo').textContent = `${start+1}–${Math.min(start+PAGE_SIZE,total)} of ${total}`;
+
+      container.innerHTML = `
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:40px;"><input type="checkbox" class="select-all-check" onclick="toggleSelectAll(this)"></th>
+              <th>Product</th>
+              <th>SKU / ID</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${slice.map((p, i) => {
+              const stock     = p.stock || 0;
+              const stockDot  = stock === 0 ? 'out' : stock <= LOW_STOCK_THRESHOLD ? 'low' : 'ok';
+              const statusBadge = p.is_active === false
+                ? '<span class="badge inactive">Inactive</span>'
+                : stock === 0
+                  ? '<span class="badge out-stock">Out of Stock</span>'
+                  : stock <= LOW_STOCK_THRESHOLD
+                    ? '<span class="badge low-stock">Low Stock</span>'
+                    : '<span class="badge active">In Stock</span>';
+
+              const isSelected = selectedIds.has(p.id);
+              const hasPending = pendingChanges[p.id] !== undefined;
+
+              return `
+                <tr style="animation:fadeUp 0.3s ease ${i*0.025}s both;" data-id="${p.id}">
+                  <td>
+                    <input type="checkbox" class="row-check" ${isSelected ? 'checked' : ''}
+                      onchange="toggleSelect('${p.id}', this.checked)">
+                  </td>
+                  <td>
+                    <div class="cell-name">${p.name}</div>
+                    <div class="cell-sub">${p.material || ''}</div>
+                  </td>
+                  <td class="cell-mono">${p.sku || p.id || '—'}</td>
+                  <td style="font-size:0.65rem;color:var(--text-muted);">${p.category || '—'}</td>
+                  <td style="font-size:0.72rem;color:var(--gold-light);">₹${Number(p.price||0).toLocaleString('en-IN')}</td>
+                  <td>
+                    <div class="stock-cell">
+                      <div class="stock-dot ${stockDot}"></div>
+                      <input
+                        type="number"
+                        class="stock-input${hasPending ? ' changed' : ''}"
+                        id="stock-${p.id}"
+                        value="${hasPending ? pendingChanges[p.id] : stock}"
+                        min="0"
+                        onchange="onStockChange('${p.id}', this)"
+                        oninput="onStockChange('${p.id}', this)"
+                      >
+                    </div>
+                  </td>
+                  <td>${statusBadge}</td>
+                  <td>
+                    <div class="action-cell">
+                      <button class="btn-action save${hasPending ? '' : ''}" style="${hasPending ? '' : 'display:none;'}" id="save-${p.id}" onclick="saveStock('${p.id}')">Save</button>
+                      <button class="btn-action" onclick="toggleActive('${p.id}', ${p.is_active !== false})">${p.is_active === false ? 'Activate' : 'Deactivate'}</button>
+                      <button class="btn-action" onclick="reorderNote('${p.name}')">Reorder</button>
+                    </div>
+                  </td>
+                </tr>`;
+            }).join('')}
+          </tbody>
+        </table>`;
+
+      // Show bulk button if any selected
+      document.getElementById('bulkBtn').style.display = selectedIds.size > 0 ? 'inline-flex' : 'none';
+
+      // Pagination
+      const pageBtns = document.getElementById('pageBtns');
+      pageBtns.innerHTML = '';
+      const prev = document.createElement('button');
+      prev.className = 'page-btn'; prev.textContent = '←'; prev.disabled = page === 1;
+      prev.onclick = () => renderPage(page - 1);
+      pageBtns.appendChild(prev);
+
+      const maxV = 5;
+      let sp = Math.max(1, page - 2), ep = Math.min(pages, sp + maxV - 1);
+      if (ep - sp < maxV - 1) sp = Math.max(1, ep - maxV + 1);
+      for (let p = sp; p <= ep; p++) {
+        const btn = document.createElement('button');
+        btn.className = 'page-btn' + (p === page ? ' active' : '');
+        btn.textContent = p;
+        btn.onclick = ((pg) => () => renderPage(pg))(p);
+        pageBtns.appendChild(btn);
+      }
+
+      const next = document.createElement('button');
+      next.className = 'page-btn'; next.textContent = '→'; next.disabled = page >= pages;
+      next.onclick = () => renderPage(page + 1);
+      pageBtns.appendChild(next);
+    }
+
+    // ── Stock inline edit ─────────────────────────────
+    function onStockChange(productId, input) {
+      const val = parseInt(input.value);
+      if (isNaN(val) || val < 0) return;
+      pendingChanges[productId] = val;
+      input.classList.add('changed');
+      const saveBtn = document.getElementById(`save-${productId}`);
+      if (saveBtn) saveBtn.style.display = 'inline-flex';
+    }
+
+    async function saveStock(productId) {
+      const newStock = pendingChanges[productId];
+      if (newStock === undefined) return;
+
+      const input   = document.getElementById(`stock-${productId}`);
+      const saveBtn = document.getElementById(`save-${productId}`);
+      if (input)   input.classList.add('saving');
+      if (saveBtn) saveBtn.textContent = '…';
+
+      if (supabase) {
+        const { error } = await supabase
+          .from('products')
+          .update({ stock: newStock })
+          .eq('id', productId);
+        if (error) {
+          showToast('Save failed'); 
+          if (input) input.classList.remove('saving');
+          if (saveBtn) saveBtn.textContent = 'Save';
+          return;
+        }
+      }
+
+      // Update local cache
+      const p = allProducts.find(x => x.id === productId);
+      if (p) p.stock = newStock;
+      delete pendingChanges[productId];
+
+      if (input)   { input.classList.remove('changed', 'saving'); }
+      if (saveBtn) { saveBtn.style.display = 'none'; saveBtn.textContent = 'Save'; }
+
+      computeStats();
+      showToast(`Stock updated → ${newStock}`);
+    }
+
+    // ── Toggle active ─────────────────────────────────
+    async function toggleActive(productId, isActive) {
+      if (supabase) {
+        await supabase.from('products').update({ is_active: !isActive }).eq('id', productId).catch(() => {});
+      }
+      const p = allProducts.find(x => x.id === productId);
+      if (p) p.is_active = !isActive;
+      computeStats();
+      applyFilters();
+      showToast(isActive ? 'Product deactivated' : 'Product activated');
+    }
+
+    // ── Select rows ───────────────────────────────────
+    function toggleSelect(id, checked) {
+      checked ? selectedIds.add(id) : selectedIds.delete(id);
+      document.getElementById('bulkBtn').style.display = selectedIds.size > 0 ? 'inline-flex' : 'none';
+    }
+
+    function toggleSelectAll(masterCheck) {
+      const rowChecks = document.querySelectorAll('.row-check');
+      rowChecks.forEach(cb => {
+        cb.checked = masterCheck.checked;
+        const row = cb.closest('tr');
+        const id  = row?.dataset.id;
+        if (id) masterCheck.checked ? selectedIds.add(id) : selectedIds.delete(id);
+      });
+      document.getElementById('bulkBtn').style.display = selectedIds.size > 0 ? 'inline-flex' : 'none';
+    }
+
+    // ── Bulk modal ────────────────────────────────────
+    function openBulkModal() {
+      if (!selectedIds.size) { showToast('Select at least one product first'); return; }
+      document.getElementById('bulkSubtitle').textContent =
+        `Update ${selectedIds.size} selected item${selectedIds.size !== 1 ? 's' : ''}`;
+      document.getElementById('bulkModal').classList.add('open');
+    }
+
+    function closeBulkModal() {
+      document.getElementById('bulkModal').classList.remove('open');
+    }
+
+    function onBulkActionChange() {
+      const action = document.getElementById('bulkAction').value;
+      const valueField = document.getElementById('bulkValueField');
+      valueField.style.display = ['activate','deactivate'].includes(action) ? 'none' : 'flex';
+    }
+
+    async function applyBulkUpdate() {
+      const action   = document.getElementById('bulkAction').value;
+      const value    = parseInt(document.getElementById('bulkValue').value) || 0;
+      const ids      = Array.from(selectedIds);
+
+      for (const id of ids) {
+        const p = allProducts.find(x => x.id === id);
+        if (!p) continue;
+
+        let update = {};
+        if (action === 'set')        { update.stock     = Math.max(0, value); p.stock     = update.stock; }
+        if (action === 'add')        { update.stock     = Math.max(0, (p.stock||0) + value); p.stock = update.stock; }
+        if (action === 'subtract')   { update.stock     = Math.max(0, (p.stock||0) - value); p.stock = update.stock; }
+        if (action === 'activate')   { update.is_active = true;  p.is_active = true; }
+        if (action === 'deactivate') { update.is_active = false; p.is_active = false; }
+
+        if (supabase && Object.keys(update).length) {
+          await supabase.from('products').update(update).eq('id', id).catch(() => {});
+        }
+      }
+
+      selectedIds.clear();
+      pendingChanges = {};
+      closeBulkModal();
+      computeStats();
+      applyFilters();
+      showToast(`Bulk update applied to ${ids.length} item${ids.length !== 1 ? 's' : ''}`);
+    }
+
+    // ── Reorder note ──────────────────────────────────
+    function reorderNote(name) {
+      const msg = `Reorder note for: ${name}\n\nThis would trigger an email or Slack notification to your supplier.\n\nWire up your notification service here (e.g. email via contact form, WhatsApp API, etc.)`;
+      alert(msg);
+    }
+
+    // ── Export CSV ────────────────────────────────────
+    function exportCSV() {
+      const headers = ['ID','Name','Category','SKU','Price','Stock','Active','Material'];
+      const rows = filteredProducts.map(p => [
+        p.id||'', p.name||'', p.category||'', p.sku||'',
+        p.price||0, p.stock||0,
+        p.is_active !== false ? 'Yes' : 'No',
+        p.material||'',
+      ]);
+      const csv = [headers,...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+      const a   = document.createElement('a');
+      a.href     = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+      a.download = `akara_inventory_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+      showToast('CSV downloaded');
+    }
+
+    // ── Toast ─────────────────────────────────────────
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('visible');
+      setTimeout(() => t.classList.remove('visible'), 2500);
+    }
+
+    // ── Demo data ─────────────────────────────────────
+    const DEMO_PRODUCTS = [
+      { id:'1', name:'Vetra Planter',      category:'Planters', sku:'VET-001', price:849,  stock:12, is_active:true,  material:'Plant-based PLA' },
+      { id:'2', name:'Vāyu Planter',       category:'Planters', sku:'VAY-001', price:949,  stock:3,  is_active:true,  material:'Plant-based PLA' },
+      { id:'3', name:'Reva Planter',       category:'Planters', sku:'REV-001', price:1049, stock:8,  is_active:true,  material:'Plant-based PLA' },
+      { id:'4', name:'Sway Planter',       category:'Planters', sku:'SWA-001', price:849,  stock:0,  is_active:true,  material:'Plant-based PLA' },
+      { id:'5', name:'Tattva Vase',        category:'Vases',    sku:'TAT-001', price:1249, stock:5,  is_active:true,  material:'Plant-based PLA' },
+      { id:'6', name:'Aura Pendant Lamp',  category:'Lighting', sku:'AUR-001', price:3499, stock:2,  is_active:true,  material:'Plant-based PLA' },
+      { id:'7', name:'Geodesic Planter L', category:'Planters', sku:'GEO-001', price:2400, stock:0,  is_active:false, material:'Plant-based PLA' },
+      { id:'8', name:'Prism Vase M',       category:'Vases',    sku:'PRS-001', price:1800, stock:15, is_active:true,  material:'Plant-based PLA' },
+    ];
+  </script>
+
 </body>
 </html>

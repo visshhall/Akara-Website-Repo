@@ -1,30 +1,923 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Wishlist - Atelier Ākāra</title>
-    <link rel="stylesheet" href="/auth-styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="My Wishlist — Atelier Ākāra">
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+  <title>Wishlist — Atelier Ākāra</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --teal:       #002b2b;
+      --teal-mid:   #004040;
+      --cream:      #fff8e7;
+      --gold:       #c9a96e;
+      --gold-light: #e2c99a;
+      --text-main:  #fff8e7;
+      --text-muted: rgba(255,248,231,0.55);
+      --border:     rgba(201,169,110,0.25);
+      --border-dim: rgba(201,169,110,0.12);
+      --card-bg:    rgba(255,248,231,0.03);
+      --error:      #e07070;
+      --success:    #70c9a0;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Josefin Sans', sans-serif;
+      background: var(--teal);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    /* ─── Background ──────────────────────────────── */
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 15% 5%,  rgba(0,95,95,0.3)  0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 85% 90%,  rgba(0,64,64,0.35) 0%, transparent 55%);
+      pointer-events: none; z-index: 0;
+    }
+    body::after {
+      content: ''; position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,169,110,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,169,110,0.035) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ─── Header ──────────────────────────────────── */
+    .site-header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(0,43,43,0.88);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-container {
+      display: flex; align-items: center; justify-content: space-between;
+      max-width: 1280px; margin: 0 auto; padding: 0 2rem; height: 64px;
+    }
+    .nav-left, .nav-right {
+      display: flex; align-items: center; gap: 2rem; min-width: 180px;
+    }
+    .nav-right { justify-content: flex-end; }
+    .nav-links { display: flex; gap: 2rem; }
+    .nav-links a, .nav-link {
+      font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text-muted); transition: color 0.2s;
+    }
+    .nav-links a:hover, .nav-link:hover { color: var(--gold); }
+    .brand-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; font-weight: 300;
+      letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--cream); white-space: nowrap;
+    }
+    .cart-link {
+      font-size: 0.75rem; color: var(--text-muted); transition: color 0.2s;
+    }
+    .cart-link:hover { color: var(--gold); }
+    .menu-toggle {
+      display: none; background: none; border: none;
+      color: var(--text-main); font-size: 1.2rem; cursor: pointer;
+    }
+    .mobile-nav {
+      display: none; position: fixed; top: 64px; left: 0; right: 0;
+      background: rgba(0,43,43,0.97); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border); padding: 1.5rem 2rem;
+      z-index: 99; flex-direction: column; gap: 1.2rem;
+    }
+    .mobile-nav.open { display: flex; }
+    .mobile-nav a {
+      font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text-muted); padding: 0.4rem 0;
+      border-bottom: 1px solid rgba(201,169,110,0.1);
+    }
+    .mobile-nav a:hover { color: var(--gold); }
+
+    /* ─── Page ────────────────────────────────────── */
+    .wishlist-page {
+      position: relative; z-index: 1;
+      max-width: 1280px; margin: 0 auto;
+      padding: 84px 2rem 6rem;
+    }
+
+    /* Breadcrumb */
+    .breadcrumbs {
+      font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text-muted); padding: 1.5rem 0 0;
+    }
+    .breadcrumbs a { color: var(--gold); opacity: 0.7; transition: opacity 0.2s; }
+    .breadcrumbs a:hover { opacity: 1; }
+    .breadcrumbs span { opacity: 0.45; margin: 0 0.5rem; }
+
+    /* ─── Page Header ─────────────────────────────── */
+    .page-header {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      padding: 2.5rem 0 2rem;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap; gap: 1rem;
+    }
+    .page-header-left h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 300; letter-spacing: 0.12em;
+      color: var(--cream); line-height: 1;
+    }
+    .page-header-left .item-count {
+      font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text-muted); margin-top: 0.5rem;
+    }
+    .page-header-right { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+    /* ─── Buttons ─────────────────────────────────── */
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.75rem 2rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.63rem; letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--teal); background: var(--gold);
+      border: 1px solid var(--gold); cursor: pointer; transition: all 0.25s;
+    }
+    .btn-primary:hover { background: transparent; color: var(--gold); }
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.62rem; letter-spacing: 0.25em; text-transform: uppercase;
+      color: var(--text-muted); border: 1px solid var(--border);
+      background: none; cursor: pointer; transition: all 0.25s;
+    }
+    .btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
+    .btn-danger {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.75rem 1.5rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.6rem; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--error); border: 1px solid rgba(224,112,112,0.3);
+      background: none; cursor: pointer; transition: all 0.25s;
+    }
+    .btn-danger:hover { border-color: var(--error); background: rgba(224,112,112,0.06); }
+
+    /* ─── Sort / Filter bar ───────────────────────── */
+    .controls-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.25rem 0;
+      flex-wrap: wrap; gap: 0.75rem;
+    }
+    .sort-select {
+      background: rgba(255,248,231,0.05); border: 1px solid var(--border);
+      color: var(--text-muted); font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.62rem; letter-spacing: 0.1em;
+      padding: 0.5rem 0.9rem; outline: none; cursor: pointer; -webkit-appearance: none;
+    }
+    .sort-select option { background: var(--teal); }
+
+    /* ─── Login prompt ────────────────────────────── */
+    .login-prompt {
+      text-align: center; padding: 5rem 2rem;
+      max-width: 440px; margin: 3rem auto;
+      background: var(--card-bg); border: 1px solid var(--border);
+      animation: fadeUp 0.6s ease both;
+    }
+    .login-prompt-icon { font-size: 2rem; opacity: 0.3; margin-bottom: 1.25rem; }
+    .login-prompt h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.6rem; font-weight: 300; letter-spacing: 0.1em;
+      color: var(--cream); margin-bottom: 0.6rem;
+    }
+    .login-prompt p {
+      font-size: 0.72rem; letter-spacing: 0.06em;
+      color: var(--text-muted); line-height: 1.8; margin-bottom: 2rem;
+    }
+
+    /* ─── Empty state ─────────────────────────────── */
+    .empty-state {
+      text-align: center; padding: 5rem 2rem;
+      display: none;
+    }
+    .empty-state.visible { display: block; animation: fadeUp 0.6s ease both; }
+    .empty-icon {
+      font-size: 2.5rem; opacity: 0.2; margin-bottom: 1.5rem;
+    }
+    .empty-state h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem; font-weight: 300; letter-spacing: 0.1em;
+      color: var(--cream); margin-bottom: 0.6rem;
+    }
+    .empty-state p {
+      font-size: 0.75rem; letter-spacing: 0.06em;
+      color: var(--text-muted); line-height: 1.8; margin-bottom: 2rem;
+    }
+
+    /* ─── Wishlist Grid ───────────────────────────── */
+    .wishlist-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 0.25rem;
+    }
+
+    /* ─── Wishlist Card ───────────────────────────── */
+    .wishlist-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      position: relative;
+      transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+      animation: fadeUp 0.5s ease both;
+    }
+    .wishlist-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(201,169,110,0.45);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+    }
+
+    /* Remove button */
+    .card-remove {
+      position: absolute; top: 0.75rem; right: 0.75rem; z-index: 2;
+      width: 28px; height: 28px;
+      background: rgba(0,43,43,0.75); backdrop-filter: blur(8px);
+      border: 1px solid rgba(224,112,112,0.3);
+      color: var(--error); opacity: 0;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.2s; font-size: 0.75rem;
+    }
+    .wishlist-card:hover .card-remove { opacity: 1; }
+    .card-remove:hover { background: rgba(224,112,112,0.2); border-color: var(--error); }
+
+    /* Date added badge */
+    .card-date-badge {
+      position: absolute; top: 0.75rem; left: 0.75rem; z-index: 2;
+      font-size: 0.52rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text-muted); opacity: 0;
+      background: rgba(0,43,43,0.75); backdrop-filter: blur(8px);
+      padding: 0.2rem 0.55rem; border: 1px solid var(--border-dim);
+      transition: opacity 0.2s;
+    }
+    .wishlist-card:hover .card-date-badge { opacity: 1; }
+
+    /* Image */
+    .card-img-wrap {
+      aspect-ratio: 1; overflow: hidden;
+      background: rgba(0,64,64,0.35);
+      cursor: pointer;
+    }
+    .card-img-wrap img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+    .wishlist-card:hover .card-img-wrap img { transform: scale(1.04); }
+    .card-img-placeholder {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* SVG geo placeholder */
+    .card-img-placeholder svg { opacity: 0.12; }
+
+    /* Body */
+    .card-body { padding: 1.25rem; }
+    .card-category {
+      font-size: 0.56rem; letter-spacing: 0.32em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.7; margin-bottom: 0.35rem;
+    }
+    .card-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem; font-weight: 400;
+      color: var(--cream); margin-bottom: 0.5rem; line-height: 1.2;
+      cursor: pointer; transition: color 0.2s;
+    }
+    .card-name:hover { color: var(--gold-light); }
+
+    /* Price row */
+    .card-price-row { display: flex; align-items: baseline; gap: 0.6rem; margin-bottom: 0.35rem; }
+    .card-price {
+      font-size: 0.9rem; letter-spacing: 0.06em; color: var(--gold-light);
+    }
+    .card-price-original {
+      font-size: 0.72rem; color: var(--text-muted); text-decoration: line-through; opacity: 0.5;
+    }
+
+    /* Stock indicator */
+    .card-stock {
+      font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .card-stock.in-stock  { color: var(--success); }
+    .card-stock.low-stock { color: var(--warning); }
+    .card-stock.out-stock { color: var(--error); }
+
+    /* Card actions */
+    .card-actions { display: flex; gap: 0.5rem; }
+    .btn-add-to-cart {
+      flex: 1; padding: 0.62rem 0;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.58rem; letter-spacing: 0.25em; text-transform: uppercase;
+      color: var(--teal); background: var(--gold);
+      border: 1px solid var(--gold); cursor: pointer; transition: all 0.25s;
+    }
+    .btn-add-to-cart:hover:not(:disabled) { background: transparent; color: var(--gold); }
+    .btn-add-to-cart:disabled { opacity: 0.35; cursor: not-allowed; background: var(--gold); color: var(--teal); }
+    .btn-add-to-cart.added { background: var(--success); border-color: var(--success); }
+
+    .btn-view-product {
+      padding: 0.62rem 0.9rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.7rem; color: var(--text-muted);
+      border: 1px solid var(--border); background: none;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-view-product:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ─── Shared section ──────────────────────────── */
+    .section-divider {
+      height: 1px; background: var(--border-dim);
+      margin: 3.5rem 0 3rem;
+    }
+    .section-header {
+      display: flex; align-items: baseline; justify-content: space-between;
+      margin-bottom: 2rem; flex-wrap: wrap; gap: 0.75rem;
+    }
+    .section-label {
+      font-size: 0.6rem; letter-spacing: 0.4em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.7; margin-bottom: 0.5rem;
+    }
+    .section-header h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+      font-weight: 300; letter-spacing: 0.1em; color: var(--cream);
+    }
+
+    /* ─── Recommendations ─────────────────────────── */
+    .rec-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem;
+    }
+    .rec-card {
+      border: 1px solid var(--border); background: var(--card-bg);
+      cursor: pointer; transition: transform 0.3s, border-color 0.3s;
+      animation: fadeUp 0.5s ease both;
+    }
+    .rec-card:hover { transform: translateY(-4px); border-color: rgba(201,169,110,0.5); }
+    .rec-img {
+      aspect-ratio: 1; background: rgba(0,64,64,0.35); overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .rec-img img { width: 100%; height: 100%; object-fit: cover; }
+    .rec-img-placeholder {
+      font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.25;
+    }
+    .rec-body { padding: 1rem; }
+    .rec-cat   { font-size: 0.56rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); opacity: 0.65; margin-bottom: 0.25rem; }
+    .rec-name  { font-family: 'Cormorant Garamond', serif; font-size: 1rem; font-weight: 400; color: var(--cream); margin-bottom: 0.35rem; }
+    .rec-price { font-size: 0.7rem; color: var(--gold-light); }
+
+    /* ─── Toast ───────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 2rem; right: 2rem; z-index: 999;
+      background: var(--gold); color: var(--teal);
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase;
+      padding: 0.75rem 1.5rem; opacity: 0; transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .toast.visible { opacity: 1; }
+
+    /* ─── Footer ──────────────────────────────────── */
+    .site-footer {
+      background: rgba(0,20,20,0.6); border-top: 1px solid var(--border);
+      padding: 4rem 2rem 2rem; position: relative; z-index: 1;
+    }
+    .footer-content { max-width: 1280px; margin: 0 auto; }
+    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
+    .footer-section h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 400; letter-spacing: 0.2em; color: var(--cream); margin-bottom: 0.5rem; }
+    .footer-section > p { font-size: 0.7rem; letter-spacing: 0.12em; color: var(--text-muted); }
+    .footer-section h4 { font-size: 0.6rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); opacity: 0.75; margin-bottom: 1.2rem; }
+    .footer-section a { display: block; font-size: 0.72rem; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.6rem; transition: color 0.2s; }
+    .footer-section a:hover { color: var(--gold); }
+    .footer-bottom { border-top: 1px solid var(--border); padding-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+    .footer-bottom p { font-size: 0.62rem; letter-spacing: 0.12em; color: var(--text-muted); opacity: 0.6; }
+
+    /* ─── Animations ──────────────────────────────── */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ─── Responsive ──────────────────────────────── */
+    @media (max-width: 900px) {
+      .rec-grid { grid-template-columns: repeat(2, 1fr); }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+    }
+    @media (max-width: 768px) {
+      .desktop-only { display: none; }
+      .menu-toggle  { display: block; }
+      .nav-left, .nav-right { min-width: auto; }
+      .wishlist-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    }
+    @media (max-width: 480px) {
+      .wishlist-grid { grid-template-columns: 1fr; }
+      .rec-grid      { grid-template-columns: 1fr 1fr; }
+      .footer-grid   { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+    }
+  </style>
 </head>
+
 <body>
-    <header class="site-header">
-        <nav class="nav-container">
-            <div class="nav-center">
-                <a href="/" class="brand-logo">ATELIER ĀKĀRA</a>
-            </div>
-        </nav>
-    </header>
-    
-    <main class="wishlist-page">
-        <h1>My Wishlist</h1>
-        
-        <div class="wishlist-grid" id="wishlistGrid">
-            <!-- Wishlist items loaded here -->
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <nav class="nav-container">
+      <div class="nav-left">
+        <button class="menu-toggle" id="menuToggle">☰</button>
+        <div class="nav-links desktop-only">
+          <a href="../catalog.html">Catalog</a>
+          <a href="../about.html">About</a>
         </div>
-    </main>
-    
-    <script type="module">
-        console.log('Wishlist page loaded');
-    </script>
+      </div>
+      <a href="../index.html" class="brand-logo">ATELIER ĀKĀRA</a>
+      <div class="nav-right">
+        <a href="../contact.html" class="nav-link desktop-only">Contact</a>
+        <a href="cart.html" class="cart-link">🛒 <span id="cartCount">0</span></a>
+        <a href="profile.html" style="font-size:0.75rem;color:var(--text-muted);">👤</a>
+      </div>
+    </nav>
+  </header>
+
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="../catalog.html">Catalog</a>
+    <a href="../about.html">About</a>
+    <a href="../contact.html">Contact</a>
+    <a href="cart.html">Cart</a>
+    <a href="profile.html">My Account</a>
+  </nav>
+
+  <!-- Page -->
+  <main class="wishlist-page">
+
+    <nav class="breadcrumbs">
+      <a href="../index.html">Home</a>
+      <span>/</span>
+      <a href="profile.html">My Account</a>
+      <span>/</span>
+      Wishlist
+    </nav>
+
+    <!-- ── Not signed in ── -->
+    <div class="login-prompt" id="loginPrompt" style="display:none;">
+      <div class="login-prompt-icon">♡</div>
+      <h2>Save Your Favourites</h2>
+      <p>Sign in to keep a wishlist across devices and get notified when saved items go on sale or are running low.</p>
+      <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;">
+        <a href="profile.html" class="btn-primary">Sign In</a>
+        <a href="profile.html" class="btn-secondary">Create Account</a>
+      </div>
+    </div>
+
+    <!-- ── Signed in / main content ── -->
+    <div id="wishlistContent">
+
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Wishlist</h1>
+          <p class="item-count" id="itemCountLabel">Loading…</p>
+        </div>
+        <div class="page-header-right">
+          <button class="btn-secondary" onclick="addAllToCart()" id="addAllBtn" style="display:none;">
+            🛒 Add All to Cart
+          </button>
+          <button class="btn-danger" onclick="confirmClearAll()" id="clearAllBtn" style="display:none;">
+            ✕ Clear Wishlist
+          </button>
+        </div>
+      </div>
+
+      <!-- Sort bar -->
+      <div class="controls-bar" id="controlsBar" style="display:none;">
+        <span style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted);opacity:0.55;">Sort by</span>
+        <select class="sort-select" id="sortSelect" onchange="renderWishlist()">
+          <option value="newest">Date Added (Newest)</option>
+          <option value="oldest">Date Added (Oldest)</option>
+          <option value="name_az">Name A–Z</option>
+          <option value="price_asc">Price: Low to High</option>
+          <option value="price_desc">Price: High to Low</option>
+        </select>
+      </div>
+
+      <!-- Empty state -->
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">♡</div>
+        <h2>Your Wishlist is Empty</h2>
+        <p>Save pieces you love while you browse and come back to them anytime.</p>
+        <a href="../catalog.html" class="btn-primary">Browse Collection</a>
+      </div>
+
+      <!-- Cards grid -->
+      <div class="wishlist-grid" id="wishlistGrid"></div>
+
+      <!-- Recommendations -->
+      <div id="recSection" style="display:none;">
+        <div class="section-divider"></div>
+        <div class="section-header">
+          <div>
+            <p class="section-label">Discover More</p>
+            <h2>You May Also Like</h2>
+          </div>
+          <a href="../catalog.html" style="font-size:0.62rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);opacity:0.7;transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7">View All →</a>
+        </div>
+        <div class="rec-grid" id="recGrid"></div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-grid">
+        <div class="footer-section">
+          <h3>ATELIER ĀKĀRA</h3>
+          <p>Artifacts for the Modern Spaces</p>
+        </div>
+        <div class="footer-section">
+          <h4>Shop</h4>
+          <a href="../catalog.html">All Products</a>
+          <a href="../catalog.html?category=planters">Planters</a>
+          <a href="../catalog.html?category=vases">Vases</a>
+          <a href="../catalog.html?category=lighting">Lighting</a>
+        </div>
+        <div class="footer-section">
+          <h4>Information</h4>
+          <a href="../about.html">About Us</a>
+          <a href="../contact.html">Contact</a>
+          <a href="../privacy.html">Privacy Policy</a>
+          <a href="../terms.html">Terms of Service</a>
+        </div>
+        <div class="footer-section">
+          <h4>Connect</h4>
+          <a href="https://instagram.com/atelier.akara" target="_blank">Instagram</a>
+          <a href="mailto:support@akaraonline.co.in">Email Us</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>Precision Forge Labs &nbsp;|&nbsp; GST: 27GZCPS9353H1ZQ</p>
+        <p>© <span id="year"></span> Atelier Ākāra. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ─────────────────────────────────────────────────
+    // CREDENTIALS
+    // ─────────────────────────────────────────────────
+    const SUPABASE_URL      = '';
+    const SUPABASE_ANON_KEY = '';
+
+    // Wishlist is stored in localStorage under this key.
+    // Each entry: { id, name, category, price, image_url, added_at }
+    const WISHLIST_KEY = 'akara_wishlist';
+
+    let supabase     = null;
+    let currentUser  = null;
+    let wishlist     = [];
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    // ── Mobile menu ────────────────────────────────────
+    document.getElementById('menuToggle').addEventListener('click', () =>
+      document.getElementById('mobileNav').classList.toggle('open'));
+
+    // ── Cart count ─────────────────────────────────────
+    function updateCartCount() {
+      const cart  = JSON.parse(localStorage.getItem('akara_cart') || '[]');
+      document.getElementById('cartCount').textContent = cart.reduce((s, i) => s + (i.qty || 1), 0);
+    }
+    updateCartCount();
+
+    // ── Session check ──────────────────────────────────
+    async function init() {
+      if (!supabase) {
+        // No Supabase — show wishlist from localStorage (demo mode)
+        loadWishlistFromStorage();
+        return;
+      }
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        document.getElementById('wishlistContent').style.display = 'none';
+        document.getElementById('loginPrompt').style.display     = 'block';
+        return;
+      }
+      currentUser = session.user;
+      // Try to load from Supabase, fall back to localStorage
+      await loadWishlistFromSupabase();
+    }
+
+    // ── Load wishlist from Supabase ────────────────────
+    async function loadWishlistFromSupabase() {
+      try {
+        const { data, error } = await supabase
+          .from('wishlists')
+          .select('*, products(id, name, category, price, image_url, stock)')
+          .eq('user_id', currentUser.id)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        wishlist = (data || []).map(row => ({
+          id:        row.product_id || row.products?.id,
+          name:      row.products?.name      || row.name      || 'Product',
+          category:  row.products?.category  || row.category  || '',
+          price:     row.products?.price     || row.price     || 0,
+          image_url: row.products?.image_url || row.image_url || '',
+          stock:     row.products?.stock,
+          added_at:  row.created_at,
+          row_id:    row.id,
+        }));
+      } catch {
+        loadWishlistFromStorage();
+        return;
+      }
+      renderWishlist();
+    }
+
+    // ── Load wishlist from localStorage ────────────────
+    function loadWishlistFromStorage() {
+      wishlist = JSON.parse(localStorage.getItem(WISHLIST_KEY) || '[]');
+      // Demo data if empty
+      if (!wishlist.length) wishlist = DEMO_WISHLIST;
+      renderWishlist();
+    }
+
+    // ── Save to localStorage ────────────────────────────
+    function saveWishlistToStorage() {
+      localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlist));
+    }
+
+    // ── Render ─────────────────────────────────────────
+    function renderWishlist() {
+      const sort   = document.getElementById('sortSelect')?.value || 'newest';
+      const count  = wishlist.length;
+
+      // Update count label & buttons
+      document.getElementById('itemCountLabel').textContent =
+        count === 0 ? 'No saved items' : `${count} saved item${count !== 1 ? 's' : ''}`;
+
+      const addAllBtn  = document.getElementById('addAllBtn');
+      const clearBtn   = document.getElementById('clearAllBtn');
+      const controlsBar= document.getElementById('controlsBar');
+      const recSection = document.getElementById('recSection');
+
+      if (count === 0) {
+        document.getElementById('emptyState').classList.add('visible');
+        document.getElementById('wishlistGrid').innerHTML = '';
+        if (addAllBtn)  addAllBtn.style.display  = 'none';
+        if (clearBtn)   clearBtn.style.display   = 'none';
+        if (controlsBar)controlsBar.style.display = 'none';
+        renderRecs();
+        recSection.style.display = 'block';
+        return;
+      }
+
+      document.getElementById('emptyState').classList.remove('visible');
+      if (addAllBtn)  addAllBtn.style.display   = 'inline-flex';
+      if (clearBtn)   clearBtn.style.display    = 'inline-flex';
+      if (controlsBar)controlsBar.style.display = 'flex';
+
+      // Sort
+      const sorted = [...wishlist].sort((a, b) => {
+        if (sort === 'oldest')     return new Date(a.added_at) - new Date(b.added_at);
+        if (sort === 'name_az')    return (a.name || '').localeCompare(b.name || '');
+        if (sort === 'price_asc')  return (a.price || 0) - (b.price || 0);
+        if (sort === 'price_desc') return (b.price || 0) - (a.price || 0);
+        return new Date(b.added_at) - new Date(a.added_at); // newest
+      });
+
+      const cart = JSON.parse(localStorage.getItem('akara_cart') || '[]');
+      const cartIds = cart.map(i => i.id);
+
+      document.getElementById('wishlistGrid').innerHTML = sorted.map((item, i) => {
+        const inCart    = cartIds.includes(item.id);
+        const stockClass = item.stock === 0 ? 'out-stock' : item.stock != null && item.stock <= 5 ? 'low-stock' : 'in-stock';
+        const stockText  = item.stock === 0 ? 'Out of Stock' : item.stock != null && item.stock <= 5 ? `Only ${item.stock} left` : 'In Stock';
+        const addedDate  = item.added_at ? new Date(item.added_at).toLocaleDateString('en-IN', { day:'numeric', month:'short' }) : '';
+
+        return `
+          <div class="wishlist-card" style="animation-delay:${i * 0.06}s" data-id="${item.id}">
+
+            <button class="card-remove" onclick="removeItem('${item.id}')" title="Remove from wishlist">✕</button>
+            <span class="card-date-badge">${addedDate ? 'Saved ' + addedDate : ''}</span>
+
+            <div class="card-img-wrap" onclick="viewProduct('${item.id}')">
+              ${item.image_url
+                ? `<img src="${item.image_url}" alt="${item.name}" loading="lazy"
+                     onerror="this.parentElement.innerHTML=\`<div class='card-img-placeholder'>${geoSVG()}</div>\`">`
+                : `<div class="card-img-placeholder">${geoSVG()}</div>`}
+            </div>
+
+            <div class="card-body">
+              <p class="card-category">${item.category || ''}</p>
+              <p class="card-name" onclick="viewProduct('${item.id}')">${item.name}</p>
+              <div class="card-price-row">
+                <span class="card-price">₹${Number(item.price).toLocaleString('en-IN')}</span>
+                ${item.original_price ? `<span class="card-price-original">₹${Number(item.original_price).toLocaleString('en-IN')}</span>` : ''}
+              </div>
+              <p class="card-stock ${stockClass}">${stockText}</p>
+              <div class="card-actions">
+                <button
+                  class="btn-add-to-cart${inCart ? ' added' : ''}"
+                  id="atc-${item.id}"
+                  onclick="addToCart('${item.id}')"
+                  ${item.stock === 0 ? 'disabled' : ''}>
+                  ${inCart ? '✓ In Cart' : 'Add to Cart'}
+                </button>
+                <button class="btn-view-product" onclick="viewProduct('${item.id}')" title="View product">→</button>
+              </div>
+            </div>
+
+          </div>`;
+      }).join('');
+
+      // Recommendations
+      renderRecs();
+      recSection.style.display = 'block';
+    }
+
+    // ── Geo SVG placeholder ────────────────────────────
+    function geoSVG() {
+      return `<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="40,4 76,22 76,58 40,76 4,58 4,22" stroke="#c9a96e" stroke-width="1"/>
+        <polygon points="40,18 62,30 62,50 40,62 18,50 18,30" stroke="#c9a96e" stroke-width="0.7" opacity="0.5"/>
+        <circle cx="40" cy="40" r="4" fill="#c9a96e" opacity="0.3"/>
+      </svg>`;
+    }
+
+    // ── Remove item ────────────────────────────────────
+    async function removeItem(productId) {
+      // Supabase delete
+      if (supabase && currentUser) {
+        const row = wishlist.find(i => i.id === productId);
+        if (row?.row_id) {
+          await supabase.from('wishlists').delete().eq('id', row.row_id).catch(() => {});
+        }
+      }
+      wishlist = wishlist.filter(i => i.id !== productId);
+      saveWishlistToStorage();
+
+      // Animate card out
+      const card = document.querySelector(`[data-id="${productId}"]`);
+      if (card) {
+        card.style.transition = 'opacity 0.25s, transform 0.25s';
+        card.style.opacity    = '0';
+        card.style.transform  = 'scale(0.95)';
+        setTimeout(() => renderWishlist(), 280);
+      } else {
+        renderWishlist();
+      }
+      showToast('Removed from wishlist');
+    }
+
+    // ── Add to cart ────────────────────────────────────
+    function addToCart(productId) {
+      const item = wishlist.find(i => i.id === productId);
+      if (!item) return;
+
+      const cart = JSON.parse(localStorage.getItem('akara_cart') || '[]');
+      const existing = cart.find(i => i.id === productId);
+      if (existing) {
+        existing.qty = (existing.qty || 1) + 1;
+      } else {
+        cart.push({ id: item.id, name: item.name, price: item.price, image_url: item.image_url || '', category: item.category || '', qty: 1 });
+      }
+      localStorage.setItem('akara_cart', JSON.stringify(cart));
+      updateCartCount();
+
+      // Update button
+      const btn = document.getElementById(`atc-${productId}`);
+      if (btn) { btn.classList.add('added'); btn.textContent = '✓ In Cart'; }
+
+      showToast(`${item.name} added to cart`);
+    }
+
+    // ── Add all to cart ────────────────────────────────
+    function addAllToCart() {
+      const available = wishlist.filter(i => i.stock !== 0);
+      if (!available.length) { showToast('All items are out of stock'); return; }
+      available.forEach(item => addToCart(item.id));
+      showToast(`${available.length} item${available.length !== 1 ? 's' : ''} added to cart`);
+    }
+
+    // ── Clear wishlist ─────────────────────────────────
+    function confirmClearAll() {
+      if (!confirm('Remove all items from your wishlist?')) return;
+      if (supabase && currentUser) {
+        supabase.from('wishlists').delete().eq('user_id', currentUser.id).catch(() => {});
+      }
+      wishlist = [];
+      saveWishlistToStorage();
+      renderWishlist();
+      showToast('Wishlist cleared');
+    }
+
+    // ── View product ───────────────────────────────────
+    function viewProduct(id) {
+      window.location.href = `../product/${id}.html`;
+    }
+
+    // ── Recommendations ────────────────────────────────
+    const REC_PLACEHOLDERS = [
+      { id:'r1', name:'Geodesic Planter',  category:'Planters', price:2400 },
+      { id:'r2', name:'Prism Vase',        category:'Vases',    price:1800 },
+      { id:'r3', name:'Faceted Pendant',   category:'Lighting', price:4800 },
+      { id:'r4', name:'Angular Bud Vase',  category:'Vases',    price:1200 },
+    ];
+
+    async function renderRecs() {
+      const wishlistIds = wishlist.map(i => i.id);
+      let recs = REC_PLACEHOLDERS.filter(r => !wishlistIds.includes(r.id));
+
+      if (supabase) {
+        try {
+          const { data } = await supabase
+            .from('products')
+            .select('id, name, category, price, image_url')
+            .not('id', 'in', `(${wishlistIds.join(',') || '\'\'\'\''})`  )
+            .limit(4);
+          if (data?.length) recs = data;
+        } catch {}
+      }
+
+      document.getElementById('recGrid').innerHTML = recs.slice(0, 4).map((p, i) => `
+        <div class="rec-card" style="animation-delay:${i * 0.08}s" onclick="viewProduct('${p.id}')">
+          <div class="rec-img">
+            ${p.image_url
+              ? `<img src="${p.image_url}" alt="${p.name}" loading="lazy">`
+              : `<span class="rec-img-placeholder">Image</span>`}
+          </div>
+          <div class="rec-body">
+            <p class="rec-cat">${p.category || ''}</p>
+            <p class="rec-name">${p.name}</p>
+            <p class="rec-price">₹${Number(p.price).toLocaleString('en-IN')}</p>
+          </div>
+        </div>`).join('');
+    }
+
+    // ── Toast ──────────────────────────────────────────
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('visible');
+      setTimeout(() => t.classList.remove('visible'), 2500);
+    }
+
+    // ── Demo wishlist ──────────────────────────────────
+    const DEMO_WISHLIST = [
+      { id:'1', name:'Geodesic Planter',  category:'Planters', price:2400, stock:8, image_url:'', added_at: new Date(Date.now()-2*86400000).toISOString() },
+      { id:'2', name:'Prism Vase',        category:'Vases',    price:1800, stock:3, image_url:'', added_at: new Date(Date.now()-5*86400000).toISOString() },
+      { id:'3', name:'Faceted Pendant',   category:'Lighting', price:4800, stock:0, image_url:'', added_at: new Date(Date.now()-1*86400000).toISOString() },
+    ];
+
+    // ── Public helper — add to wishlist from other pages ──
+    // Call window.addToWishlist({ id, name, category, price, image_url }) from product.html
+    window.addToWishlist = function(item) {
+      const list    = JSON.parse(localStorage.getItem(WISHLIST_KEY) || '[]');
+      const exists  = list.find(i => i.id === item.id);
+      if (exists) {
+        showToast('Already in your wishlist');
+        return false;
+      }
+      list.unshift({ ...item, added_at: new Date().toISOString() });
+      localStorage.setItem(WISHLIST_KEY, JSON.stringify(list));
+
+      if (supabase && currentUser) {
+        supabase.from('wishlists').insert([{
+          user_id:    currentUser.id,
+          product_id: item.id,
+          created_at: new Date().toISOString(),
+        }]).catch(() => {});
+      }
+      showToast(`${item.name} saved to wishlist`);
+      return true;
+    };
+
+    // ── Init ──────────────────────────────────────────
+    init();
+  </script>
+
 </body>
 </html>
