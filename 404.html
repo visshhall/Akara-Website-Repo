@@ -1,21 +1,306 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Page Not Found - Atelier Ākāra</title>
-    <link rel="stylesheet" href="/auth-styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Page Not Found — Atelier Ākāra">
+  <link rel="icon" type="image/png" href="assets/images/favicon.png">
+  <title>404 — Atelier Ākāra</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --teal:       #002b2b;
+      --cream:      #fff8e7;
+      --gold:       #c9a96e;
+      --gold-light: #e2c99a;
+      --text-main:  #fff8e7;
+      --text-muted: rgba(255,248,231,0.55);
+      --border:     rgba(201,169,110,0.25);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Josefin Sans', sans-serif;
+      background: var(--teal);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    /* ─── Background ──────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 15% 5%,  rgba(0,95,95,0.3)  0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 85% 90%,  rgba(0,64,64,0.35) 0%, transparent 55%);
+      pointer-events: none; z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,169,110,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,169,110,0.035) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ─── Minimal header ──────────────────────────── */
+    .site-header {
+      position: relative; z-index: 10;
+      display: flex; align-items: center; justify-content: center;
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .brand-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem; font-weight: 300;
+      letter-spacing: 0.32em; text-transform: uppercase;
+      color: var(--cream); transition: opacity 0.2s;
+    }
+    .brand-logo:hover { opacity: 0.75; }
+
+    /* ─── Main ────────────────────────────────────── */
+    main {
+      position: relative; z-index: 1;
+      flex: 1;
+      display: flex; align-items: center; justify-content: center;
+      padding: 2rem;
+    }
+
+    /* ─── Error Content ───────────────────────────── */
+    .error-content {
+      text-align: center;
+      max-width: 560px;
+      animation: fadeUp 0.8s ease both;
+    }
+
+    /* ─── Giant 404 watermark ─────────────────────── */
+    .error-number {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(8rem, 20vw, 16rem);
+      font-weight: 300;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      /* Outlined / hollow text */
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(201,169,110,0.25);
+      position: relative;
+      margin-bottom: -1rem;
+      user-select: none;
+    }
+
+    /* Floating geo shape behind the 404 */
+    .geo-wrap {
+      position: relative; display: inline-block;
+    }
+    .geo-svg {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -52%);
+      opacity: 0.06;
+      pointer-events: none;
+      animation: slowSpin 30s linear infinite;
+    }
+    @keyframes slowSpin { to { transform: translate(-50%, -52%) rotate(360deg); } }
+
+    /* ─── Text content ────────────────────────────── */
+    .error-eyebrow {
+      font-size: 0.62rem; letter-spacing: 0.4em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.8; margin-bottom: 1rem;
+    }
+    .error-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      font-weight: 300; letter-spacing: 0.1em;
+      color: var(--cream); margin-bottom: 0.75rem; line-height: 1.1;
+    }
+    .error-divider {
+      width: 50px; height: 1px;
+      background: var(--gold); opacity: 0.4;
+      margin: 0 auto 1.25rem;
+    }
+    .error-desc {
+      font-size: 0.78rem; letter-spacing: 0.07em;
+      color: var(--text-muted); line-height: 1.85;
+      margin-bottom: 2.5rem;
+    }
+
+    /* ─── Actions ─────────────────────────────────── */
+    .error-actions {
+      display: flex; gap: 0.75rem; justify-content: center;
+      flex-wrap: wrap; margin-bottom: 3rem;
+    }
+    .btn-primary {
+      display: inline-block; padding: 0.85rem 2.8rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--teal); background: var(--gold);
+      border: 1px solid var(--gold); transition: all 0.25s; cursor: pointer;
+    }
+    .btn-primary:hover { background: transparent; color: var(--gold); }
+    .btn-secondary {
+      display: inline-block; padding: 0.85rem 2.2rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--gold); border: 1px solid var(--border);
+      transition: all 0.25s; cursor: pointer;
+    }
+    .btn-secondary:hover { border-color: var(--gold); background: rgba(201,169,110,0.06); }
+
+    /* ─── Quick links ─────────────────────────────── */
+    .quick-links {
+      display: flex; gap: 2rem; justify-content: center;
+      flex-wrap: wrap;
+    }
+    .quick-link {
+      font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text-muted); opacity: 0.55;
+      transition: color 0.2s, opacity 0.2s;
+      display: flex; align-items: center; gap: 0.35rem;
+    }
+    .quick-link:hover { color: var(--gold); opacity: 1; }
+
+    /* ─── Corner brackets ─────────────────────────── */
+    .corner {
+      position: fixed;
+      width: 60px; height: 60px;
+      border-color: var(--gold);
+      border-style: solid;
+      opacity: 0.2;
+    }
+    .corner.tl { top: 24px; left: 24px; border-width: 1px 0 0 1px; }
+    .corner.tr { top: 24px; right: 24px; border-width: 1px 1px 0 0; }
+    .corner.bl { bottom: 24px; left: 24px; border-width: 0 0 1px 1px; }
+    .corner.br { bottom: 24px; right: 24px; border-width: 0 1px 1px 0; }
+
+    /* ─── Countdown redirect ──────────────────────── */
+    .redirect-hint {
+      font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--text-muted); opacity: 0.4;
+      margin-top: 2rem;
+    }
+    .redirect-hint span { color: var(--gold); opacity: 0.7; }
+
+    /* ─── Footer strip ────────────────────────────── */
+    .site-footer {
+      position: relative; z-index: 1;
+      text-align: center; padding: 1.25rem 2rem;
+      border-top: 1px solid rgba(201,169,110,0.1);
+    }
+    .site-footer p {
+      font-size: 0.58rem; letter-spacing: 0.12em;
+      color: var(--text-muted); opacity: 0.45;
+    }
+
+    /* ─── Animation ───────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── Responsive ──────────────────────────────── */
+    @media (max-width: 480px) {
+      .corner { display: none; }
+      .error-actions { flex-direction: column; align-items: center; }
+      .btn-primary, .btn-secondary { width: 100%; max-width: 280px; text-align: center; }
+    }
+  </style>
 </head>
+
 <body>
-    <div class="error-page">
-        <h1>404</h1>
-        <h2>Page Not Found</h2>
-        <p>The page you're looking for doesn't exist or has been moved.</p>
-        
-        <div class="error-actions">
-            <a href="/" class="btn-primary">Go Home</a>
-            <a href="/catalog.html" class="btn-secondary">Browse Products</a>
-        </div>
+
+  <!-- Corner accents -->
+  <div class="corner tl"></div>
+  <div class="corner tr"></div>
+  <div class="corner bl"></div>
+  <div class="corner br"></div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <a href="index.html" class="brand-logo">ATELIER ĀKĀRA</a>
+  </header>
+
+  <!-- Main -->
+  <main>
+    <div class="error-content">
+
+      <!-- 404 number with geo behind -->
+      <div class="geo-wrap">
+        <svg class="geo-svg" width="320" height="320" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="160,10 310,85 310,235 160,310 10,235 10,85" stroke="#c9a96e" stroke-width="1.5"/>
+          <polygon points="160,45 275,105 275,215 160,275 45,215 45,105" stroke="#c9a96e" stroke-width="1"/>
+          <polygon points="160,80 240,125 240,195 160,240 80,195 80,125" stroke="#c9a96e" stroke-width="0.8"/>
+          <polygon points="160,115 205,140 205,180 160,205 115,180 115,140" stroke="#c9a96e" stroke-width="0.6"/>
+          <line x1="10" y1="85" x2="310" y2="235" stroke="#c9a96e" stroke-width="0.4" opacity="0.6"/>
+          <line x1="310" y1="85" x2="10" y2="235" stroke="#c9a96e" stroke-width="0.4" opacity="0.6"/>
+          <line x1="160" y1="10" x2="160" y2="310" stroke="#c9a96e" stroke-width="0.4" opacity="0.6"/>
+          <circle cx="160" cy="160" r="8" fill="#c9a96e" opacity="0.5"/>
+          <circle cx="160" cy="160" r="30" stroke="#c9a96e" stroke-width="0.6" opacity="0.4"/>
+        </svg>
+        <div class="error-number">404</div>
+      </div>
+
+      <p class="error-eyebrow">Page Not Found</p>
+      <h1 class="error-title">This Space<br>Is Empty</h1>
+      <div class="error-divider"></div>
+      <p class="error-desc">
+        The page you're looking for doesn't exist, has been moved,<br>
+        or the URL may have changed. Let us guide you back.
+      </p>
+
+      <div class="error-actions">
+        <a href="index.html"   class="btn-primary">Return Home</a>
+        <a href="catalog.html" class="btn-secondary">Browse Collection</a>
+      </div>
+
+      <div class="quick-links">
+        <a href="about.html"        class="quick-link">→ About</a>
+        <a href="contact.html"      class="quick-link">→ Contact</a>
+        <a href="user/profile.html" class="quick-link">→ My Account</a>
+        <a href="user/cart.html"    class="quick-link">→ Cart</a>
+      </div>
+
+      <p class="redirect-hint">
+        Redirecting to home in <span id="countdown">10</span>s
+      </p>
+
     </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <p>© <span id="year"></span> Atelier Ākāra &nbsp;|&nbsp; Precision Forge Labs &nbsp;|&nbsp; GST: 27GZCPS9353H1ZQ</p>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Countdown redirect to homepage
+    let count = 10;
+    const countEl = document.getElementById('countdown');
+    const timer = setInterval(() => {
+      count--;
+      if (countEl) countEl.textContent = count;
+      if (count <= 0) {
+        clearInterval(timer);
+        window.location.href = 'index.html';
+      }
+    }, 1000);
+
+    // Cancel countdown if user interacts
+    document.addEventListener('click', () => clearInterval(timer), { once: true });
+    document.addEventListener('keydown', () => clearInterval(timer), { once: true });
+  </script>
+
 </body>
 </html>

@@ -1,43 +1,926 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sales Reports - Admin</title>
-    <link rel="stylesheet" href="/auth-styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sales Reports — Atelier Ākāra Admin">
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+  <title>Reports — Studio Control</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --teal:       #002b2b;
+      --teal-mid:   #004040;
+      --cream:      #fff8e7;
+      --gold:       #c9a96e;
+      --gold-light: #e2c99a;
+      --text-main:  #fff8e7;
+      --text-muted: rgba(255,248,231,0.55);
+      --border:     rgba(201,169,110,0.25);
+      --border-dim: rgba(201,169,110,0.12);
+      --card-bg:    rgba(255,248,231,0.03);
+      --input-bg:   rgba(255,248,231,0.05);
+      --error:      #e07070;
+      --success:    #70c9a0;
+      --warning:    #e2a96e;
+      --sidebar-w:  240px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Josefin Sans', sans-serif;
+      background: var(--teal); color: var(--text-main);
+      min-height: 100vh; overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 5% 0%,   rgba(0,95,95,0.22) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 50% at 95% 100%, rgba(0,64,64,0.28) 0%, transparent 55%);
+      pointer-events: none; z-index: 0;
+    }
+    body::after {
+      content: ''; position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,169,110,0.028) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,169,110,0.028) 1px, transparent 1px);
+      background-size: 60px 60px; pointer-events: none; z-index: 0;
+    }
+
+    /* ─── Auth Gate ─────────────────────────────────── */
+    .auth-gate { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; background: var(--teal); }
+    .auth-gate.hidden { display: none; }
+    .auth-box { width: 100%; max-width: 360px; padding: 3rem 2.5rem; background: var(--card-bg); border: 1px solid var(--border); animation: fadeUp 0.6s ease both; text-align: center; }
+    .auth-box-logo { font-family: 'Cormorant Garamond', serif; font-size: 0.9rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--cream); margin-bottom: 0.2rem; }
+    .auth-box-sub  { font-size: 0.55rem; letter-spacing: 0.4em; text-transform: uppercase; color: var(--gold); opacity: 0.7; margin-bottom: 2rem; }
+    .auth-divider  { width: 32px; height: 1px; background: var(--gold); opacity: 0.3; margin: 0 auto 1.75rem; }
+    .auth-field    { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 1rem; text-align: left; }
+    .auth-field label { font-size: 0.56rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); opacity: 0.8; }
+    .auth-field input { background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main); font-family: 'Josefin Sans', sans-serif; font-size: 0.75rem; letter-spacing: 0.08em; padding: 0.72rem 1rem; outline: none; width: 100%; transition: border-color 0.2s; }
+    .auth-field input::placeholder { color: var(--text-muted); }
+    .auth-field input:focus { border-color: rgba(201,169,110,0.55); }
+    .btn-auth { display: block; width: 100%; padding: 0.82rem; font-family: 'Josefin Sans', sans-serif; font-size: 0.63rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--teal); background: var(--gold); border: 1px solid var(--gold); cursor: pointer; transition: all 0.25s; margin-top: 0.25rem; }
+    .btn-auth:hover { background: transparent; color: var(--gold); }
+    .btn-auth:disabled { opacity: 0.5; cursor: not-allowed; background: var(--gold); color: var(--teal); }
+    .auth-err { font-size: 0.62rem; letter-spacing: 0.08em; color: var(--error); margin-top: 0.6rem; display: none; }
+    .auth-err.visible { display: block; }
+
+    /* ─── Sidebar ───────────────────────────────────── */
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w); z-index: 100; background: rgba(0,30,30,0.88); backdrop-filter: blur(20px); border-right: 1px solid var(--border); display: flex; flex-direction: column; transition: transform 0.3s ease; }
+    .sidebar.collapsed { transform: translateX(-100%); }
+    .sidebar-brand { padding: 1.5rem 1.75rem; border-bottom: 1px solid var(--border-dim); }
+    .sidebar-brand-name { font-family: 'Cormorant Garamond', serif; font-size: 0.95rem; font-weight: 300; letter-spacing: 0.28em; text-transform: uppercase; color: var(--cream); }
+    .sidebar-brand-tag  { font-size: 0.5rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); opacity: 0.6; margin-top: 0.2rem; }
+    .sidebar-nav { flex: 1; padding: 1.25rem 0; overflow-y: auto; }
+    .nav-section-label { font-size: 0.5rem; letter-spacing: 0.4em; text-transform: uppercase; color: var(--gold); opacity: 0.5; padding: 0.5rem 1.75rem 0.3rem; }
+    .sidebar-link { display: flex; align-items: center; gap: 0.7rem; padding: 0.65rem 1.75rem; font-size: 0.63rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-muted); cursor: pointer; border-left: 2px solid transparent; transition: all 0.2s; background: none; border-top: none; border-right: none; border-bottom: none; width: 100%; text-align: left; font-family: 'Josefin Sans', sans-serif; text-decoration: none; }
+    .sidebar-link:hover  { color: var(--gold-light); border-left-color: rgba(201,169,110,0.3); }
+    .sidebar-link.active { color: var(--gold); border-left-color: var(--gold); }
+    .link-icon { font-size: 0.82rem; opacity: 0.7; flex-shrink: 0; }
+    .sidebar-footer { padding: 1.25rem 1.75rem; border-top: 1px solid var(--border-dim); }
+    .sidebar-user-email { font-size: 0.58rem; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 0.6rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .btn-signout { background: none; border: 1px solid var(--border); color: var(--text-muted); font-family: 'Josefin Sans', sans-serif; font-size: 0.56rem; letter-spacing: 0.2em; text-transform: uppercase; padding: 0.42rem 0.85rem; cursor: pointer; transition: all 0.2s; width: 100%; }
+    .btn-signout:hover { border-color: var(--error); color: var(--error); }
+
+    /* ─── Main ──────────────────────────────────────── */
+    .admin-main { margin-left: var(--sidebar-w); position: relative; z-index: 1; min-height: 100vh; transition: margin-left 0.3s ease; }
+    .admin-main.expanded { margin-left: 0; }
+
+    .top-bar { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 2.5rem; border-bottom: 1px solid var(--border); background: rgba(0,30,30,0.6); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 50; gap: 1rem; flex-wrap: wrap; }
+    .top-bar-left { display: flex; align-items: center; gap: 1rem; }
+    .sidebar-toggle { background: none; border: none; color: var(--text-muted); font-size: 1rem; cursor: pointer; transition: color 0.2s; display: none; }
+    .sidebar-toggle:hover { color: var(--gold); }
+    .top-bar-title { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 300; letter-spacing: 0.1em; color: var(--cream); }
+    .breadcrumb { font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem; }
+    .breadcrumb a { color: var(--gold); opacity: 0.65; transition: opacity 0.2s; }
+    .breadcrumb a:hover { opacity: 1; }
+    .breadcrumb span { opacity: 0.3; }
+    .top-bar-right { display: flex; align-items: center; gap: 1.25rem; }
+    .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); opacity: 0.8; animation: pulse 2s ease infinite; }
+    @keyframes pulse { 0%,100% { opacity: 0.8; } 50% { opacity: 0.3; } }
+    .top-bar-time { font-size: 0.6rem; letter-spacing: 0.15em; color: var(--text-muted); opacity: 0.55; }
+
+    /* ─── Page Content ──────────────────────────────── */
+    .page-content { padding: 2.5rem; max-width: 1400px; }
+
+    /* ─── Report Controls ───────────────────────────── */
+    .report-controls {
+      background: var(--card-bg); border: 1px solid var(--border);
+      padding: 1.5rem 2rem;
+      display: flex; align-items: flex-end; gap: 1.25rem; flex-wrap: wrap;
+      margin-bottom: 2rem;
+      animation: fadeUp 0.5s ease both;
+    }
+    .control-field { display: flex; flex-direction: column; gap: 0.35rem; }
+    .control-label { font-size: 0.57rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); opacity: 0.8; }
+    .control-select,
+    .control-input {
+      background: var(--input-bg); border: 1px solid var(--border);
+      color: var(--text-main); font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.7rem; letter-spacing: 0.08em;
+      padding: 0.62rem 0.9rem; outline: none;
+      transition: border-color 0.2s; -webkit-appearance: none;
+      min-width: 160px;
+    }
+    .control-select:focus, .control-input:focus { border-color: rgba(201,169,110,0.55); }
+    .control-select option { background: var(--teal); }
+    .control-input { min-width: 130px; }
+
+    .btn-generate {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.65rem 1.75rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.63rem; letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--teal); background: var(--gold);
+      border: 1px solid var(--gold); cursor: pointer; transition: all 0.25s;
+    }
+    .btn-generate:hover { background: transparent; color: var(--gold); }
+    .btn-generate:disabled { opacity: 0.5; cursor: not-allowed; background: var(--gold); color: var(--teal); }
+
+    .btn-export-pdf {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.65rem 1.4rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.6rem; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--text-muted); border: 1px solid var(--border);
+      background: none; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-export-pdf:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ─── Report Period Label ───────────────────────── */
+    .report-period-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.75rem; flex-wrap: wrap; gap: 0.5rem;
+    }
+    .period-label {
+      font-size: 0.6rem; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.7;
+    }
+    .period-dates {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem; font-weight: 300; letter-spacing: 0.1em; color: var(--cream);
+    }
+
+    /* ─── Stats Grid ────────────────────────────────── */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; margin-bottom: 2rem; }
+    .stat-card { background: var(--card-bg); border: 1px solid var(--border); padding: 1.75rem; text-align: center; transition: border-color 0.3s; animation: fadeUp 0.5s ease both; }
+    .stat-card:hover { border-color: rgba(201,169,110,0.4); }
+    .stat-card:nth-child(1) { animation-delay: 0.05s; }
+    .stat-card:nth-child(2) { animation-delay: 0.10s; }
+    .stat-card:nth-child(3) { animation-delay: 0.15s; }
+    .stat-card:nth-child(4) { animation-delay: 0.20s; }
+    .stat-icon  { font-size: 1rem; opacity: 0.35; margin-bottom: 0.6rem; }
+    .stat-value { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.8rem, 3vw, 2.8rem); font-weight: 300; color: var(--gold); letter-spacing: 0.05em; line-height: 1; margin-bottom: 0.35rem; }
+    .stat-label { font-size: 0.56rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--text-muted); }
+    .stat-delta { font-size: 0.58rem; letter-spacing: 0.08em; margin-top: 0.4rem; opacity: 0.7; }
+    .stat-delta.up   { color: var(--success); }
+    .stat-delta.down { color: var(--error); }
+    .stat-delta.same { color: var(--text-muted); }
+
+    /* ─── Section Card ──────────────────────────────── */
+    .section-card { background: var(--card-bg); border: 1px solid var(--border); margin-bottom: 1.75rem; animation: fadeUp 0.5s ease both; }
+    .section-card:nth-child(2) { animation-delay: 0.1s; }
+    .section-card:nth-child(3) { animation-delay: 0.2s; }
+    .section-header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.75rem; border-bottom: 1px solid var(--border-dim); flex-wrap: wrap; gap: 0.75rem; }
+    .section-header h2 { font-size: 0.6rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); opacity: 0.8; }
+
+    /* ─── Charts (pure CSS bar charts) ─────────────── */
+    .bar-chart { padding: 1.75rem; }
+    .bar-chart-title { font-size: 0.58rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); opacity: 0.65; margin-bottom: 1.25rem; }
+    .bar-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.85rem; }
+    .bar-label { font-size: 0.62rem; letter-spacing: 0.07em; color: var(--text-muted); width: 100px; flex-shrink: 0; }
+    .bar-track { flex: 1; height: 8px; background: rgba(255,248,231,0.07); position: relative; }
+    .bar-fill  { height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-light)); transition: width 1s ease; }
+    .bar-fill.dim { background: rgba(201,169,110,0.3); }
+    .bar-value { font-size: 0.65rem; letter-spacing: 0.06em; color: var(--gold-light); width: 90px; text-align: right; flex-shrink: 0; }
+
+    /* Revenue by month — taller bars */
+    .bar-row-tall .bar-track { height: 20px; }
+    .bar-row-tall .bar-label { width: 80px; }
+
+    /* ─── Two-column chart layout ───────────────────── */
+    .charts-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 1.75rem; margin-bottom: 1.75rem; }
+
+    /* ─── Table ─────────────────────────────────────── */
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th { font-size: 0.56rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--text-muted); padding: 0.82rem 1.75rem; border-bottom: 1px solid var(--border-dim); text-align: left; white-space: nowrap; }
+    .data-table td { font-size: 0.68rem; letter-spacing: 0.05em; color: var(--text-muted); padding: 0.9rem 1.75rem; border-bottom: 1px solid var(--border-dim); vertical-align: middle; }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: rgba(255,248,231,0.02); }
+    .cell-name   { font-size: 0.7rem; letter-spacing: 0.06em; color: var(--cream); }
+    .cell-amount { font-size: 0.72rem; color: var(--gold-light); }
+    .cell-mono   { font-family: 'Courier New', monospace; font-size: 0.63rem; color: var(--gold); letter-spacing: 0.1em; }
+    .rank-num    { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 300; color: var(--gold); opacity: 0.5; }
+
+    /* ─── Donut chart (CSS) ─────────────────────────── */
+    .donut-wrap { display: flex; align-items: center; gap: 2rem; padding: 1.75rem; }
+    .donut-svg  { width: 120px; height: 120px; flex-shrink: 0; transform: rotate(-90deg); }
+    .donut-legend { flex: 1; display: flex; flex-direction: column; gap: 0.65rem; }
+    .legend-item { display: flex; align-items: center; gap: 0.6rem; }
+    .legend-dot  { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .legend-name { font-size: 0.65rem; letter-spacing: 0.06em; color: var(--text-muted); flex: 1; }
+    .legend-val  { font-size: 0.65rem; letter-spacing: 0.06em; color: var(--gold-light); }
+
+    /* ─── Report tabs ───────────────────────────────── */
+    .report-tabs { display: flex; border-bottom: 1px solid var(--border-dim); padding: 0 1.75rem; margin-bottom: 1.75rem; }
+    .report-tab  { background: none; border: none; border-bottom: 2px solid transparent; font-family: 'Josefin Sans', sans-serif; font-size: 0.6rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-muted); padding: 0.75rem 1.25rem; cursor: pointer; transition: all 0.2s; margin-bottom: -1px; }
+    .report-tab:hover { color: var(--gold-light); }
+    .report-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+    /* Report panel */
+    .report-panel { display: none; animation: fadeUp 0.4s ease both; }
+    .report-panel.active { display: block; }
+
+    /* ─── Insight cards ─────────────────────────────── */
+    .insights-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; padding: 1.75rem; }
+    .insight-card  { border: 1px solid var(--border-dim); padding: 1.25rem; }
+    .insight-label { font-size: 0.55rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); opacity: 0.65; margin-bottom: 0.5rem; }
+    .insight-value {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem; font-weight: 300; color: var(--cream); letter-spacing: 0.05em; margin-bottom: 0.25rem;
+    }
+    .insight-sub { font-size: 0.62rem; letter-spacing: 0.06em; color: var(--text-muted); line-height: 1.6; }
+
+    /* ─── Export / Print ────────────────────────────── */
+    .export-row { display: flex; gap: 0.75rem; padding: 1.25rem 1.75rem; border-top: 1px solid var(--border-dim); flex-wrap: wrap; }
+    .btn-dl { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.52rem 1.1rem; font-family: 'Josefin Sans', sans-serif; font-size: 0.58rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-muted); border: 1px solid var(--border); background: none; cursor: pointer; transition: all 0.2s; }
+    .btn-dl:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* Utility */
+    .state-msg { text-align: center; padding: 4rem 2rem; font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-muted); }
+    .toast { position: fixed; bottom: 2rem; right: 2rem; z-index: 300; background: var(--gold); color: var(--teal); font-family: 'Josefin Sans', sans-serif; font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; padding: 0.75rem 1.5rem; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+    .toast.visible { opacity: 1; }
+    .admin-footer { padding: 1.25rem 2.5rem; border-top: 1px solid var(--border-dim); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+    .admin-footer p { font-size: 0.56rem; letter-spacing: 0.12em; color: var(--text-muted); opacity: 0.4; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 1100px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .charts-grid { grid-template-columns: 1fr; } .insights-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 900px)  { .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); } .admin-main { margin-left: 0; } .sidebar-toggle { display: block; } }
+    @media (max-width: 600px)  { .page-content { padding: 1.5rem; } .stats-grid { grid-template-columns: 1fr 1fr; } .insights-grid { grid-template-columns: 1fr; } }
+  </style>
 </head>
 <body>
-    <header class="site-header">
-        <nav class="nav-container">
-            <div class="nav-center">
-                <a href="/admin/dashboard.html" class="brand-logo">ADMIN PANEL</a>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- ══ AUTH GATE ══════════════════════════════════════ -->
+  <div class="auth-gate" id="authGate">
+    <div class="auth-box">
+      <div class="auth-box-logo">ATELIER ĀKĀRA</div>
+      <div class="auth-box-sub">Studio Control</div>
+      <div class="auth-divider"></div>
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="adminEmail" placeholder="admin@akaraonline.co.in" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="adminPassword" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn-auth" id="adminLoginBtn" onclick="handleAdminLogin()">Enter Studio</button>
+      <p class="auth-err" id="authErr"></p>
+    </div>
+  </div>
+
+  <!-- ══ SIDEBAR ══════════════════════════════════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-name">ĀKĀRA</div>
+      <div class="sidebar-brand-tag">Studio Control</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="sidebar-link"><span class="link-icon">⬡</span> Dashboard</a>
+      <div class="nav-section-label">Manage</div>
+      <a href="admin-orders.html" class="sidebar-link"><span class="link-icon">↗</span> Orders</a>
+      <a href="inventory.html"    class="sidebar-link"><span class="link-icon">◈</span> Inventory</a>
+      <a href="customers.html"    class="sidebar-link"><span class="link-icon">🛍</span> Customers</a>
+      <a href="users.html"        class="sidebar-link"><span class="link-icon">👥</span> Members</a>
+      <div class="nav-section-label">Analytics</div>
+      <a href="reports.html" class="sidebar-link active"><span class="link-icon">↑</span> Reports</a>
+      <div class="nav-section-label">System</div>
+      <a href="settings.html" class="sidebar-link"><span class="link-icon">⊙</span> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <p class="sidebar-user-email" id="sidebarEmail">—</p>
+      <button class="btn-signout" onclick="handleSignOut()">Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN ══════════════════════════════════════════ -->
+  <div class="admin-main" id="adminMain">
+
+    <div class="top-bar">
+      <div class="top-bar-left">
+        <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+        <div>
+          <div class="top-bar-title">Sales Reports</div>
+          <nav class="breadcrumb">
+            <a href="dashboard.html">Dashboard</a>
+            <span>/</span> Reports
+          </nav>
+        </div>
+      </div>
+      <div class="top-bar-right">
+        <div class="live-dot"></div>
+        <span class="top-bar-time" id="liveClock"></span>
+        <a href="../index.html" style="font-size:0.58rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-muted);transition:color 0.2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text-muted)'">← Store</a>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- ── Report Controls ── -->
+      <div class="report-controls">
+        <div class="control-field">
+          <label class="control-label">Report Type</label>
+          <select class="control-select" id="reportType">
+            <option value="sales">Sales Summary</option>
+            <option value="products">Product Performance</option>
+            <option value="customers">Customer Analytics</option>
+            <option value="gst">GST Report</option>
+          </select>
+        </div>
+        <div class="control-field">
+          <label class="control-label">Time Period</label>
+          <select class="control-select" id="timePeriod" onchange="onPeriodChange()">
+            <option value="this_month">This Month</option>
+            <option value="last_month">Last Month</option>
+            <option value="last_3months">Last 3 Months</option>
+            <option value="last_6months">Last 6 Months</option>
+            <option value="this_year">This Year</option>
+            <option value="last_year">Last Year</option>
+            <option value="custom">Custom Range</option>
+          </select>
+        </div>
+        <div class="control-field" id="dateFromField" style="display:none;">
+          <label class="control-label">From</label>
+          <input type="date" class="control-input" id="dateFrom">
+        </div>
+        <div class="control-field" id="dateToField" style="display:none;">
+          <label class="control-label">To</label>
+          <input type="date" class="control-input" id="dateTo">
+        </div>
+        <button class="btn-generate" id="generateBtn" onclick="generateReport()">
+          ↑ Generate Report
+        </button>
+        <button class="btn-export-pdf" onclick="exportCSV()">↓ Export CSV</button>
+      </div>
+
+      <!-- ── Report Content ── -->
+      <div id="reportContent">
+        <div class="state-msg">Select a report type and period, then click Generate Report.</div>
+      </div>
+
+    </div>
+
+    <div class="admin-footer">
+      <p>Precision Forge Labs &nbsp;|&nbsp; GST: 27GZCPS9353H1ZQ</p>
+      <p>Studio Control v1.0 &nbsp;·&nbsp; Atelier Ākāra</p>
+    </div>
+  </div>
+
+  <script>
+    // ─────────────────────────────────────────────────
+    // CREDENTIALS
+    // ─────────────────────────────────────────────────
+    const SUPABASE_URL      = '';
+    const SUPABASE_ANON_KEY = '';
+    const ADMIN_EMAIL       = 'support@akaraonline.co.in';
+
+    let supabase     = null;
+    let reportData   = null;
+
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    // ── Clock ─────────────────────────────────────────
+    setInterval(() => {
+      document.getElementById('liveClock').textContent =
+        new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    }, 1000);
+
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+    // ── Auth ──────────────────────────────────────────
+    async function handleAdminLogin() {
+      const email = document.getElementById('adminEmail').value.trim();
+      const pass  = document.getElementById('adminPassword').value;
+      const btn   = document.getElementById('adminLoginBtn');
+      const errEl = document.getElementById('authErr');
+      btn.disabled = true; btn.textContent = 'Verifying…';
+      errEl.classList.remove('visible');
+
+      if (!supabase) {
+        await new Promise(r => setTimeout(r, 700));
+        showDashboard('demo@akaraonline.co.in');
+        return;
+      }
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
+      btn.disabled = false; btn.textContent = 'Enter Studio';
+      if (error) { errEl.textContent = error.message; errEl.classList.add('visible'); return; }
+      if (data.user.email !== ADMIN_EMAIL) { await supabase.auth.signOut(); errEl.textContent = 'Access denied.'; errEl.classList.add('visible'); return; }
+      showDashboard(data.user.email);
+    }
+
+    function showDashboard(email) {
+      document.getElementById('authGate').classList.add('hidden');
+      document.getElementById('sidebarEmail').textContent = email;
+      // Auto-generate default report
+      generateReport();
+    }
+
+    async function handleSignOut() {
+      if (supabase) await supabase.auth.signOut();
+      document.getElementById('authGate').classList.remove('hidden');
+    }
+
+    async function checkSession() {
+      if (!supabase) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session && session.user.email === ADMIN_EMAIL) showDashboard(session.user.email);
+    }
+    checkSession();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('adminPassword')?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') handleAdminLogin();
+      });
+    });
+
+    // ── Period change ─────────────────────────────────
+    function onPeriodChange() {
+      const isCustom = document.getElementById('timePeriod').value === 'custom';
+      document.getElementById('dateFromField').style.display = isCustom ? 'flex' : 'none';
+      document.getElementById('dateToField').style.display   = isCustom ? 'flex' : 'none';
+    }
+
+    // ── Date range helpers ────────────────────────────
+    function getPeriodRange() {
+      const period = document.getElementById('timePeriod').value;
+      const now    = new Date();
+      let from, to = new Date();
+
+      if (period === 'custom') {
+        from = new Date(document.getElementById('dateFrom').value);
+        to   = new Date(document.getElementById('dateTo').value);
+        return { from, to };
+      }
+
+      if (period === 'this_month')   { from = new Date(now.getFullYear(), now.getMonth(), 1); }
+      if (period === 'last_month')   { from = new Date(now.getFullYear(), now.getMonth()-1, 1); to = new Date(now.getFullYear(), now.getMonth(), 0); }
+      if (period === 'last_3months') { from = new Date(now.getFullYear(), now.getMonth()-3, 1); }
+      if (period === 'last_6months') { from = new Date(now.getFullYear(), now.getMonth()-6, 1); }
+      if (period === 'this_year')    { from = new Date(now.getFullYear(), 0, 1); }
+      if (period === 'last_year')    { from = new Date(now.getFullYear()-1, 0, 1); to = new Date(now.getFullYear()-1, 11, 31); }
+
+      return { from: from || new Date(now.getFullYear(), now.getMonth(), 1), to };
+    }
+
+    function fmtDate(d) {
+      return d.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+    }
+
+    // ── Generate report ───────────────────────────────
+    async function generateReport() {
+      const type = document.getElementById('reportType').value;
+      const btn  = document.getElementById('generateBtn');
+      btn.disabled = true; btn.textContent = '↑ Generating…';
+
+      const { from, to } = getPeriodRange();
+
+      // Fetch data from Supabase or use demo
+      let orders = DEMO_ORDERS;
+      if (supabase) {
+        try {
+          const { data } = await supabase
+            .from('orders')
+            .select('*')
+            .gte('created_at', from.toISOString())
+            .lte('created_at', to.toISOString())
+            .order('created_at', { ascending: false });
+          if (data?.length) orders = data;
+        } catch {}
+      }
+
+      reportData = { type, from, to, orders };
+
+      btn.disabled = false; btn.textContent = '↑ Generate Report';
+
+      // Render by type
+      if (type === 'sales')     renderSalesReport(from, to, orders);
+      if (type === 'products')  renderProductsReport(from, to, orders);
+      if (type === 'customers') renderCustomersReport(from, to, orders);
+      if (type === 'gst')       renderGSTReport(from, to, orders);
+    }
+
+    // ─────────────────────────────────────────────────
+    // REPORT RENDERERS
+    // ─────────────────────────────────────────────────
+
+    // ── 1. Sales Summary ──────────────────────────────
+    function renderSalesReport(from, to, orders) {
+      const paid       = orders.filter(o => o.payment_status === 'paid');
+      const revenue    = paid.reduce((s, o) => s + parseFloat(o.total || 0), 0);
+      const gst        = Math.round(revenue - revenue / 1.18);
+      const avgOrder   = paid.length ? Math.round(revenue / paid.length) : 0;
+      const cancelled  = orders.filter(o => o.status === 'cancelled').length;
+      const convRate   = orders.length ? ((paid.length / orders.length) * 100).toFixed(1) : 0;
+
+      // Group by month for trend
+      const monthlyRevenue = groupByMonth(paid);
+      const maxRev = Math.max(...Object.values(monthlyRevenue), 1);
+
+      // Group by category
+      const byCat = {};
+      paid.forEach(o => {
+        (o.items || []).forEach(item => {
+          const cat = item.category || 'Other';
+          byCat[cat] = (byCat[cat] || 0) + parseFloat((item.price || 0) * (item.qty || 1));
+        });
+      });
+      const catTotal = Object.values(byCat).reduce((s, v) => s + v, 0) || 1;
+
+      document.getElementById('reportContent').innerHTML = `
+        <div class="report-period-bar">
+          <span class="period-label">Sales Summary</span>
+          <span class="period-dates">${fmtDate(from)} — ${fmtDate(to)}</span>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">₹</div>
+            <div class="stat-value">₹${revenue.toLocaleString('en-IN')}</div>
+            <div class="stat-label">Total Revenue</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">↗</div>
+            <div class="stat-value">${paid.length}</div>
+            <div class="stat-label">Paid Orders</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">⊙</div>
+            <div class="stat-value">₹${avgOrder.toLocaleString('en-IN')}</div>
+            <div class="stat-label">Avg Order Value</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">%</div>
+            <div class="stat-value">${convRate}%</div>
+            <div class="stat-label">Conversion Rate</div>
+          </div>
+        </div>
+
+        <div class="charts-grid">
+          <!-- Revenue by month -->
+          <div class="section-card">
+            <div class="section-header"><h2>Revenue Trend</h2></div>
+            <div class="bar-chart">
+              ${Object.entries(monthlyRevenue).map(([month, rev]) => `
+                <div class="bar-row bar-row-tall">
+                  <span class="bar-label">${month}</span>
+                  <div class="bar-track"><div class="bar-fill" style="width:${(rev/maxRev*100).toFixed(1)}%"></div></div>
+                  <span class="bar-value">₹${rev.toLocaleString('en-IN')}</span>
+                </div>`).join('') || '<p class="state-msg" style="padding:1.5rem;">No data for this period</p>'}
             </div>
-        </nav>
-    </header>
-    
-    <main class="admin-page">
-        <h1>Sales Reports</h1>
-        
-        <div class="report-filters">
-            <select id="reportType">
-                <option>Sales Summary</option>
-                <option>Product Performance</option>
-                <option>Customer Analytics</option>
-            </select>
-            
-            <select id="timePeriod">
-                <option>This Month</option>
-                <option>Last Month</option>
-                <option>This Year</option>
-            </select>
-            
-            <button class="btn-primary">Generate Report</button>
-            <button class="btn-secondary">Export PDF</button>
+          </div>
+
+          <!-- Revenue by category (donut-style) -->
+          <div class="section-card">
+            <div class="section-header"><h2>Revenue by Category</h2></div>
+            <div class="bar-chart">
+              ${Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([cat, val]) => `
+                <div class="bar-row">
+                  <span class="bar-label">${cat}</span>
+                  <div class="bar-track"><div class="bar-fill" style="width:${(val/catTotal*100).toFixed(1)}%"></div></div>
+                  <span class="bar-value">${(val/catTotal*100).toFixed(0)}%</span>
+                </div>`).join('') || '<p class="state-msg" style="padding:1.5rem;">No category data</p>'}
+            </div>
+          </div>
         </div>
-        
-        <div id="reportContent">
-            <!-- Report data loaded here -->
+
+        <!-- GST Summary -->
+        <div class="section-card">
+          <div class="section-header"><h2>GST Breakdown</h2></div>
+          <div class="insights-grid">
+            <div class="insight-card">
+              <div class="insight-label">Taxable Value (Base)</div>
+              <div class="insight-value">₹${Math.round(revenue - gst).toLocaleString('en-IN')}</div>
+              <div class="insight-sub">Revenue before GST</div>
+            </div>
+            <div class="insight-card">
+              <div class="insight-label">Total GST Collected</div>
+              <div class="insight-value">₹${gst.toLocaleString('en-IN')}</div>
+              <div class="insight-sub">CGST ₹${Math.round(gst/2).toLocaleString('en-IN')} + SGST ₹${Math.round(gst/2).toLocaleString('en-IN')} (Maharashtra)</div>
+            </div>
+            <div class="insight-card">
+              <div class="insight-label">Cancelled Orders</div>
+              <div class="insight-value">${cancelled}</div>
+              <div class="insight-sub">${orders.length} total orders this period</div>
+            </div>
+          </div>
+          <div class="export-row">
+            <button class="btn-dl" onclick="exportCSV()">↓ Export CSV</button>
+            <button class="btn-dl" onclick="window.print()">⎙ Print</button>
+          </div>
+        </div>`;
+    }
+
+    // ── 2. Product Performance ────────────────────────
+    function renderProductsReport(from, to, orders) {
+      const paid = orders.filter(o => o.payment_status === 'paid');
+
+      // Aggregate by product
+      const byProduct = {};
+      paid.forEach(o => {
+        (o.items || []).forEach(item => {
+          const key = item.name || 'Unknown';
+          if (!byProduct[key]) byProduct[key] = { name: key, category: item.category || '', qty: 0, revenue: 0 };
+          byProduct[key].qty     += item.qty || 1;
+          byProduct[key].revenue += parseFloat((item.price || 0) * (item.qty || 1));
+        });
+      });
+
+      const products = Object.values(byProduct).sort((a, b) => b.revenue - a.revenue);
+      const maxRev   = Math.max(...products.map(p => p.revenue), 1);
+
+      document.getElementById('reportContent').innerHTML = `
+        <div class="report-period-bar">
+          <span class="period-label">Product Performance</span>
+          <span class="period-dates">${fmtDate(from)} — ${fmtDate(to)}</span>
         </div>
-    </main>
+
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-icon">◈</div><div class="stat-value">${products.length}</div><div class="stat-label">Products Sold</div></div>
+          <div class="stat-card"><div class="stat-icon">⬡</div><div class="stat-value">${products.reduce((s,p)=>s+p.qty,0)}</div><div class="stat-label">Units Sold</div></div>
+          <div class="stat-card"><div class="stat-icon">₹</div><div class="stat-value">₹${products.reduce((s,p)=>s+p.revenue,0).toLocaleString('en-IN')}</div><div class="stat-label">Product Revenue</div></div>
+          <div class="stat-card"><div class="stat-icon">↑</div><div class="stat-value">${products[0]?.name?.split(' ')[0] || '—'}</div><div class="stat-label">Top Product</div></div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header"><h2>Top Products by Revenue</h2></div>
+          <div class="bar-chart">
+            ${products.slice(0, 10).map((p, i) => `
+              <div class="bar-row bar-row-tall">
+                <span class="bar-label">${p.name}</span>
+                <div class="bar-track"><div class="bar-fill${i > 0 ? ' dim' : ''}" style="width:${(p.revenue/maxRev*100).toFixed(1)}%"></div></div>
+                <span class="bar-value">₹${p.revenue.toLocaleString('en-IN')}</span>
+              </div>`).join('') || '<p class="state-msg" style="padding:1.5rem;">No product data for this period</p>'}
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header"><h2>Product Details</h2></div>
+          <table class="data-table">
+            <thead><tr>
+              <th>#</th><th>Product</th><th>Category</th><th>Units Sold</th><th>Revenue</th>
+            </tr></thead>
+            <tbody>
+              ${products.map((p, i) => `
+                <tr>
+                  <td><span class="rank-num">${i+1}</span></td>
+                  <td class="cell-name">${p.name}</td>
+                  <td style="font-size:0.63rem;color:var(--text-muted);">${p.category}</td>
+                  <td>${p.qty}</td>
+                  <td class="cell-amount">₹${p.revenue.toLocaleString('en-IN')}</td>
+                </tr>`).join('') || '<tr><td colspan="5" class="state-msg">No data</td></tr>'}
+            </tbody>
+          </table>
+          <div class="export-row">
+            <button class="btn-dl" onclick="exportCSV()">↓ Export CSV</button>
+          </div>
+        </div>`;
+    }
+
+    // ── 3. Customer Analytics ─────────────────────────
+    function renderCustomersReport(from, to, orders) {
+      const paid     = orders.filter(o => o.payment_status === 'paid');
+      const uniqueEmails = new Set(paid.map(o => o.customer?.email || o.customer_email).filter(Boolean));
+      const newCust  = uniqueEmails.size;
+      const totalRev = paid.reduce((s, o) => s + parseFloat(o.total || 0), 0);
+      const avgLTV   = newCust ? Math.round(totalRev / newCust) : 0;
+
+      // Top customers
+      const byCust = {};
+      paid.forEach(o => {
+        const email = o.customer?.email || o.customer_email || 'guest';
+        const name  = o.customer_name || (o.customer ? `${o.customer.first_name||''} ${o.customer.last_name||''}`.trim() : 'Guest');
+        if (!byCust[email]) byCust[email] = { name, email, orders: 0, spent: 0 };
+        byCust[email].orders++;
+        byCust[email].spent += parseFloat(o.total || 0);
+      });
+
+      const customers = Object.values(byCust).sort((a, b) => b.spent - a.spent);
+
+      // Payment method breakdown
+      const byMethod = {};
+      paid.forEach(o => {
+        const m = o.payment_method || 'unknown';
+        byMethod[m] = (byMethod[m] || 0) + 1;
+      });
+      const methodTotal = paid.length || 1;
+
+      document.getElementById('reportContent').innerHTML = `
+        <div class="report-period-bar">
+          <span class="period-label">Customer Analytics</span>
+          <span class="period-dates">${fmtDate(from)} — ${fmtDate(to)}</span>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value">${newCust}</div><div class="stat-label">Unique Buyers</div></div>
+          <div class="stat-card"><div class="stat-icon">₹</div><div class="stat-value">₹${avgLTV.toLocaleString('en-IN')}</div><div class="stat-label">Avg Customer Value</div></div>
+          <div class="stat-card"><div class="stat-icon">↗</div><div class="stat-value">${paid.length}</div><div class="stat-label">Orders</div></div>
+          <div class="stat-card"><div class="stat-icon">⊙</div><div class="stat-value">${newCust ? (paid.length / newCust).toFixed(1) : 0}</div><div class="stat-label">Orders / Customer</div></div>
+        </div>
+
+        <div class="charts-grid">
+          <div class="section-card">
+            <div class="section-header"><h2>Top Customers by Spend</h2></div>
+            <table class="data-table">
+              <thead><tr><th>#</th><th>Customer</th><th>Orders</th><th>Total Spent</th></tr></thead>
+              <tbody>
+                ${customers.slice(0, 8).map((c, i) => `
+                  <tr>
+                    <td><span class="rank-num">${i+1}</span></td>
+                    <td>
+                      <div class="cell-name">${c.name || 'Guest'}</div>
+                      <div style="font-size:0.58rem;color:var(--text-muted);opacity:0.6;">${c.email}</div>
+                    </td>
+                    <td>${c.orders}</td>
+                    <td class="cell-amount">₹${c.spent.toLocaleString('en-IN')}</td>
+                  </tr>`).join('') || '<tr><td colspan="4" class="state-msg">No data</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="section-card">
+            <div class="section-header"><h2>Payment Methods</h2></div>
+            <div class="bar-chart">
+              ${Object.entries(byMethod).map(([m, count]) => `
+                <div class="bar-row">
+                  <span class="bar-label">${formatPayment(m)}</span>
+                  <div class="bar-track"><div class="bar-fill" style="width:${(count/methodTotal*100).toFixed(1)}%"></div></div>
+                  <span class="bar-value">${count} (${(count/methodTotal*100).toFixed(0)}%)</span>
+                </div>`).join('') || '<p class="state-msg" style="padding:1.5rem;">No data</p>'}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    // ── 4. GST Report ─────────────────────────────────
+    function renderGSTReport(from, to, orders) {
+      const paid      = orders.filter(o => o.payment_status === 'paid');
+      const totalRev  = paid.reduce((s, o) => s + parseFloat(o.total || 0), 0);
+      const baseValue = Math.round(totalRev / 1.18);
+      const gstTotal  = totalRev - baseValue;
+      const cgst      = Math.round(gstTotal / 2);
+      const sgst      = Math.round(gstTotal / 2);
+
+      // Maharashtra (intra-state) vs other (inter-state / IGST)
+      const intraMH = paid.filter(o => (o.shipping_address?.state || '').toLowerCase().includes('maharashtra'));
+      const interState = paid.filter(o => !(o.shipping_address?.state || '').toLowerCase().includes('maharashtra'));
+      const intraRev = intraMH.reduce((s, o) => s + parseFloat(o.total || 0), 0);
+      const interRev = interState.reduce((s, o) => s + parseFloat(o.total || 0), 0);
+
+      document.getElementById('reportContent').innerHTML = `
+        <div class="report-period-bar">
+          <span class="period-label">GST Report — Precision Forge Labs &nbsp;|&nbsp; GSTIN: 27GZCPS9353H1ZQ</span>
+          <span class="period-dates">${fmtDate(from)} — ${fmtDate(to)}</span>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-icon">₹</div><div class="stat-value">₹${totalRev.toLocaleString('en-IN')}</div><div class="stat-label">Total (GST-inclusive)</div></div>
+          <div class="stat-card"><div class="stat-icon">⬡</div><div class="stat-value">₹${baseValue.toLocaleString('en-IN')}</div><div class="stat-label">Taxable Value</div></div>
+          <div class="stat-card"><div class="stat-icon">↑</div><div class="stat-value">₹${Math.round(gstTotal).toLocaleString('en-IN')}</div><div class="stat-label">Total GST</div></div>
+          <div class="stat-card"><div class="stat-icon">⊙</div><div class="stat-value">${paid.length}</div><div class="stat-label">Taxable Invoices</div></div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header"><h2>GST Breakdown</h2></div>
+          <div class="insights-grid">
+            <div class="insight-card">
+              <div class="insight-label">CGST @ 9%</div>
+              <div class="insight-value">₹${cgst.toLocaleString('en-IN')}</div>
+              <div class="insight-sub">Central GST on Maharashtra orders</div>
+            </div>
+            <div class="insight-card">
+              <div class="insight-label">SGST @ 9%</div>
+              <div class="insight-value">₹${sgst.toLocaleString('en-IN')}</div>
+              <div class="insight-sub">State GST on Maharashtra orders</div>
+            </div>
+            <div class="insight-card">
+              <div class="insight-label">IGST @ 18%</div>
+              <div class="insight-value">₹${Math.round(interRev - interRev/1.18).toLocaleString('en-IN')}</div>
+              <div class="insight-sub">Inter-state orders (${interState.length} orders)</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header"><h2>State-wise Breakdown</h2></div>
+          <div class="bar-chart">
+            <div class="bar-row">
+              <span class="bar-label">Maharashtra</span>
+              <div class="bar-track"><div class="bar-fill" style="width:${totalRev ? (intraRev/totalRev*100).toFixed(1) : 0}%"></div></div>
+              <span class="bar-value">₹${intraRev.toLocaleString('en-IN')} — CGST+SGST</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">Other States</span>
+              <div class="bar-track"><div class="bar-fill dim" style="width:${totalRev ? (interRev/totalRev*100).toFixed(1) : 0}%"></div></div>
+              <span class="bar-value">₹${interRev.toLocaleString('en-IN')} — IGST</span>
+            </div>
+          </div>
+          <div class="export-row">
+            <button class="btn-dl" onclick="exportGSTCSV()">↓ Export GST CSV</button>
+            <button class="btn-dl" onclick="window.print()">⎙ Print</button>
+          </div>
+        </div>`;
+    }
+
+    // ── Helpers ───────────────────────────────────────
+    function groupByMonth(orders) {
+      const months = {};
+      orders.forEach(o => {
+        const d   = new Date(o.created_at);
+        const key = d.toLocaleDateString('en-IN', { month:'short', year:'numeric' });
+        months[key] = (months[key] || 0) + parseFloat(o.total || 0);
+      });
+      return months;
+    }
+
+    function formatPayment(m) {
+      return { razorpay:'Razorpay', upi:'UPI', bank:'Bank Transfer', unknown:'Unknown' }[m] || m;
+    }
+
+    // ── Export ────────────────────────────────────────
+    function exportCSV() {
+      if (!reportData) { showToast('Generate a report first'); return; }
+      const { orders, from, to } = reportData;
+      const headers = ['Order ID','Customer','Email','Total','Status','Payment','Date'];
+      const rows = orders.map(o => [
+        o.order_id || '', o.customer_name || '', o.customer?.email || o.customer_email || '',
+        o.total || 0, o.status || '', o.payment_status || '',
+        new Date(o.created_at).toLocaleDateString('en-IN'),
+      ]);
+      const csv = [headers,...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+      const a = document.createElement('a');
+      a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+      a.download = `akara_report_${reportData.type}_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click(); showToast('CSV exported');
+    }
+
+    function exportGSTCSV() {
+      if (!reportData) return;
+      const paid = reportData.orders.filter(o => o.payment_status === 'paid');
+      const headers = ['Invoice ID','Date','Customer','State','Total (incl. GST)','Base Value','GST Amount','CGST','SGST','IGST'];
+      const rows = paid.map(o => {
+        const total    = parseFloat(o.total || 0);
+        const base     = Math.round(total / 1.18);
+        const gst      = total - base;
+        const isMH     = (o.shipping_address?.state || '').toLowerCase().includes('maharashtra');
+        return [
+          o.order_id || '', new Date(o.created_at).toLocaleDateString('en-IN'),
+          o.customer_name || '', o.shipping_address?.state || '',
+          total, base, Math.round(gst),
+          isMH ? Math.round(gst/2) : 0,
+          isMH ? Math.round(gst/2) : 0,
+          !isMH ? Math.round(gst)  : 0,
+        ];
+      });
+      const csv = [headers,...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+      const a = document.createElement('a');
+      a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+      a.download = `akara_gst_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click(); showToast('GST CSV exported');
+    }
+
+    // ── Toast ─────────────────────────────────────────
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('visible');
+      setTimeout(() => t.classList.remove('visible'), 2500);
+    }
+
+    // ── Demo data ─────────────────────────────────────
+    const DEMO_ORDERS = [
+      { order_id:'INV-001', customer_name:'Priya Sharma', customer_email:'priya@example.com', customer:{first_name:'Priya',last_name:'Sharma',email:'priya@example.com'}, total:4800, subtotal:4800, status:'delivered', payment_status:'paid', payment_method:'razorpay', shipping_address:{state:'Maharashtra'}, created_at:new Date(Date.now()-2*86400000).toISOString(), items:[{name:'Geodesic Planter',category:'Planters',price:2400,qty:2}] },
+      { order_id:'INV-002', customer_name:'Rahul Mehta',  customer_email:'rahul@example.com',  customer:{first_name:'Rahul', last_name:'Mehta', email:'rahul@example.com'},  total:3600, subtotal:3600, status:'processing',payment_status:'paid', payment_method:'upi',       shipping_address:{state:'Karnataka'},    created_at:new Date(Date.now()-5*86400000).toISOString(), items:[{name:'Prism Vase',      category:'Vases',   price:1800,qty:2}] },
+      { order_id:'INV-003', customer_name:'Ankita Desai', customer_email:'ankita@example.com', customer:{first_name:'Ankita',last_name:'Desai', email:'ankita@example.com'}, total:1200, subtotal:1200, status:'pending',   payment_status:'unpaid',payment_method:'bank',       shipping_address:{state:'Maharashtra'}, created_at:new Date(Date.now()-1*86400000).toISOString(), items:[{name:'Angular Bud Vase',category:'Vases',   price:1200,qty:1}] },
+      { order_id:'INV-004', customer_name:'Vikram Nair',  customer_email:'vikram@example.com', customer:{first_name:'Vikram',last_name:'Nair',  email:'vikram@example.com'},  total:4800, subtotal:4800, status:'shipped',   payment_status:'paid', payment_method:'razorpay', shipping_address:{state:'Delhi'},        created_at:new Date(Date.now()-8*86400000).toISOString(), items:[{name:'Faceted Pendant', category:'Lighting',price:4800,qty:1}] },
+      { order_id:'INV-005', customer_name:'Priya Sharma', customer_email:'priya@example.com',  customer:{first_name:'Priya',last_name:'Sharma',email:'priya@example.com'},   total:2400, subtotal:2400, status:'delivered', payment_status:'paid', payment_method:'upi',       shipping_address:{state:'Maharashtra'}, created_at:new Date(Date.now()-12*86400000).toISOString(),items:[{name:'Geodesic Planter',category:'Planters',price:2400,qty:1}] },
+    ];
+  </script>
+
 </body>
 </html>

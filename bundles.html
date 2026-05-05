@@ -1,58 +1,1120 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Build Your Bundle - Atelier Ākāra</title>
-    <link rel="stylesheet" href="/auth-styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Build Your Bundle — Atelier Ākāra. Select 3 or more pieces and save 15%.">
+  <link rel="icon" type="image/png" href="assets/images/favicon.png">
+  <title>Build Your Bundle — Atelier Ākāra</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --teal:       #002b2b;
+      --teal-mid:   #004040;
+      --cream:      #fff8e7;
+      --gold:       #c9a96e;
+      --gold-light: #e2c99a;
+      --text-main:  #fff8e7;
+      --text-muted: rgba(255,248,231,0.55);
+      --border:     rgba(201,169,110,0.25);
+      --border-dim: rgba(201,169,110,0.12);
+      --card-bg:    rgba(255,248,231,0.03);
+      --input-bg:   rgba(255,248,231,0.05);
+      --error:      #e07070;
+      --success:    #70c9a0;
+      /* Discount tiers */
+      --tier1-color: #c9a96e;  /* 3 items = 10% */
+      --tier2-color: #70c9a0;  /* 5 items = 15% */
+      --tier3-color: #e2c99a;  /* 7+ items = 20% */
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Josefin Sans', sans-serif;
+      background: var(--teal);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    /* ─── Background ──────────────────────────────── */
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 15% 5%,  rgba(0,95,95,0.3)  0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 85% 90%,  rgba(0,64,64,0.35) 0%, transparent 55%);
+      pointer-events: none; z-index: 0;
+    }
+    body::after {
+      content: ''; position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,169,110,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,169,110,0.035) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ─── Header ──────────────────────────────────── */
+    .site-header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(0,43,43,0.88);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-container {
+      display: flex; align-items: center; justify-content: space-between;
+      max-width: 1280px; margin: 0 auto; padding: 0 2rem; height: 64px;
+    }
+    .nav-left, .nav-right {
+      display: flex; align-items: center; gap: 2rem; min-width: 180px;
+    }
+    .nav-right { justify-content: flex-end; }
+    .nav-links { display: flex; gap: 2rem; }
+    .nav-links a, .nav-link {
+      font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text-muted); transition: color 0.2s;
+    }
+    .nav-links a:hover, .nav-link:hover { color: var(--gold); }
+    .nav-links a.active-page { color: var(--gold); }
+    .brand-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; font-weight: 300;
+      letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--cream); white-space: nowrap;
+    }
+    .cart-link {
+      font-size: 0.75rem; color: var(--text-muted); transition: color 0.2s;
+    }
+    .cart-link:hover { color: var(--gold); }
+    .menu-toggle {
+      display: none; background: none; border: none;
+      color: var(--text-main); font-size: 1.2rem; cursor: pointer;
+    }
+    .mobile-nav {
+      display: none; position: fixed; top: 64px; left: 0; right: 0;
+      background: rgba(0,43,43,0.97); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border); padding: 1.5rem 2rem;
+      z-index: 99; flex-direction: column; gap: 1.2rem;
+    }
+    .mobile-nav.open { display: flex; }
+    .mobile-nav a {
+      font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text-muted); padding: 0.4rem 0;
+      border-bottom: 1px solid rgba(201,169,110,0.1);
+    }
+    .mobile-nav a:hover { color: var(--gold); }
+
+    /* ─── Page ────────────────────────────────────── */
+    .bundles-page {
+      position: relative; z-index: 1;
+      max-width: 1280px; margin: 0 auto;
+      padding: 84px 2rem 6rem;
+    }
+
+    /* Breadcrumb */
+    .breadcrumbs {
+      font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text-muted); padding: 1.5rem 0 0;
+    }
+    .breadcrumbs a { color: var(--gold); opacity: 0.7; transition: opacity 0.2s; }
+    .breadcrumbs a:hover { opacity: 1; }
+    .breadcrumbs span { opacity: 0.45; margin: 0 0.5rem; }
+
+    /* ─── Page Header ─────────────────────────────── */
+    .page-header {
+      text-align: center;
+      padding: 3rem 0 2.5rem;
+      position: relative;
+    }
+    .page-header::after {
+      content: 'BUNDLE';
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(5rem, 18vw, 14rem);
+      font-weight: 300; color: rgba(201,169,110,0.04);
+      letter-spacing: 0.3em; white-space: nowrap;
+      pointer-events: none; user-select: none;
+    }
+    .page-eyebrow {
+      position: relative; z-index: 1;
+      font-size: 0.62rem; letter-spacing: 0.4em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.8; margin-bottom: 0.75rem;
+    }
+    .page-header h1 {
+      position: relative; z-index: 1;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.2rem, 5vw, 4rem);
+      font-weight: 300; letter-spacing: 0.1em;
+      color: var(--cream); line-height: 1.05; margin-bottom: 1rem;
+    }
+    .header-divider {
+      width: 50px; height: 1px; background: var(--gold);
+      opacity: 0.4; margin: 0 auto 1rem;
+      position: relative; z-index: 1;
+    }
+    .page-header .subtitle {
+      position: relative; z-index: 1;
+      font-size: 0.78rem; letter-spacing: 0.08em;
+      color: var(--text-muted); line-height: 1.8;
+    }
+
+    /* ─── Discount Tier Bar ───────────────────────── */
+    .tier-bar {
+      display: flex; gap: 0;
+      border: 1px solid var(--border);
+      margin-bottom: 2.5rem;
+      animation: fadeUp 0.5s ease both;
+    }
+    .tier-item {
+      flex: 1; text-align: center; padding: 1rem 0.5rem;
+      border-right: 1px solid var(--border);
+      position: relative; transition: background 0.3s;
+    }
+    .tier-item:last-child { border-right: none; }
+    .tier-item.reached  { background: rgba(201,169,110,0.07); }
+    .tier-item.active   { background: rgba(201,169,110,0.12); }
+    .tier-count {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem; font-weight: 300;
+      color: var(--text-muted); line-height: 1;
+    }
+    .tier-item.reached .tier-count,
+    .tier-item.active  .tier-count { color: var(--gold); }
+    .tier-desc {
+      font-size: 0.58rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text-muted); opacity: 0.55; margin-top: 0.3rem;
+    }
+    .tier-discount {
+      font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase;
+      margin-top: 0.2rem;
+    }
+    .tier-item.reached .tier-discount,
+    .tier-item.active  .tier-discount { color: var(--success); }
+    .tier-item:not(.reached):not(.active) .tier-discount { color: var(--text-muted); opacity: 0.4; }
+
+    /* Progress fill along bottom */
+    .tier-item::after {
+      content: ''; position: absolute;
+      bottom: 0; left: 0; right: 0; height: 2px;
+      background: var(--gold); opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .tier-item.active::after  { opacity: 1; }
+    .tier-item.reached::after { opacity: 0.4; }
+
+    /* ─── Builder Layout ──────────────────────────── */
+    .builder-layout {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 2.5rem;
+      align-items: start;
+    }
+
+    /* ─── Filter Tabs ─────────────────────────────── */
+    .filter-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;
+    }
+    .filter-tabs { display: flex; border-bottom: 1px solid var(--border-dim); }
+    .filter-tab {
+      background: none; border: none;
+      border-bottom: 2px solid transparent;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.62rem; letter-spacing: 0.25em; text-transform: uppercase;
+      color: var(--text-muted); padding: 0.65rem 1.1rem;
+      cursor: pointer; transition: all 0.2s; margin-bottom: -1px;
+    }
+    .filter-tab:hover { color: var(--gold-light); }
+    .filter-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+    .filter-count {
+      font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--text-muted); opacity: 0.5;
+    }
+
+    /* ─── Product Grid ────────────────────────────── */
+    .product-selection {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    /* ─── Product Card ────────────────────────────── */
+    .bundle-product-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+      position: relative;
+      animation: fadeUp 0.4s ease both;
+      user-select: none;
+    }
+    .bundle-product-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(201,169,110,0.45);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+    .bundle-product-card.selected {
+      border-color: var(--gold);
+      background: rgba(201,169,110,0.06);
+      transform: translateY(-3px);
+      box-shadow: 0 0 0 1px var(--gold), 0 8px 24px rgba(0,0,0,0.2);
+    }
+    .bundle-product-card.out-of-stock {
+      opacity: 0.35; cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    /* Checkmark overlay */
+    .card-check {
+      position: absolute; top: 0.6rem; right: 0.6rem; z-index: 2;
+      width: 24px; height: 24px;
+      background: var(--gold); color: var(--teal);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700;
+      opacity: 0; transition: opacity 0.2s, transform 0.2s;
+      transform: scale(0.7);
+    }
+    .bundle-product-card.selected .card-check {
+      opacity: 1; transform: scale(1);
+    }
+
+    /* Qty badge */
+    .card-qty-badge {
+      position: absolute; top: 0.6rem; left: 0.6rem; z-index: 2;
+      background: var(--gold); color: var(--teal);
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.55rem; letter-spacing: 0.1em; font-weight: 500;
+      padding: 0.15rem 0.45rem;
+      display: none;
+    }
+    .bundle-product-card.selected .card-qty-badge { display: block; }
+
+    /* Image */
+    .card-img {
+      aspect-ratio: 1; overflow: hidden;
+      background: rgba(0,64,64,0.35);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .card-img img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+    .bundle-product-card:hover .card-img img { transform: scale(1.04); }
+    .card-img-placeholder { opacity: 0.12; }
+
+    /* Body */
+    .card-body { padding: 0.9rem; }
+    .card-category {
+      font-size: 0.54rem; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.7; margin-bottom: 0.25rem;
+    }
+    .card-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.95rem; font-weight: 400;
+      color: var(--cream); margin-bottom: 0.35rem; line-height: 1.2;
+    }
+    .card-price { font-size: 0.72rem; color: var(--gold-light); }
+
+    /* Qty stepper — shows when selected */
+    .card-qty-row {
+      display: none; align-items: center; gap: 0; margin-top: 0.65rem;
+      border: 1px solid var(--border);
+    }
+    .bundle-product-card.selected .card-qty-row { display: flex; }
+    .qty-btn {
+      background: none; border: none;
+      color: var(--text-muted); width: 28px; height: 28px;
+      font-size: 1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: color 0.2s;
+    }
+    .qty-btn:hover { color: var(--gold); }
+    .qty-num {
+      flex: 1; text-align: center;
+      font-size: 0.72rem; color: var(--text-main);
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      padding: 0.25rem 0; line-height: 1;
+    }
+
+    /* ─── Bundle Summary Sidebar ──────────────────── */
+    .bundle-summary {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      position: sticky; top: 84px;
+      animation: fadeUp 0.5s ease 0.15s both;
+    }
+
+    .summary-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.2rem; font-weight: 400;
+      letter-spacing: 0.1em; color: var(--cream);
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border-dim);
+    }
+
+    /* Progress toward next tier */
+    .summary-progress { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-dim); }
+    .progress-label {
+      font-size: 0.58rem; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--text-muted); margin-bottom: 0.6rem;
+    }
+    .progress-track {
+      height: 4px; background: rgba(255,248,231,0.07); margin-bottom: 0.4rem;
+    }
+    .progress-fill {
+      height: 100%; background: var(--gold);
+      transition: width 0.4s ease;
+    }
+    .progress-hint {
+      font-size: 0.6rem; letter-spacing: 0.1em;
+      color: var(--text-muted); opacity: 0.6;
+    }
+    .progress-hint.unlocked { color: var(--success); opacity: 1; }
+
+    /* Selected items list */
+    .summary-items { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-dim); min-height: 80px; }
+    .summary-empty {
+      font-size: 0.68rem; letter-spacing: 0.08em;
+      color: var(--text-muted); opacity: 0.45; font-style: italic;
+    }
+    .summary-item {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 0.75rem; padding: 0.45rem 0;
+      border-bottom: 1px solid rgba(201,169,110,0.07);
+      animation: fadeUp 0.25s ease both;
+    }
+    .summary-item:last-child { border-bottom: none; }
+    .summary-item-left { display: flex; align-items: center; gap: 0.6rem; flex: 1; min-width: 0; }
+    .summary-item-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); opacity: 0.6; flex-shrink: 0; }
+    .summary-item-name {
+      font-size: 0.68rem; letter-spacing: 0.06em; color: var(--cream);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .summary-item-qty {
+      font-size: 0.58rem; color: var(--text-muted); opacity: 0.6;
+      white-space: nowrap;
+    }
+    .summary-item-price {
+      font-size: 0.68rem; color: var(--gold-light); white-space: nowrap; flex-shrink: 0;
+    }
+    .summary-item-remove {
+      background: none; border: none;
+      color: var(--text-muted); font-size: 0.7rem;
+      cursor: pointer; padding: 0.1rem; line-height: 1;
+      transition: color 0.2s; flex-shrink: 0;
+    }
+    .summary-item-remove:hover { color: var(--error); }
+
+    /* Totals */
+    .summary-totals { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-dim); }
+    .total-row {
+      display: flex; justify-content: space-between;
+      font-size: 0.7rem; letter-spacing: 0.06em;
+      color: var(--text-muted); padding: 0.35rem 0;
+    }
+    .total-row.discount .label { color: var(--success); }
+    .total-row.discount .value { color: var(--success); }
+    .total-row.grand { border-top: 1px solid var(--border-dim); margin-top: 0.5rem; padding-top: 0.75rem; }
+    .total-row.grand .label {
+      font-size: 0.6rem; letter-spacing: 0.25em; text-transform: uppercase;
+    }
+    .total-row.grand .value {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem; font-weight: 300; color: var(--gold);
+    }
+    .gst-note {
+      font-size: 0.57rem; letter-spacing: 0.08em;
+      color: var(--text-muted); opacity: 0.5;
+      margin-top: 0.5rem; line-height: 1.6;
+    }
+
+    /* Discount badge */
+    .discount-badge {
+      display: none; text-align: center;
+      padding: 0.6rem;
+      background: rgba(112,201,160,0.1); border: 1px solid rgba(112,201,160,0.3);
+      margin: 0 1.5rem;
+      font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--success);
+    }
+    .discount-badge.visible { display: block; animation: fadeUp 0.3s ease both; }
+
+    /* CTA Buttons */
+    .summary-actions { padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 0.6rem; }
+    .btn-add-bundle {
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      width: 100%; padding: 0.9rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--teal); background: var(--gold);
+      border: 1px solid var(--gold); cursor: pointer; transition: all 0.25s;
+    }
+    .btn-add-bundle:hover:not(:disabled) { background: transparent; color: var(--gold); }
+    .btn-add-bundle:disabled { opacity: 0.38; cursor: not-allowed; background: var(--gold); color: var(--teal); }
+    .btn-clear {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; padding: 0.65rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.6rem; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--text-muted); border: 1px solid var(--border);
+      background: none; cursor: pointer; transition: all 0.25s;
+    }
+    .btn-clear:hover { border-color: var(--error); color: var(--error); }
+    .btn-clear:disabled { opacity: 0.25; cursor: not-allowed; }
+
+    /* ─── Added state ─────────────────────────────── */
+    .added-state {
+      display: none; text-align: center; padding: 1.5rem;
+      animation: fadeUp 0.4s ease both;
+    }
+    .added-state.visible { display: block; }
+    .added-icon {
+      font-size: 1.5rem; color: var(--success); margin-bottom: 0.75rem;
+    }
+    .added-state h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.2rem; font-weight: 300; letter-spacing: 0.1em;
+      color: var(--cream); margin-bottom: 0.4rem;
+    }
+    .added-state p {
+      font-size: 0.68rem; letter-spacing: 0.07em;
+      color: var(--text-muted); line-height: 1.7; margin-bottom: 1.25rem;
+    }
+    .btn-view-cart {
+      display: inline-block; padding: 0.7rem 2rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.62rem; letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--teal); background: var(--gold);
+      border: 1px solid var(--gold); transition: all 0.25s;
+    }
+    .btn-view-cart:hover { background: transparent; color: var(--gold); }
+
+    /* ─── Toast ───────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 2rem; right: 2rem; z-index: 999;
+      background: var(--gold); color: var(--teal);
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase;
+      padding: 0.75rem 1.5rem; opacity: 0; transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .toast.visible { opacity: 1; }
+
+    /* ─── Footer ──────────────────────────────────── */
+    .site-footer {
+      background: rgba(0,20,20,0.6); border-top: 1px solid var(--border);
+      padding: 4rem 2rem 2rem; position: relative; z-index: 1;
+    }
+    .footer-content { max-width: 1280px; margin: 0 auto; }
+    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
+    .footer-section h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 400; letter-spacing: 0.2em; color: var(--cream); margin-bottom: 0.5rem; }
+    .footer-section > p { font-size: 0.7rem; letter-spacing: 0.12em; color: var(--text-muted); }
+    .footer-section h4 { font-size: 0.6rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); opacity: 0.75; margin-bottom: 1.2rem; }
+    .footer-section a { display: block; font-size: 0.72rem; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.6rem; transition: color 0.2s; }
+    .footer-section a:hover { color: var(--gold); }
+    .footer-bottom { border-top: 1px solid var(--border); padding-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+    .footer-bottom p { font-size: 0.62rem; letter-spacing: 0.12em; color: var(--text-muted); opacity: 0.6; }
+
+    /* ─── Animations ──────────────────────────────── */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ─── Responsive ──────────────────────────────── */
+    @media (max-width: 1024px) {
+      .builder-layout { grid-template-columns: 1fr; }
+      .bundle-summary { position: static; }
+    }
+    @media (max-width: 768px) {
+      .desktop-only { display: none; }
+      .menu-toggle { display: block; }
+      .nav-left, .nav-right { min-width: auto; }
+      .product-selection { grid-template-columns: repeat(2, 1fr); }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+    }
+    @media (max-width: 480px) {
+      .product-selection { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+      .tier-bar { flex-wrap: wrap; }
+      .tier-item { min-width: 50%; border-bottom: 1px solid var(--border); }
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+    }
+  </style>
 </head>
+
 <body>
-    <header class="site-header">
-        <nav class="nav-container">
-            <div class="nav-center">
-                <a href="/" class="brand-logo">ATELIER ĀKĀRA</a>
-            </div>
-        </nav>
-    </header>
-    
-    <main class="bundles-page">
-        <h1>Build Your Perfect Set</h1>
-        <p class="subtitle">Select 3 or more items and save 15%</p>
-        
-        <div class="bundle-builder">
-            <div class="product-selection" id="productSelection">
-                <!-- Products loaded here -->
-            </div>
-            
-            <div class="bundle-summary">
-                <h2>Your Bundle</h2>
-                <p>Selected: <span id="selectedCount">0</span> items</p>
-                <p>Subtotal: <span id="subtotal">₹0</span></p>
-                <p class="discount">Discount (15%): -<span id="discount">₹0</span></p>
-                <p class="total">Total: <span id="total">₹0</span></p>
-                
-                <button class="btn-primary" id="addBundleToCart">Add Bundle to Cart</button>
-            </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <nav class="nav-container">
+      <div class="nav-left">
+        <button class="menu-toggle" id="menuToggle">☰</button>
+        <div class="nav-links desktop-only">
+          <a href="catalog.html">Catalog</a>
+          <a href="bundles.html" class="active-page">Bundles</a>
+          <a href="about.html">About</a>
         </div>
-    </main>
-    
-    <script type="module">
-        // Bundle builder logic
-        let selectedProducts = [];
-        
-        function updateBundle() {
-            const count = selectedProducts.length;
-            const subtotal = selectedProducts.reduce((sum, p) => sum + p.price, 0);
-            const discount = count >= 3 ? Math.floor(subtotal * 0.15) : 0;
-            const total = subtotal - discount;
-            
-            document.getElementById('selectedCount').textContent = count;
-            document.getElementById('subtotal').textContent = `₹${subtotal}`;
-            document.getElementById('discount').textContent = `₹${discount}`;
-            document.getElementById('total').textContent = `₹${total}`;
+      </div>
+      <a href="index.html" class="brand-logo">ATELIER ĀKĀRA</a>
+      <div class="nav-right">
+        <a href="contact.html" class="nav-link desktop-only">Contact</a>
+        <a href="user/cart.html" class="cart-link">🛒 <span id="cartCount">0</span></a>
+        <a href="user/profile.html" style="font-size:0.75rem;color:var(--text-muted);">👤</a>
+      </div>
+    </nav>
+  </header>
+
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="catalog.html">Catalog</a>
+    <a href="bundles.html">Bundles</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="user/cart.html">Cart</a>
+    <a href="user/profile.html">My Account</a>
+  </nav>
+
+  <!-- Page -->
+  <main class="bundles-page">
+
+    <nav class="breadcrumbs">
+      <a href="index.html">Home</a>
+      <span>/</span>
+      Bundles
+    </nav>
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <p class="page-eyebrow">Curated Sets</p>
+      <h1>Build Your Perfect Set</h1>
+      <div class="header-divider"></div>
+      <p class="subtitle">
+        Select 3 or more pieces and save. The more you choose, the more you save.
+      </p>
+    </div>
+
+    <!-- Discount Tiers -->
+    <div class="tier-bar" id="tierBar">
+      <div class="tier-item" id="tier1">
+        <div class="tier-count">3+</div>
+        <div class="tier-desc">Items</div>
+        <div class="tier-discount">Save 10%</div>
+      </div>
+      <div class="tier-item" id="tier2">
+        <div class="tier-count">5+</div>
+        <div class="tier-desc">Items</div>
+        <div class="tier-discount">Save 15%</div>
+      </div>
+      <div class="tier-item" id="tier3">
+        <div class="tier-count">7+</div>
+        <div class="tier-desc">Items</div>
+        <div class="tier-discount">Save 20%</div>
+      </div>
+      <div class="tier-item" id="tier4">
+        <div class="tier-count">10+</div>
+        <div class="tier-desc">Items</div>
+        <div class="tier-discount">Save 25%</div>
+      </div>
+    </div>
+
+    <!-- Builder -->
+    <div class="builder-layout">
+
+      <!-- Left: Product Selection -->
+      <div>
+        <div class="filter-bar">
+          <div class="filter-tabs">
+            <button class="filter-tab active" onclick="filterProducts('all', this)">All</button>
+            <button class="filter-tab" onclick="filterProducts('Planters', this)">Planters</button>
+            <button class="filter-tab" onclick="filterProducts('Vases', this)">Vases</button>
+            <button class="filter-tab" onclick="filterProducts('Lighting', this)">Lighting</button>
+          </div>
+          <span class="filter-count" id="filterCount"></span>
+        </div>
+        <div class="product-selection" id="productSelection">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Right: Summary Sidebar -->
+      <aside class="bundle-summary">
+
+        <h2 class="summary-title">Your Bundle</h2>
+
+        <!-- Progress bar to next tier -->
+        <div class="summary-progress">
+          <div class="progress-label" id="progressLabel">Select items to begin</div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progressFill" style="width:0%"></div>
+          </div>
+          <p class="progress-hint" id="progressHint">Add 3 items to unlock 10% off</p>
+        </div>
+
+        <!-- Selected items list -->
+        <div class="summary-items" id="summaryItems">
+          <p class="summary-empty">No items selected yet</p>
+        </div>
+
+        <!-- Discount badge -->
+        <div class="discount-badge" id="discountBadge">
+          ✓ Bundle discount applied!
+        </div>
+
+        <!-- Totals -->
+        <div class="summary-totals">
+          <div class="total-row">
+            <span class="label">Subtotal (<span id="totalQtyLabel">0</span> items)</span>
+            <span class="value" id="subtotalVal">₹0</span>
+          </div>
+          <div class="total-row discount">
+            <span class="label">Bundle Discount (<span id="discPctLabel">0</span>%)</span>
+            <span class="value" id="discountVal">−₹0</span>
+          </div>
+          <div class="total-row">
+            <span class="label">Shipping</span>
+            <span class="value" id="shippingVal">Free above ₹2,500</span>
+          </div>
+          <div class="total-row grand">
+            <span class="label">Total</span>
+            <span class="value" id="totalVal">₹0</span>
+          </div>
+          <p class="gst-note">All prices GST-inclusive (18%). GST invoice issued on order.</p>
+        </div>
+
+        <!-- CTA (normal state) -->
+        <div class="summary-actions" id="summaryActions">
+          <button class="btn-add-bundle" id="addBundleBtn" onclick="addBundleToCart()" disabled>
+            Add Bundle to Cart
+          </button>
+          <button class="btn-clear" id="clearBtn" onclick="clearBundle()" disabled>
+            Clear Selection
+          </button>
+        </div>
+
+        <!-- Added state -->
+        <div class="added-state" id="addedState">
+          <div class="added-icon">✓</div>
+          <h3>Bundle Added!</h3>
+          <p>Your <span id="addedSummary"></span> has been added to your cart with the bundle discount applied.</p>
+          <a href="user/cart.html" class="btn-view-cart">View Cart</a>
+          <br><br>
+          <button onclick="resetAfterAdd()" style="background:none;border:none;font-family:'Josefin Sans',sans-serif;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-muted);cursor:pointer;transition:color 0.2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text-muted)'">
+            Build Another Bundle
+          </button>
+        </div>
+
+      </aside>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-grid">
+        <div class="footer-section">
+          <h3>ATELIER ĀKĀRA</h3>
+          <p>Artifacts for the Modern Spaces</p>
+        </div>
+        <div class="footer-section">
+          <h4>Shop</h4>
+          <a href="catalog.html">All Products</a>
+          <a href="bundles.html">Build a Bundle</a>
+          <a href="catalog.html?category=planters">Planters</a>
+          <a href="catalog.html?category=vases">Vases</a>
+        </div>
+        <div class="footer-section">
+          <h4>Information</h4>
+          <a href="about.html">About Us</a>
+          <a href="contact.html">Contact</a>
+          <a href="privacy.html">Privacy Policy</a>
+          <a href="terms.html">Terms of Service</a>
+        </div>
+        <div class="footer-section">
+          <h4>Connect</h4>
+          <a href="https://instagram.com/atelier.akara" target="_blank">Instagram</a>
+          <a href="mailto:support@akaraonline.co.in">Email Us</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>Precision Forge Labs &nbsp;|&nbsp; GST: 27GZCPS9353H1ZQ</p>
+        <p>© <span id="year"></span> Atelier Ākāra. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ─────────────────────────────────────────────────
+    // CREDENTIALS
+    // ─────────────────────────────────────────────────
+    const SUPABASE_URL      = '';
+    const SUPABASE_ANON_KEY = '';
+
+    // ─── Discount tiers ───────────────────────────────
+    // { minItems, discountPct }
+    const DISCOUNT_TIERS = [
+      { min: 3,  pct: 10 },
+      { min: 5,  pct: 15 },
+      { min: 7,  pct: 20 },
+      { min: 10, pct: 25 },
+    ];
+
+    let supabase     = null;
+    let allProducts  = [];
+    let activeFilter = 'all';
+    // Map: productId → quantity selected
+    let selected     = {};
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    // ── Mobile menu ────────────────────────────────────
+    document.getElementById('menuToggle').addEventListener('click', () =>
+      document.getElementById('mobileNav').classList.toggle('open'));
+
+    // ── Cart count ─────────────────────────────────────
+    function updateCartCount() {
+      const cart  = JSON.parse(localStorage.getItem('akara_cart') || '[]');
+      document.getElementById('cartCount').textContent = cart.reduce((s, i) => s + (i.qty || 1), 0);
+    }
+    updateCartCount();
+
+    // ── Load products ──────────────────────────────────
+    async function loadProducts() {
+      if (!supabase) { allProducts = DEMO_PRODUCTS; renderProducts(); return; }
+      try {
+        const { data } = await supabase
+          .from('products')
+          .select('id, name, category, price, image_url, stock, material')
+          .eq('is_active', true)
+          .order('category');
+        allProducts = data?.length ? data : DEMO_PRODUCTS;
+      } catch { allProducts = DEMO_PRODUCTS; }
+      renderProducts();
+    }
+
+    // ── Filter ─────────────────────────────────────────
+    function filterProducts(cat, btn) {
+      activeFilter = cat;
+      document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderProducts();
+    }
+
+    // ── Render products ────────────────────────────────
+    function renderProducts() {
+      const filtered = activeFilter === 'all'
+        ? allProducts
+        : allProducts.filter(p => p.category === activeFilter);
+
+      document.getElementById('filterCount').textContent =
+        `${filtered.length} product${filtered.length !== 1 ? 's' : ''}`;
+
+      document.getElementById('productSelection').innerHTML = filtered.map((p, i) => {
+        const qty        = selected[p.id] || 0;
+        const isSelected = qty > 0;
+        const outOfStock = p.stock === 0;
+
+        return `
+          <div class="bundle-product-card${isSelected ? ' selected' : ''}${outOfStock ? ' out-of-stock' : ''}"
+            id="card-${p.id}"
+            style="animation-delay:${i * 0.04}s"
+            onclick="toggleProduct('${p.id}')">
+
+            <div class="card-check">✓</div>
+            <div class="card-qty-badge">${qty > 1 ? `×${qty}` : 'Selected'}</div>
+
+            <div class="card-img">
+              ${p.image_url
+                ? `<img src="${p.image_url}" alt="${p.name}" loading="lazy"
+                     onerror="this.style.display='none'">`
+                : geoSVG()}
+            </div>
+
+            <div class="card-body">
+              <p class="card-category">${p.category || ''}</p>
+              <p class="card-name">${p.name}</p>
+              <p class="card-price">₹${Number(p.price).toLocaleString('en-IN')}</p>
+
+              <!-- Qty stepper (visible only when selected) -->
+              <div class="card-qty-row" onclick="event.stopPropagation()">
+                <button class="qty-btn" onclick="changeQty('${p.id}', -1)">−</button>
+                <span class="qty-num" id="qty-${p.id}">${qty}</span>
+                <button class="qty-btn" onclick="changeQty('${p.id}', 1)">+</button>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    // ── Toggle / deselect product ──────────────────────
+    function toggleProduct(id) {
+      if (selected[id]) {
+        delete selected[id];
+      } else {
+        selected[id] = 1;
+      }
+      rerenderCard(id);
+      updateSummary();
+    }
+
+    // ── Change qty ─────────────────────────────────────
+    function changeQty(id, delta) {
+      const cur = selected[id] || 0;
+      const next = cur + delta;
+      if (next <= 0) {
+        delete selected[id];
+      } else {
+        selected[id] = next;
+      }
+      rerenderCard(id);
+      updateSummary();
+    }
+
+    // ── Re-render a single card ────────────────────────
+    function rerenderCard(id) {
+      const qty = selected[id] || 0;
+      const card = document.getElementById(`card-${id}`);
+      if (!card) return;
+
+      card.classList.toggle('selected', qty > 0);
+
+      const badge = card.querySelector('.card-qty-badge');
+      if (badge) badge.textContent = qty > 1 ? `×${qty}` : 'Selected';
+
+      const qtyNum = card.querySelector('.qty-num');
+      if (qtyNum) qtyNum.textContent = qty;
+    }
+
+    // ── Calculate discount ─────────────────────────────
+    function getDiscount(totalItems) {
+      let pct = 0;
+      for (const tier of DISCOUNT_TIERS) {
+        if (totalItems >= tier.min) pct = tier.pct;
+      }
+      return pct;
+    }
+
+    function getNextTier(totalItems) {
+      for (const tier of DISCOUNT_TIERS) {
+        if (totalItems < tier.min) return tier;
+      }
+      return null; // already at max tier
+    }
+
+    // ── Update summary panel ───────────────────────────
+    function updateSummary() {
+      const selectedIds = Object.keys(selected);
+      const totalQty    = selectedIds.reduce((s, id) => s + selected[id], 0);
+      const subtotal    = selectedIds.reduce((s, id) => {
+        const p = allProducts.find(x => x.id === id);
+        return s + (p ? p.price * selected[id] : 0);
+      }, 0);
+
+      const discPct   = getDiscount(totalQty);
+      const discAmt   = Math.round(subtotal * discPct / 100);
+      const total     = subtotal - discAmt;
+      const shipping  = total >= 2500 ? 'Free' : 'Calculated at checkout';
+
+      // Update tier bar
+      document.querySelectorAll('.tier-item').forEach((el, i) => {
+        const tier = DISCOUNT_TIERS[i];
+        el.classList.remove('reached', 'active');
+        if (totalQty >= tier.min) {
+          const nextTier = DISCOUNT_TIERS[i+1];
+          if (!nextTier || totalQty < nextTier.min) el.classList.add('active');
+          else el.classList.add('reached');
         }
-        
-        updateBundle();
-    </script>
+      });
+
+      // Update progress bar
+      const nextTier = getNextTier(totalQty);
+      const prevMin  = totalQty === 0 ? 0 : (DISCOUNT_TIERS.findLast(t => t.min <= totalQty)?.min || 0);
+      const nextMin  = nextTier?.min || (DISCOUNT_TIERS[DISCOUNT_TIERS.length-1].min);
+      const pct      = nextTier
+        ? Math.min(((totalQty - prevMin) / (nextMin - prevMin)) * 100, 100)
+        : 100;
+      document.getElementById('progressFill').style.width = pct + '%';
+
+      const progressLabel = document.getElementById('progressLabel');
+      const progressHint  = document.getElementById('progressHint');
+      if (totalQty === 0) {
+        progressLabel.textContent = 'Select items to begin';
+        progressHint.textContent  = 'Add 3 items to unlock 10% off';
+        progressHint.classList.remove('unlocked');
+      } else if (nextTier) {
+        const need = nextTier.min - totalQty;
+        progressLabel.textContent = `${totalQty} item${totalQty !== 1 ? 's' : ''} selected`;
+        progressHint.textContent  = `Add ${need} more to unlock ${nextTier.pct}% off`;
+        progressHint.classList.remove('unlocked');
+      } else {
+        progressLabel.textContent = `${totalQty} items — Maximum discount unlocked!`;
+        progressHint.textContent  = `✓ ${discPct}% bundle discount applied`;
+        progressHint.classList.add('unlocked');
+      }
+
+      // Update selected items list
+      const listEl = document.getElementById('summaryItems');
+      if (!selectedIds.length) {
+        listEl.innerHTML = '<p class="summary-empty">No items selected yet</p>';
+      } else {
+        listEl.innerHTML = selectedIds.map(id => {
+          const p    = allProducts.find(x => x.id === id);
+          const qty  = selected[id];
+          const price= p ? p.price * qty : 0;
+          return `
+            <div class="summary-item">
+              <div class="summary-item-left">
+                <div class="summary-item-dot"></div>
+                <span class="summary-item-name">${p?.name || id}</span>
+              </div>
+              <span class="summary-item-qty">×${qty}</span>
+              <span class="summary-item-price">₹${price.toLocaleString('en-IN')}</span>
+              <button class="summary-item-remove" onclick="toggleProduct('${id}')">✕</button>
+            </div>`;
+        }).join('');
+      }
+
+      // Totals
+      document.getElementById('totalQtyLabel').textContent = totalQty;
+      document.getElementById('subtotalVal').textContent   = `₹${subtotal.toLocaleString('en-IN')}`;
+      document.getElementById('discPctLabel').textContent  = discPct;
+      document.getElementById('discountVal').textContent   = `−₹${discAmt.toLocaleString('en-IN')}`;
+      document.getElementById('totalVal').textContent      = `₹${total.toLocaleString('en-IN')}`;
+      document.getElementById('shippingVal').textContent   = shipping;
+
+      // Discount badge
+      document.getElementById('discountBadge').classList.toggle('visible', discPct > 0);
+      document.getElementById('discountBadge').textContent =
+        discPct > 0 ? `✓ ${discPct}% bundle discount applied!` : '';
+
+      // Buttons
+      const canAdd = totalQty >= 1; // allow adding even without discount; or set to totalQty >= 3
+      document.getElementById('addBundleBtn').disabled   = !canAdd;
+      document.getElementById('clearBtn').disabled       = selectedIds.length === 0;
+      document.getElementById('addBundleBtn').textContent =
+        discPct > 0
+          ? `Add Bundle to Cart (${discPct}% off)`
+          : totalQty >= 1
+            ? `Add ${totalQty} Item${totalQty !== 1 ? 's' : ''} to Cart`
+            : 'Add Bundle to Cart';
+    }
+
+    // ── Clear bundle ───────────────────────────────────
+    function clearBundle() {
+      selected = {};
+      renderProducts();
+      updateSummary();
+    }
+
+    // ── Add to cart ────────────────────────────────────
+    function addBundleToCart() {
+      const selectedIds = Object.keys(selected);
+      if (!selectedIds.length) return;
+
+      const totalQty  = selectedIds.reduce((s, id) => s + selected[id], 0);
+      const subtotal  = selectedIds.reduce((s, id) => {
+        const p = allProducts.find(x => x.id === id);
+        return s + (p ? p.price * selected[id] : 0);
+      }, 0);
+      const discPct   = getDiscount(totalQty);
+      const discAmt   = Math.round(subtotal * discPct / 100);
+
+      const cart = JSON.parse(localStorage.getItem('akara_cart') || '[]');
+
+      selectedIds.forEach(id => {
+        const p   = allProducts.find(x => x.id === id);
+        if (!p) return;
+        const qty = selected[id];
+
+        // Apply per-unit discount
+        const unitDiscount  = discAmt > 0 ? Math.round((p.price * qty / subtotal) * discAmt) : 0;
+        const effectivePrice = Math.round((p.price * qty - unitDiscount) / qty);
+
+        const existing = cart.find(i => i.id === id && i.bundle);
+        if (existing) {
+          existing.qty = (existing.qty || 0) + qty;
+        } else {
+          cart.push({
+            id,
+            name:          p.name,
+            price:         effectivePrice,
+            original_price:p.price,
+            image_url:     p.image_url || '',
+            category:      p.category  || '',
+            qty,
+            bundle:        true,
+            bundle_discount_pct: discPct,
+          });
+        }
+      });
+
+      localStorage.setItem('akara_cart', JSON.stringify(cart));
+      updateCartCount();
+
+      // Show added state
+      document.getElementById('summaryActions').style.display = 'none';
+      document.getElementById('addedState').classList.add('visible');
+      document.getElementById('addedSummary').textContent =
+        `${totalQty}-piece bundle${discPct > 0 ? ` (${discPct}% off)` : ''}`;
+
+      showToast(`${totalQty} item${totalQty !== 1 ? 's' : ''} added — ${discPct > 0 ? discPct + '% saved!' : 'bundle added!'}`);
+    }
+
+    // ── Reset after add ────────────────────────────────
+    function resetAfterAdd() {
+      selected = {};
+      document.getElementById('summaryActions').style.display = 'flex';
+      document.getElementById('addedState').classList.remove('visible');
+      renderProducts();
+      updateSummary();
+    }
+
+    // ── Geo SVG placeholder ────────────────────────────
+    function geoSVG() {
+      return `<svg class="card-img-placeholder" width="72" height="72" viewBox="0 0 72 72" fill="none">
+        <polygon points="36,4 68,20 68,52 36,68 4,52 4,20" stroke="#c9a96e" stroke-width="1"/>
+        <polygon points="36,18 54,28 54,44 36,54 18,44 18,28" stroke="#c9a96e" stroke-width="0.7" opacity="0.5"/>
+        <circle cx="36" cy="36" r="4" fill="#c9a96e" opacity="0.3"/>
+      </svg>`;
+    }
+
+    // ── Toast ──────────────────────────────────────────
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('visible');
+      setTimeout(() => t.classList.remove('visible'), 2500);
+    }
+
+    // ── Demo products ──────────────────────────────────
+    const DEMO_PRODUCTS = [
+      { id:'1', name:'Vetra Planter',     category:'Planters', price:849,  stock:12, image_url:'', material:'Plant-based PLA' },
+      { id:'2', name:'Vāyu Planter',      category:'Planters', price:949,  stock:3,  image_url:'', material:'Plant-based PLA' },
+      { id:'3', name:'Reva Planter',      category:'Planters', price:1049, stock:8,  image_url:'', material:'Plant-based PLA' },
+      { id:'4', name:'Sway Planter',      category:'Planters', price:849,  stock:0,  image_url:'', material:'Plant-based PLA' },
+      { id:'5', name:'Tattva Vase',       category:'Vases',    price:1249, stock:5,  image_url:'', material:'Plant-based PLA' },
+      { id:'6', name:'Prism Vase',        category:'Vases',    price:1800, stock:7,  image_url:'', material:'Plant-based PLA' },
+      { id:'7', name:'Angular Bud Vase',  category:'Vases',    price:1200, stock:15, image_url:'', material:'Plant-based PLA' },
+      { id:'8', name:'Aurelia Pendant',   category:'Lighting', price:3499, stock:2,  image_url:'', material:'Plant-based PLA' },
+    ];
+
+    // ── Init ───────────────────────────────────────────
+    loadProducts();
+    updateSummary();
+  </script>
+
 </body>
 </html>

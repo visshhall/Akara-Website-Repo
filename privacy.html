@@ -1,92 +1,870 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy Policy - Atelier Ākāra</title>
-    <link rel="stylesheet" href="/auth-styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Privacy Policy — Atelier Ākāra | Precision Forge Labs">
+  <link rel="icon" type="image/png" href="assets/images/favicon.png">
+  <title>Privacy Policy — Atelier Ākāra</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --teal:       #002b2b;
+      --cream:      #fff8e7;
+      --gold:       #c9a96e;
+      --gold-light: #e2c99a;
+      --text-main:  #fff8e7;
+      --text-muted: rgba(255,248,231,0.55);
+      --border:     rgba(201,169,110,0.25);
+      --border-dim: rgba(201,169,110,0.12);
+      --card-bg:    rgba(255,248,231,0.03);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Josefin Sans', sans-serif;
+      background: var(--teal);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 15% 5%,  rgba(0,95,95,0.28) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 85% 90%,  rgba(0,64,64,0.32) 0%, transparent 55%);
+      pointer-events: none; z-index: 0;
+    }
+    body::after {
+      content: ''; position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,169,110,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,169,110,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ─── Header ──────────────────────────────────── */
+    .site-header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(0,43,43,0.88);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-container {
+      display: flex; align-items: center; justify-content: space-between;
+      max-width: 1280px; margin: 0 auto; padding: 0 2rem; height: 64px;
+    }
+    .nav-left, .nav-right {
+      display: flex; align-items: center; gap: 2rem; min-width: 160px;
+    }
+    .nav-right { justify-content: flex-end; }
+    .nav-links { display: flex; gap: 2rem; }
+    .nav-links a {
+      font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text-muted); transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--gold); }
+    .brand-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; font-weight: 300;
+      letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--cream); white-space: nowrap;
+    }
+    .menu-toggle {
+      display: none; background: none; border: none;
+      color: var(--text-main); font-size: 1.2rem; cursor: pointer;
+    }
+    .mobile-nav {
+      display: none; position: fixed; top: 64px; left: 0; right: 0;
+      background: rgba(0,43,43,0.97); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border); padding: 1.5rem 2rem;
+      z-index: 99; flex-direction: column; gap: 1.2rem;
+    }
+    .mobile-nav.open { display: flex; }
+    .mobile-nav a {
+      font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text-muted); padding: 0.4rem 0;
+      border-bottom: 1px solid rgba(201,169,110,0.1);
+    }
+    .mobile-nav a:hover { color: var(--gold); }
+
+    /* ─── Page ────────────────────────────────────── */
+    .legal-page {
+      position: relative; z-index: 1;
+      max-width: 1280px; margin: 0 auto;
+      padding: 84px 2rem 6rem;
+    }
+
+    /* Breadcrumb */
+    .breadcrumbs {
+      font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text-muted); padding: 1.5rem 0 0;
+    }
+    .breadcrumbs a { color: var(--gold); opacity: 0.7; transition: opacity 0.2s; }
+    .breadcrumbs a:hover { opacity: 1; }
+    .breadcrumbs span { opacity: 0.45; margin: 0 0.5rem; }
+
+    /* ─── Two-column layout ───────────────────────── */
+    .legal-layout {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 4rem;
+      align-items: start;
+      margin-top: 2.5rem;
+    }
+
+    /* ─── Sidebar TOC ─────────────────────────────── */
+    .legal-sidebar {
+      position: sticky; top: 84px;
+      animation: fadeUp 0.6s ease both;
+    }
+    .sidebar-label {
+      font-size: 0.56rem; letter-spacing: 0.38em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.7; margin-bottom: 1.25rem;
+    }
+    .toc-list { display: flex; flex-direction: column; gap: 0.1rem; }
+    .toc-link {
+      font-size: 0.65rem; letter-spacing: 0.1em;
+      color: var(--text-muted); padding: 0.45rem 0.75rem;
+      border-left: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+      display: block;
+    }
+    .toc-link:hover  { color: var(--gold-light); border-left-color: rgba(201,169,110,0.3); }
+    .toc-link.active { color: var(--gold); border-left-color: var(--gold); }
+
+    .sidebar-meta { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-dim); }
+    .meta-row {
+      display: flex; flex-direction: column; gap: 0.15rem; margin-bottom: 0.85rem;
+    }
+    .meta-key {
+      font-size: 0.53rem; letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.6;
+    }
+    .meta-val { font-size: 0.65rem; letter-spacing: 0.06em; color: var(--text-muted); }
+
+    /* ─── Main Content ────────────────────────────── */
+    .legal-content { animation: fadeUp 0.6s ease 0.1s both; }
+
+    /* Page title */
+    .legal-eyebrow {
+      font-size: 0.6rem; letter-spacing: 0.38em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.75; margin-bottom: 0.75rem;
+    }
+    .legal-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      font-weight: 300; letter-spacing: 0.1em;
+      color: var(--cream); line-height: 1.05; margin-bottom: 0.75rem;
+    }
+    .legal-divider {
+      width: 50px; height: 1px; background: var(--gold);
+      opacity: 0.4; margin-bottom: 1.5rem;
+    }
+    .legal-intro {
+      font-size: 0.82rem; letter-spacing: 0.06em;
+      color: var(--text-muted); line-height: 1.9;
+      margin-bottom: 3rem; max-width: 680px;
+    }
+
+    /* ─── Section blocks ──────────────────────────── */
+    .legal-section {
+      margin-bottom: 3rem; padding-top: 1rem;
+    }
+    .section-num {
+      font-size: 0.55rem; letter-spacing: 0.4em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.55; margin-bottom: 0.3rem;
+    }
+    .legal-section h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem; font-weight: 400;
+      letter-spacing: 0.1em; color: var(--cream);
+      margin-bottom: 1rem; padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border-dim);
+    }
+    .legal-section h3 {
+      font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--gold-light); opacity: 0.85;
+      margin-bottom: 0.65rem; margin-top: 1.5rem;
+    }
+    .legal-section p {
+      font-size: 0.75rem; letter-spacing: 0.05em;
+      color: var(--text-muted); line-height: 1.9;
+      margin-bottom: 0.85rem;
+    }
+    .legal-section p:last-child { margin-bottom: 0; }
+    .legal-section strong { color: var(--cream); font-weight: 500; }
+
+    /* Lists */
+    .legal-list {
+      list-style: none; padding: 0;
+      display: flex; flex-direction: column; gap: 0.5rem;
+      margin-bottom: 0.85rem;
+    }
+    .legal-list li {
+      display: flex; align-items: flex-start; gap: 0.65rem;
+      font-size: 0.75rem; letter-spacing: 0.05em;
+      color: var(--text-muted); line-height: 1.75;
+    }
+    .legal-list li::before {
+      content: '→'; color: var(--gold); opacity: 0.6;
+      font-size: 0.65rem; flex-shrink: 0; margin-top: 0.1rem;
+    }
+
+    /* ─── Data table ──────────────────────────────── */
+    .legal-table {
+      width: 100%; border-collapse: collapse;
+      margin: 1rem 0 1.25rem;
+    }
+    .legal-table th {
+      font-size: 0.56rem; letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.8;
+      padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border);
+      text-align: left; white-space: nowrap;
+    }
+    .legal-table td {
+      font-size: 0.72rem; letter-spacing: 0.05em;
+      color: var(--text-muted); padding: 0.75rem 1.25rem;
+      border-bottom: 1px solid var(--border-dim); vertical-align: top;
+      line-height: 1.7;
+    }
+    .legal-table tr:last-child td { border-bottom: none; }
+    .legal-table tr:hover td { background: rgba(255,248,231,0.02); }
+
+    /* ─── Info box ────────────────────────────────── */
+    .info-box {
+      background: rgba(201,169,110,0.06);
+      border: 1px solid rgba(201,169,110,0.25);
+      padding: 1.25rem 1.5rem;
+      margin: 1rem 0;
+    }
+    .info-box.alert {
+      background: rgba(226,169,110,0.06);
+      border-color: rgba(226,169,110,0.3);
+    }
+    .info-box p {
+      font-size: 0.72rem; letter-spacing: 0.06em;
+      color: var(--text-muted); line-height: 1.8;
+    }
+    .info-box strong { color: var(--gold-light); }
+
+    /* ─── Rights grid ─────────────────────────────── */
+    .rights-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem; margin: 1rem 0;
+    }
+    .right-card {
+      background: var(--card-bg); border: 1px solid var(--border-dim);
+      padding: 1.25rem;
+    }
+    .right-icon { font-size: 1rem; opacity: 0.4; margin-bottom: 0.5rem; }
+    .right-title {
+      font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--cream); margin-bottom: 0.4rem;
+    }
+    .right-desc {
+      font-size: 0.65rem; letter-spacing: 0.05em;
+      color: var(--text-muted); line-height: 1.7;
+    }
+    .right-how {
+      font-size: 0.6rem; letter-spacing: 0.08em;
+      color: var(--gold); opacity: 0.7; margin-top: 0.5rem;
+    }
+
+    /* ─── Contact box ─────────────────────────────── */
+    .contact-box {
+      background: var(--card-bg); border: 1px solid var(--border);
+      padding: 1.75rem; margin-top: 1.5rem;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;
+    }
+    .contact-item {}
+    .contact-label {
+      font-size: 0.55rem; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.7; margin-bottom: 0.35rem;
+    }
+    .contact-value {
+      font-size: 0.72rem; letter-spacing: 0.07em; color: var(--cream); line-height: 1.7;
+    }
+    .contact-value a { color: var(--gold); transition: opacity 0.2s; }
+    .contact-value a:hover { opacity: 0.75; }
+
+    /* ─── Back to top / bottom nav ────────────────── */
+    .bottom-nav {
+      display: flex; gap: 0.75rem; margin-top: 3rem; flex-wrap: wrap;
+    }
+    .btn-back {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.75rem 2rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.63rem; letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--teal); background: var(--gold);
+      border: 1px solid var(--gold); transition: all 0.25s; cursor: pointer;
+    }
+    .btn-back:hover { background: transparent; color: var(--gold); }
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.62rem; letter-spacing: 0.25em; text-transform: uppercase;
+      color: var(--text-muted); border: 1px solid var(--border);
+      transition: all 0.25s; cursor: pointer;
+    }
+    .btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ─── Related policies ────────────────────────── */
+    .related-policies {
+      display: flex; gap: 0; border: 1px solid var(--border);
+      margin-top: 3rem;
+    }
+    .policy-link {
+      flex: 1; padding: 1.25rem;
+      border-right: 1px solid var(--border);
+      transition: background 0.2s;
+    }
+    .policy-link:last-child { border-right: none; }
+    .policy-link:hover { background: rgba(201,169,110,0.04); }
+    .policy-link-label { font-size: 0.55rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); opacity: 0.65; margin-bottom: 0.3rem; }
+    .policy-link-name  { font-size: 0.7rem; letter-spacing: 0.1em; color: var(--cream); margin-bottom: 0.15rem; }
+    .policy-link-arrow { font-size: 0.65rem; color: var(--gold); opacity: 0.5; }
+
+    /* ─── Footer ──────────────────────────────────── */
+    .site-footer {
+      background: rgba(0,20,20,0.6); border-top: 1px solid var(--border);
+      padding: 4rem 2rem 2rem; position: relative; z-index: 1;
+    }
+    .footer-content { max-width: 1280px; margin: 0 auto; }
+    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
+    .footer-section h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 400; letter-spacing: 0.2em; color: var(--cream); margin-bottom: 0.5rem; }
+    .footer-section > p { font-size: 0.7rem; letter-spacing: 0.12em; color: var(--text-muted); }
+    .footer-section h4 { font-size: 0.6rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); opacity: 0.75; margin-bottom: 1.2rem; }
+    .footer-section a { display: block; font-size: 0.72rem; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.6rem; transition: color 0.2s; }
+    .footer-section a:hover { color: var(--gold); }
+    .footer-bottom { border-top: 1px solid var(--border); padding-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+    .footer-bottom p { font-size: 0.62rem; letter-spacing: 0.12em; color: var(--text-muted); opacity: 0.6; }
+
+    /* ─── Animations ──────────────────────────────── */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ─── Responsive ──────────────────────────────── */
+    @media (max-width: 900px) {
+      .legal-layout { grid-template-columns: 1fr; gap: 2rem; }
+      .legal-sidebar { position: static; }
+      .toc-list { flex-direction: row; flex-wrap: wrap; gap: 0; border: 1px solid var(--border-dim); }
+      .toc-link { border-left: none; border-bottom: 2px solid transparent; padding: 0.5rem 1rem; }
+      .toc-link.active { border-left: none; border-bottom-color: var(--gold); }
+      .contact-box { grid-template-columns: 1fr; gap: 1rem; }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+    }
+    @media (max-width: 768px) {
+      .menu-toggle { display: block; }
+      .nav-left, .nav-right { min-width: auto; }
+      .rights-grid { grid-template-columns: 1fr 1fr; }
+      .related-policies { flex-direction: column; }
+      .policy-link { border-right: none; border-bottom: 1px solid var(--border); }
+      .policy-link:last-child { border-bottom: none; }
+    }
+    @media (max-width: 480px) {
+      .rights-grid { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+    }
+  </style>
 </head>
+
 <body>
-    <header class="site-header">
-        <nav class="nav-container">
-            <div class="nav-center">
-                <a href="/" class="brand-logo">ATELIER ĀKĀRA</a>
-            </div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <nav class="nav-container">
+      <div class="nav-left">
+        <button class="menu-toggle" id="menuToggle">☰</button>
+        <div class="nav-links desktop-only">
+          <a href="catalog.html">Catalog</a>
+          <a href="about.html">About</a>
+        </div>
+      </div>
+      <a href="index.html" class="brand-logo">ATELIER ĀKĀRA</a>
+      <div class="nav-right">
+        <a href="contact.html" style="font-size:0.7rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-muted);transition:color 0.2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text-muted)'">Contact</a>
+      </div>
+    </nav>
+  </header>
+
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="catalog.html">Catalog</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="user/profile.html">My Account</a>
+  </nav>
+
+  <!-- Page -->
+  <main class="legal-page">
+
+    <nav class="breadcrumbs">
+      <a href="index.html">Home</a>
+      <span>/</span>
+      Privacy Policy
+    </nav>
+
+    <div class="legal-layout">
+
+      <!-- ── Sidebar TOC ── -->
+      <aside class="legal-sidebar">
+        <p class="sidebar-label">Contents</p>
+        <nav class="toc-list" id="tocList">
+          <a class="toc-link active" href="#s1">1. Introduction</a>
+          <a class="toc-link" href="#s2">2. Data Controller</a>
+          <a class="toc-link" href="#s3">3. Data We Collect</a>
+          <a class="toc-link" href="#s4">4. How We Use It</a>
+          <a class="toc-link" href="#s5">5. Your Rights (DPDP)</a>
+          <a class="toc-link" href="#s6">6. Data Sharing</a>
+          <a class="toc-link" href="#s7">7. Retention</a>
+          <a class="toc-link" href="#s8">8. Security</a>
+          <a class="toc-link" href="#s9">9. Cookies</a>
+          <a class="toc-link" href="#s10">10. Children</a>
+          <a class="toc-link" href="#s11">11. Changes</a>
+          <a class="toc-link" href="#s12">12. Contact</a>
         </nav>
-    </header>
-    
-    <main class="legal-page">
-        <h1>Privacy Policy</h1>
-        <p><strong>Last Updated:</strong> March 4, 2024</p>
-        <p><strong>Effective Date:</strong> March 4, 2024</p>
-        
-        <h2>1. Introduction</h2>
-        <p>Precision Forge Labs ("we," "us," "our") respects your privacy and is committed to protecting your personal data. This Privacy Policy explains how we collect, use, store, and protect your information in compliance with the Digital Personal Data Protection Act, 2023 (DPDP Act).</p>
-        
-        <h2>2. Data Controller</h2>
-        <p><strong>Legal Entity:</strong> Precision Forge Labs<br>
-        <strong>GST Number:</strong> 27GZCPS9353H1ZQ<br>
-        <strong>Email:</strong> dpo@akaraonline.co.in</p>
-        
-        <h2>3. Personal Data We Collect</h2>
-        
-        <h3>3.1 Information You Provide:</h3>
-        <ul>
-            <li><strong>Account Information:</strong> First name, last name, email, phone number</li>
-            <li><strong>Delivery Information:</strong> Shipping address, city, state, pincode</li>
-            <li><strong>Payment Information:</strong> Processed by secure payment gateway (we do NOT store card details)</li>
-        </ul>
-        
-        <h3>3.2 Information We Collect Automatically:</h3>
-        <ul>
-            <li><strong>Device Information:</strong> Browser type, operating system (anonymized)</li>
-            <li><strong>Usage Data:</strong> Pages viewed, products browsed</li>
-        </ul>
-        
-        <h2>4. Your Rights Under DPDP Act 2023</h2>
-        
-        <h3>4.1 Right to Access:</h3>
-        <p>You can request a copy of all personal data we hold about you.</p>
-        <p><strong>How:</strong> Email dpo@akaraonline.co.in or use "Export My Data" in your account</p>
-        
-        <h3>4.2 Right to Correction:</h3>
-        <p>You can update incorrect or incomplete information.</p>
-        
-        <h3>4.3 Right to Erasure (Right to be Forgotten):</h3>
-        <p>You can request deletion of your account and personal data.</p>
-        <p><strong>Exception:</strong> We must retain invoices for 7 years (Income Tax Act requirement)</p>
-        
-        <h3>4.4 Right to Data Portability:</h3>
-        <p>You can download your data in machine-readable format (JSON).</p>
-        
-        <h2>5. Data Retention</h2>
-        <table border="1" cellpadding="10">
-            <tr>
+
+        <div class="sidebar-meta">
+          <div class="meta-row">
+            <span class="meta-key">Last Updated</span>
+            <span class="meta-val">5 May 2026</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-key">Effective Date</span>
+            <span class="meta-val">1 February 2026</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-key">Jurisdiction</span>
+            <span class="meta-val">India (DPDP Act 2023)</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-key">Version</span>
+            <span class="meta-val">1.0</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ── Main Content ── -->
+      <div class="legal-content">
+
+        <p class="legal-eyebrow">Legal Document</p>
+        <h1 class="legal-title">Privacy Policy</h1>
+        <div class="legal-divider"></div>
+        <p class="legal-intro">
+          Precision Forge Labs respects your privacy and is committed to protecting your personal data. This policy explains how we collect, use, store, and protect your information in compliance with the Digital Personal Data Protection Act, 2023 (DPDP Act) of India.
+        </p>
+
+        <!-- Section 1 -->
+        <div class="legal-section" id="s1">
+          <p class="section-num">Section 01</p>
+          <h2>Introduction</h2>
+          <p>This Privacy Policy applies to the website <strong>akaraonline.co.in</strong> and all services operated by Precision Forge Labs under the brand Atelier Ākāra ("we," "us," "our"). By accessing our website or placing an order, you acknowledge that you have read and understood this policy.</p>
+          <p>We are a Data Fiduciary as defined under the DPDP Act 2023, and we take that responsibility seriously. We only collect data that is necessary, store it only for as long as required, and never sell it to third parties.</p>
+          <div class="info-box">
+            <p><strong>Plain language summary:</strong> We collect your name, email, phone, and shipping address to process your orders. We do not sell your data, we do not use advertising cookies, and you can request deletion of your account at any time.</p>
+          </div>
+        </div>
+
+        <!-- Section 2 -->
+        <div class="legal-section" id="s2">
+          <p class="section-num">Section 02</p>
+          <h2>Data Controller</h2>
+          <p>The entity responsible for your personal data under this policy is:</p>
+          <div class="contact-box" style="margin-top:1rem;">
+            <div class="contact-item">
+              <div class="contact-label">Legal Entity</div>
+              <div class="contact-value">Precision Forge Labs</div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-label">Trading As</div>
+              <div class="contact-value">Atelier Ākāra</div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-label">GSTIN</div>
+              <div class="contact-value">27GZCPS9353H1ZQ</div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-label">Registered State</div>
+              <div class="contact-value">Maharashtra, India</div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-label">DPO Email</div>
+              <div class="contact-value"><a href="mailto:dpo@akaraonline.co.in">dpo@akaraonline.co.in</a></div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-label">Response Time</div>
+              <div class="contact-value">Within 72 hours</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3 -->
+        <div class="legal-section" id="s3">
+          <p class="section-num">Section 03</p>
+          <h2>Personal Data We Collect</h2>
+
+          <h3>3.1 Information You Provide</h3>
+          <ul class="legal-list">
+            <li><strong>Account Information:</strong> First name, last name, email address, phone number</li>
+            <li><strong>Delivery Information:</strong> Shipping address, city, state, pin code</li>
+            <li><strong>GST / Business Information:</strong> GSTIN and company name (optional, for B2B invoice requests)</li>
+            <li><strong>Payment Information:</strong> Processed securely via Razorpay or bank transfer — we do not store card details or UPI credentials</li>
+            <li><strong>Communications:</strong> Messages you send via our contact form or email</li>
+          </ul>
+
+          <h3>3.2 Information Collected Automatically</h3>
+          <ul class="legal-list">
+            <li><strong>Session Data:</strong> Login session tokens (stored in your browser, expire on sign-out)</li>
+            <li><strong>Usage Data:</strong> Pages viewed, products browsed (anonymised, not linked to your identity unless signed in)</li>
+            <li><strong>Device Information:</strong> Browser type and operating system (anonymised, used only for error reporting)</li>
+          </ul>
+
+          <div class="info-box alert">
+            <p><strong>We do not collect:</strong> Biometric data, sensitive financial data, racial or ethnic origin, religious beliefs, or health data.</p>
+          </div>
+        </div>
+
+        <!-- Section 4 -->
+        <div class="legal-section" id="s4">
+          <p class="section-num">Section 04</p>
+          <h2>How We Use Your Data</h2>
+          <p>We process your personal data only for the purposes listed below. We do not use your data for profiling, automated decision-making, or targeted advertising.</p>
+          <table class="legal-table">
+            <thead>
+              <tr>
+                <th>Purpose</th>
+                <th>Legal Basis</th>
+                <th>Data Used</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Processing and fulfilling your orders</td>
+                <td>Contract performance</td>
+                <td>Name, email, address, payment status</td>
+              </tr>
+              <tr>
+                <td>Sending order confirmations and shipping updates</td>
+                <td>Contract performance</td>
+                <td>Email, phone</td>
+              </tr>
+              <tr>
+                <td>Issuing GST invoices</td>
+                <td>Legal obligation</td>
+                <td>Name, address, GSTIN</td>
+              </tr>
+              <tr>
+                <td>Responding to customer support queries</td>
+                <td>Legitimate interest</td>
+                <td>Email, order details</td>
+              </tr>
+              <tr>
+                <td>Sending marketing emails (newsletters)</td>
+                <td>Consent (opt-in only)</td>
+                <td>Email address</td>
+              </tr>
+              <tr>
+                <td>Fraud prevention and account security</td>
+                <td>Legitimate interest</td>
+                <td>Login session, email</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Section 5 -->
+        <div class="legal-section" id="s5">
+          <p class="section-num">Section 05</p>
+          <h2>Your Rights Under the DPDP Act 2023</h2>
+          <p>As a Data Principal under India's Digital Personal Data Protection Act 2023, you have the following rights:</p>
+          <div class="rights-grid">
+            <div class="right-card">
+              <div class="right-icon">📋</div>
+              <div class="right-title">Right to Access</div>
+              <div class="right-desc">Request a copy of all personal data we hold about you.</div>
+              <div class="right-how">Email dpo@akaraonline.co.in or use "Export My Data" in your account settings.</div>
+            </div>
+            <div class="right-card">
+              <div class="right-icon">✏️</div>
+              <div class="right-title">Right to Correction</div>
+              <div class="right-desc">Update incorrect or incomplete personal information.</div>
+              <div class="right-how">Edit directly in My Account → Profile.</div>
+            </div>
+            <div class="right-card">
+              <div class="right-icon">🗑️</div>
+              <div class="right-title">Right to Erasure</div>
+              <div class="right-desc">Request deletion of your account and personal data.</div>
+              <div class="right-how">Use My Account → Delete Account, or email us.</div>
+            </div>
+            <div class="right-card">
+              <div class="right-icon">📦</div>
+              <div class="right-title">Right to Portability</div>
+              <div class="right-desc">Download your data in machine-readable JSON format.</div>
+              <div class="right-how">Email dpo@akaraonline.co.in — delivered within 7 days.</div>
+            </div>
+            <div class="right-card">
+              <div class="right-icon">🚫</div>
+              <div class="right-title">Right to Withdraw Consent</div>
+              <div class="right-desc">Opt out of marketing emails at any time.</div>
+              <div class="right-how">Click Unsubscribe in any marketing email, or email us.</div>
+            </div>
+            <div class="right-card">
+              <div class="right-icon">⚖️</div>
+              <div class="right-title">Right to Grievance Redressal</div>
+              <div class="right-desc">Lodge a complaint if you believe your data rights have been violated.</div>
+              <div class="right-how">Email dpo@akaraonline.co.in — we respond within 72 hours.</div>
+            </div>
+          </div>
+          <div class="info-box alert" style="margin-top:1rem;">
+            <p><strong>Exception — Right to Erasure:</strong> We are legally required to retain GST invoices and financial records for 7 years under the Income Tax Act and GST rules. Account data linked to those records will be anonymised rather than deleted.</p>
+          </div>
+        </div>
+
+        <!-- Section 6 -->
+        <div class="legal-section" id="s6">
+          <p class="section-num">Section 06</p>
+          <h2>Data Sharing</h2>
+          <p>We do not sell, trade, or rent your personal data to third parties. We share data only in the following limited circumstances:</p>
+          <ul class="legal-list">
+            <li><strong>Payment processors:</strong> Razorpay receives your payment information to process transactions. Their privacy policy applies to data they handle.</li>
+            <li><strong>Logistics partners:</strong> We share your name, phone, and delivery address with our shipping partner to fulfil your order.</li>
+            <li><strong>Cloud infrastructure:</strong> Your data is stored on Supabase (PostgreSQL) hosted on AWS. Data is stored in India.</li>
+            <li><strong>Legal authorities:</strong> We disclose data if required by law, court order, or government authority in India.</li>
+          </ul>
+          <p>All third-party processors are required by contract to handle your data in compliance with applicable Indian law.</p>
+        </div>
+
+        <!-- Section 7 -->
+        <div class="legal-section" id="s7">
+          <p class="section-num">Section 07</p>
+          <h2>Data Retention</h2>
+          <table class="legal-table">
+            <thead>
+              <tr>
                 <th>Data Type</th>
                 <th>Retention Period</th>
-            </tr>
-            <tr>
-                <td>Account Information</td>
+                <th>Reason</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Account profile and preferences</td>
                 <td>Until account deletion</td>
-            </tr>
-            <tr>
-                <td>GST Invoices</td>
-                <td>7 years (legal requirement)</td>
-            </tr>
-        </table>
-        
-        <h2>6. Cookies</h2>
-        <p>We only use essential cookies for session management and security. We do NOT use tracking or advertising cookies.</p>
-        
-        <h2>7. Contact Us</h2>
-        <p><strong>Data Protection Officer:</strong> dpo@akaraonline.co.in<br>
-        <strong>Response Time:</strong> 72 hours</p>
-        
-        <p><a href="/" class="btn-primary">Back to Home</a></p>
-    </main>
-    
-    <footer class="site-footer">
-        <p>© 2024 Atelier Ākāra</p>
-    </footer>
+                <td>Service provision</td>
+              </tr>
+              <tr>
+                <td>GST invoices and order records</td>
+                <td>7 years from order date</td>
+                <td>Income Tax Act &amp; GST rules</td>
+              </tr>
+              <tr>
+                <td>Customer support communications</td>
+                <td>2 years</td>
+                <td>Dispute resolution</td>
+              </tr>
+              <tr>
+                <td>Newsletter subscription</td>
+                <td>Until unsubscription</td>
+                <td>Consent-based</td>
+              </tr>
+              <tr>
+                <td>Anonymised usage analytics</td>
+                <td>12 months, rolling</td>
+                <td>Product improvement</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>After the applicable retention period, data is securely deleted or irreversibly anonymised.</p>
+        </div>
+
+        <!-- Section 8 -->
+        <div class="legal-section" id="s8">
+          <p class="section-num">Section 08</p>
+          <h2>Security</h2>
+          <p>We implement industry-standard technical and organisational security measures to protect your personal data:</p>
+          <ul class="legal-list">
+            <li>All data transmission uses HTTPS / TLS 1.2+ encryption</li>
+            <li>Passwords are hashed and never stored in plain text (handled by Supabase Auth)</li>
+            <li>Database access is restricted to authorised personnel only</li>
+            <li>Payment data is handled entirely by PCI-DSS compliant Razorpay — we never see your card details</li>
+            <li>Admin access requires email-based authentication with a single authorised email address</li>
+          </ul>
+          <p>In the event of a data breach affecting your rights, we will notify you within 72 hours of becoming aware of it, as required by the DPDP Act 2023.</p>
+        </div>
+
+        <!-- Section 9 -->
+        <div class="legal-section" id="s9">
+          <p class="section-num">Section 09</p>
+          <h2>Cookies</h2>
+          <p>We use only essential, strictly necessary cookies. We do not use advertising cookies, tracking pixels, or cross-site analytics.</p>
+          <table class="legal-table">
+            <thead>
+              <tr>
+                <th>Cookie</th>
+                <th>Purpose</th>
+                <th>Duration</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Supabase session token</td>
+                <td>Keeps you signed in to your account</td>
+                <td>7 days or until sign-out</td>
+              </tr>
+              <tr>
+                <td>akara_cart (localStorage)</td>
+                <td>Stores your shopping cart locally in the browser</td>
+                <td>Until cleared by user</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>These cookies cannot be disabled without breaking core website functionality (sign-in, checkout). No consent banner is required for strictly necessary cookies under applicable law.</p>
+        </div>
+
+        <!-- Section 10 -->
+        <div class="legal-section" id="s10">
+          <p class="section-num">Section 10</p>
+          <h2>Children's Privacy</h2>
+          <p>Our website and services are intended for adults aged 18 and above. We do not knowingly collect personal data from anyone under 18. If you believe a minor has created an account, please contact us immediately at <a href="mailto:dpo@akaraonline.co.in" style="color:var(--gold);">dpo@akaraonline.co.in</a> and we will promptly delete the account.</p>
+        </div>
+
+        <!-- Section 11 -->
+        <div class="legal-section" id="s11">
+          <p class="section-num">Section 11</p>
+          <h2>Changes to This Policy</h2>
+          <p>We may update this Privacy Policy from time to time to reflect changes in our practices or legal obligations. When we make material changes, we will:</p>
+          <ul class="legal-list">
+            <li>Update the "Last Updated" date at the top of this page</li>
+            <li>Send a notification to registered customers by email</li>
+            <li>Keep a version history available on request</li>
+          </ul>
+          <p>Continued use of our website after changes are posted constitutes acceptance of the updated policy.</p>
+        </div>
+
+        <!-- Section 12 -->
+        <div class="legal-section" id="s12">
+          <p class="section-num">Section 12</p>
+          <h2>Contact Us</h2>
+          <p>For any questions, requests, or complaints regarding your personal data, please contact our Data Protection Officer:</p>
+          <div class="contact-box">
+            <div class="contact-item">
+              <div class="contact-label">Data Protection Officer</div>
+              <div class="contact-value"><a href="mailto:dpo@akaraonline.co.in">dpo@akaraonline.co.in</a></div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-label">General Support</div>
+              <div class="contact-value"><a href="mailto:support@akaraonline.co.in">support@akaraonline.co.in</a></div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-label">Response Time</div>
+              <div class="contact-value">72 hours for data requests</div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-label">Phone</div>
+              <div class="contact-value"><a href="tel:+918278085572">+91 82780 85572</a></div>
+            </div>
+          </div>
+          <p style="margin-top:1rem;">If you are unsatisfied with our response, you may escalate a complaint to the Data Protection Board of India once established under the DPDP Act 2023.</p>
+        </div>
+
+        <!-- Related Policies -->
+        <div class="related-policies">
+          <a href="terms.html" class="policy-link">
+            <div class="policy-link-label">Legal</div>
+            <div class="policy-link-name">Terms of Service</div>
+            <div class="policy-link-arrow">→</div>
+          </a>
+          <a href="refund-policy.html" class="policy-link">
+            <div class="policy-link-label">Legal</div>
+            <div class="policy-link-name">Refund Policy</div>
+            <div class="policy-link-arrow">→</div>
+          </a>
+          <a href="shipping-policy.html" class="policy-link">
+            <div class="policy-link-label">Legal</div>
+            <div class="policy-link-name">Shipping Policy</div>
+            <div class="policy-link-arrow">→</div>
+          </a>
+        </div>
+
+        <!-- Bottom nav -->
+        <div class="bottom-nav">
+          <a href="index.html" class="btn-back">← Back to Home</a>
+          <a href="contact.html" class="btn-secondary">Contact Us</a>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-grid">
+        <div class="footer-section">
+          <h3>ATELIER ĀKĀRA</h3>
+          <p>Artifacts for the Modern Spaces</p>
+        </div>
+        <div class="footer-section">
+          <h4>Shop</h4>
+          <a href="catalog.html">All Products</a>
+          <a href="catalog.html?category=planters">Planters</a>
+          <a href="catalog.html?category=vases">Vases</a>
+          <a href="catalog.html?category=lighting">Lighting</a>
+        </div>
+        <div class="footer-section">
+          <h4>Legal</h4>
+          <a href="privacy.html">Privacy Policy</a>
+          <a href="terms.html">Terms of Service</a>
+          <a href="refund-policy.html">Refund Policy</a>
+          <a href="shipping-policy.html">Shipping Policy</a>
+        </div>
+        <div class="footer-section">
+          <h4>Connect</h4>
+          <a href="https://instagram.com/atelier.akara" target="_blank">Instagram</a>
+          <a href="mailto:support@akaraonline.co.in">Email Us</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>Precision Forge Labs &nbsp;|&nbsp; GST: 27GZCPS9353H1ZQ</p>
+        <p>© <span id="year"></span> Atelier Ākāra. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Mobile menu
+    document.getElementById('menuToggle').addEventListener('click', () =>
+      document.getElementById('mobileNav').classList.toggle('open'));
+
+    // Active TOC on scroll
+    const sections = document.querySelectorAll('.legal-section[id]');
+    const tocLinks  = document.querySelectorAll('.toc-link');
+
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(link => link.classList.remove('active'));
+          const active = document.querySelector(`.toc-link[href="#${entry.target.id}"]`);
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+
+    sections.forEach(s => observer.observe(s));
+  </script>
+
 </body>
 </html>
