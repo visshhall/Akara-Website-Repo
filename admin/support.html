@@ -1,41 +1,860 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Support Tickets - Admin</title>
-    <link rel="stylesheet" href="/auth-styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Support Tickets — Atelier Ākāra Admin">
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+  <title>Support — Studio Control</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --teal:       #002b2b;
+      --teal-mid:   #004040;
+      --cream:      #fff8e7;
+      --gold:       #c9a96e;
+      --gold-light: #e2c99a;
+      --text-main:  #fff8e7;
+      --text-muted: rgba(255,248,231,0.55);
+      --border:     rgba(201,169,110,0.25);
+      --border-dim: rgba(201,169,110,0.12);
+      --card-bg:    rgba(255,248,231,0.03);
+      --input-bg:   rgba(255,248,231,0.05);
+      --error:      #e07070;
+      --success:    #70c9a0;
+      --warning:    #e2a96e;
+      --urgent:     #e07070;
+      --sidebar-w:  240px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Josefin Sans', sans-serif;
+      background: var(--teal); color: var(--text-main);
+      min-height: 100vh; overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 5% 0%,   rgba(0,95,95,0.22) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 50% at 95% 100%, rgba(0,64,64,0.28) 0%, transparent 55%);
+      pointer-events: none; z-index: 0;
+    }
+    body::after {
+      content: ''; position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,169,110,0.028) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,169,110,0.028) 1px, transparent 1px);
+      background-size: 60px 60px; pointer-events: none; z-index: 0;
+    }
+
+    /* ─── Auth Gate ─────────────────────────────────── */
+    .auth-gate { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; background: var(--teal); }
+    .auth-gate.hidden { display: none; }
+    .auth-box { width: 100%; max-width: 360px; padding: 3rem 2.5rem; background: var(--card-bg); border: 1px solid var(--border); animation: fadeUp 0.6s ease both; text-align: center; }
+    .auth-box-logo { font-family: 'Cormorant Garamond', serif; font-size: 0.9rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--cream); margin-bottom: 0.2rem; }
+    .auth-box-sub  { font-size: 0.55rem; letter-spacing: 0.4em; text-transform: uppercase; color: var(--gold); opacity: 0.7; margin-bottom: 2rem; }
+    .auth-divider  { width: 32px; height: 1px; background: var(--gold); opacity: 0.3; margin: 0 auto 1.75rem; }
+    .auth-field    { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 1rem; text-align: left; }
+    .auth-field label { font-size: 0.56rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); opacity: 0.8; }
+    .auth-field input { background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main); font-family: 'Josefin Sans', sans-serif; font-size: 0.75rem; letter-spacing: 0.08em; padding: 0.72rem 1rem; outline: none; width: 100%; transition: border-color 0.2s; }
+    .auth-field input::placeholder { color: var(--text-muted); }
+    .auth-field input:focus { border-color: rgba(201,169,110,0.55); }
+    .btn-auth { display: block; width: 100%; padding: 0.82rem; font-family: 'Josefin Sans', sans-serif; font-size: 0.63rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--teal); background: var(--gold); border: 1px solid var(--gold); cursor: pointer; transition: all 0.25s; margin-top: 0.25rem; }
+    .btn-auth:hover { background: transparent; color: var(--gold); }
+    .btn-auth:disabled { opacity: 0.5; cursor: not-allowed; background: var(--gold); color: var(--teal); }
+    .auth-err { font-size: 0.62rem; letter-spacing: 0.08em; color: var(--error); margin-top: 0.6rem; display: none; }
+    .auth-err.visible { display: block; }
+
+    /* ─── Sidebar ───────────────────────────────────── */
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w); z-index: 100; background: rgba(0,30,30,0.88); backdrop-filter: blur(20px); border-right: 1px solid var(--border); display: flex; flex-direction: column; transition: transform 0.3s ease; }
+    .sidebar.collapsed { transform: translateX(-100%); }
+    .sidebar-brand { padding: 1.5rem 1.75rem; border-bottom: 1px solid var(--border-dim); }
+    .sidebar-brand-name { font-family: 'Cormorant Garamond', serif; font-size: 0.95rem; font-weight: 300; letter-spacing: 0.28em; text-transform: uppercase; color: var(--cream); }
+    .sidebar-brand-tag  { font-size: 0.5rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); opacity: 0.6; margin-top: 0.2rem; }
+    .sidebar-nav { flex: 1; padding: 1.25rem 0; overflow-y: auto; }
+    .nav-section-label { font-size: 0.5rem; letter-spacing: 0.4em; text-transform: uppercase; color: var(--gold); opacity: 0.5; padding: 0.5rem 1.75rem 0.3rem; }
+    .sidebar-link { display: flex; align-items: center; gap: 0.7rem; padding: 0.65rem 1.75rem; font-size: 0.63rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-muted); cursor: pointer; border-left: 2px solid transparent; transition: all 0.2s; background: none; border-top: none; border-right: none; border-bottom: none; width: 100%; text-align: left; font-family: 'Josefin Sans', sans-serif; text-decoration: none; }
+    .sidebar-link:hover  { color: var(--gold-light); border-left-color: rgba(201,169,110,0.3); }
+    .sidebar-link.active { color: var(--gold); border-left-color: var(--gold); }
+    .link-icon { font-size: 0.82rem; opacity: 0.7; flex-shrink: 0; }
+    .link-badge { margin-left: auto; font-size: 0.52rem; letter-spacing: 0.1em; background: rgba(224,112,112,0.2); color: var(--error); padding: 0.12rem 0.42rem; border-radius: 2px; }
+    .sidebar-footer { padding: 1.25rem 1.75rem; border-top: 1px solid var(--border-dim); }
+    .sidebar-user-email { font-size: 0.58rem; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 0.6rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .btn-signout { background: none; border: 1px solid var(--border); color: var(--text-muted); font-family: 'Josefin Sans', sans-serif; font-size: 0.56rem; letter-spacing: 0.2em; text-transform: uppercase; padding: 0.42rem 0.85rem; cursor: pointer; transition: all 0.2s; width: 100%; }
+    .btn-signout:hover { border-color: var(--error); color: var(--error); }
+
+    /* ─── Main ──────────────────────────────────────── */
+    .admin-main { margin-left: var(--sidebar-w); position: relative; z-index: 1; min-height: 100vh; transition: margin-left 0.3s ease; }
+    .admin-main.expanded { margin-left: 0; }
+
+    .top-bar { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 2.5rem; border-bottom: 1px solid var(--border); background: rgba(0,30,30,0.6); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 50; gap: 1rem; flex-wrap: wrap; }
+    .top-bar-left { display: flex; align-items: center; gap: 1rem; }
+    .sidebar-toggle { background: none; border: none; color: var(--text-muted); font-size: 1rem; cursor: pointer; transition: color 0.2s; display: none; }
+    .sidebar-toggle:hover { color: var(--gold); }
+    .top-bar-title { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 300; letter-spacing: 0.1em; color: var(--cream); }
+    .breadcrumb { font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem; }
+    .breadcrumb a { color: var(--gold); opacity: 0.65; transition: opacity 0.2s; }
+    .breadcrumb a:hover { opacity: 1; }
+    .breadcrumb span { opacity: 0.3; }
+    .top-bar-right { display: flex; align-items: center; gap: 1.25rem; }
+    .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); opacity: 0.8; animation: pulse 2s ease infinite; }
+    @keyframes pulse { 0%,100% { opacity: 0.8; } 50% { opacity: 0.3; } }
+    .top-bar-time { font-size: 0.6rem; letter-spacing: 0.15em; color: var(--text-muted); opacity: 0.55; }
+
+    /* ─── Page Content ──────────────────────────────── */
+    .page-content { padding: 2.5rem; max-width: 1400px; }
+
+    /* ─── Stats ─────────────────────────────────────── */
+    .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.25rem; margin-bottom: 2.5rem; }
+    .stat-card { background: var(--card-bg); border: 1px solid var(--border); padding: 1.5rem; text-align: center; transition: border-color 0.3s; animation: fadeUp 0.5s ease both; }
+    .stat-card:hover { border-color: rgba(201,169,110,0.4); }
+    .stat-card.urgent-card { border-color: rgba(224,112,112,0.35); }
+    .stat-card.urgent-card:hover { border-color: rgba(224,112,112,0.6); }
+    .stat-card:nth-child(1) { animation-delay: 0.05s; }
+    .stat-card:nth-child(2) { animation-delay: 0.10s; }
+    .stat-card:nth-child(3) { animation-delay: 0.15s; }
+    .stat-card:nth-child(4) { animation-delay: 0.20s; }
+    .stat-card:nth-child(5) { animation-delay: 0.25s; }
+    .stat-icon  { font-size: 0.95rem; opacity: 0.35; margin-bottom: 0.55rem; }
+    .stat-value { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.6rem, 2.5vw, 2.4rem); font-weight: 300; color: var(--gold); letter-spacing: 0.05em; line-height: 1; margin-bottom: 0.35rem; }
+    .stat-card.urgent-card .stat-value { color: var(--error); }
+    .stat-label { font-size: 0.55rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--text-muted); }
+
+    /* ─── Layout: list + drawer ─────────────────────── */
+    .support-layout { display: grid; grid-template-columns: 1fr 380px; gap: 1.75rem; align-items: start; }
+
+    /* ─── Section Card ──────────────────────────────── */
+    .section-card { background: var(--card-bg); border: 1px solid var(--border); animation: fadeUp 0.5s ease 0.2s both; }
+    .section-header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.75rem; border-bottom: 1px solid var(--border-dim); flex-wrap: wrap; gap: 0.75rem; }
+    .section-header h2 { font-size: 0.6rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); opacity: 0.8; }
+    .section-header-right { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+
+    /* ─── Toolbar ───────────────────────────────────── */
+    .toolbar { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.75rem; border-bottom: 1px solid var(--border-dim); flex-wrap: wrap; gap: 0.75rem; }
+    .toolbar-left { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+    .search-wrap { position: relative; }
+    .search-icon { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.8rem; pointer-events: none; }
+    .search-input { background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main); font-family: 'Josefin Sans', sans-serif; font-size: 0.68rem; letter-spacing: 0.08em; padding: 0.55rem 1rem 0.55rem 2.2rem; outline: none; width: 220px; transition: border-color 0.2s; }
+    .search-input::placeholder { color: var(--text-muted); }
+    .search-input:focus { border-color: rgba(201,169,110,0.5); }
+    .sort-select { background: var(--input-bg); border: 1px solid var(--border); color: var(--text-muted); font-family: 'Josefin Sans', sans-serif; font-size: 0.62rem; letter-spacing: 0.1em; padding: 0.5rem 0.8rem; outline: none; cursor: pointer; -webkit-appearance: none; }
+    .sort-select option { background: var(--teal); }
+    .result-count { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); opacity: 0.55; }
+
+    /* Filter tabs */
+    .filter-tabs-wrap { border-bottom: 1px solid var(--border-dim); padding: 0 1.75rem; }
+    .filter-tabs { display: flex; flex-wrap: wrap; }
+    .filter-tab { background: none; border: none; border-bottom: 2px solid transparent; font-family: 'Josefin Sans', sans-serif; font-size: 0.58rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-muted); padding: 0.65rem 1.1rem; cursor: pointer; transition: all 0.2s; margin-bottom: -1px; }
+    .filter-tab:hover { color: var(--gold-light); }
+    .filter-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+    /* ─── Ticket List ───────────────────────────────── */
+    .ticket-list { display: flex; flex-direction: column; }
+    .ticket-row {
+      display: flex; align-items: flex-start; gap: 1.25rem;
+      padding: 1.1rem 1.75rem; border-bottom: 1px solid var(--border-dim);
+      cursor: pointer; transition: background 0.15s;
+    }
+    .ticket-row:last-child { border-bottom: none; }
+    .ticket-row:hover { background: rgba(255,248,231,0.02); }
+    .ticket-row.selected { background: rgba(201,169,110,0.06); }
+    .ticket-row.selected .ticket-subject { color: var(--gold); }
+
+    /* Priority dot */
+    .priority-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 0.4rem; }
+    .priority-dot.urgent  { background: var(--error);   animation: blinkDot 1.5s ease infinite; }
+    .priority-dot.high    { background: var(--warning); }
+    .priority-dot.medium  { background: var(--gold);    }
+    .priority-dot.low     { background: var(--success); }
+    @keyframes blinkDot { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    .ticket-main { flex: 1; min-width: 0; }
+    .ticket-row-top { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.25rem; flex-wrap: wrap; }
+    .ticket-id { font-family: 'Courier New', monospace; font-size: 0.58rem; color: var(--gold); letter-spacing: 0.1em; flex-shrink: 0; }
+    .ticket-subject { font-size: 0.72rem; letter-spacing: 0.06em; color: var(--cream); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 360px; }
+    .ticket-preview { font-size: 0.65rem; letter-spacing: 0.04em; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 400px; }
+    .ticket-meta { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.25rem; }
+    .ticket-sender { font-size: 0.62rem; letter-spacing: 0.07em; color: var(--text-muted); }
+    .ticket-date   { font-size: 0.6rem; letter-spacing: 0.06em; color: var(--text-muted); opacity: 0.5; }
+
+    /* Badges */
+    .badge { display: inline-block; font-size: 0.52rem; letter-spacing: 0.18em; text-transform: uppercase; padding: 0.18rem 0.5rem; border: 1px solid; }
+    .badge.urgent  { color: var(--error);   border-color: rgba(224,112,112,0.4); }
+    .badge.high    { color: var(--warning); border-color: rgba(226,169,110,0.4); }
+    .badge.medium  { color: var(--gold);    border-color: rgba(201,169,110,0.4); }
+    .badge.low     { color: var(--success); border-color: rgba(112,201,160,0.4); }
+    .badge.open        { color: var(--gold);    border-color: rgba(201,169,110,0.4); }
+    .badge.in_progress { color: var(--warning); border-color: rgba(226,169,110,0.4); }
+    .badge.resolved    { color: var(--success); border-color: rgba(112,201,160,0.4); }
+    .badge.closed      { color: var(--text-muted); border-color: var(--border); }
+    .badge.return      { color: var(--error);   border-color: rgba(224,112,112,0.35); }
+    .badge.shipping    { color: var(--gold-light); border-color: rgba(226,201,154,0.4); }
+    .badge.product     { color: var(--gold);    border-color: rgba(201,169,110,0.4); }
+    .badge.general     { color: var(--text-muted); border-color: var(--border); }
+
+    /* ─── Ticket Detail Panel ───────────────────────── */
+    .ticket-detail {
+      background: var(--card-bg); border: 1px solid var(--border);
+      position: sticky; top: 84px;
+      animation: fadeUp 0.5s ease 0.25s both;
+    }
+    .detail-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-dim); }
+    .detail-title  { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 300; letter-spacing: 0.08em; color: var(--cream); margin-bottom: 0.4rem; line-height: 1.3; }
+    .detail-meta   { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+    .detail-body   { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
+
+    /* Customer info */
+    .detail-section-label { font-size: 0.55rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); opacity: 0.65; margin-bottom: 0.65rem; }
+    .kv-row { display: flex; justify-content: space-between; align-items: baseline; padding: 0.42rem 0; border-bottom: 1px solid rgba(201,169,110,0.07); gap: 0.75rem; }
+    .kv-row:last-child { border-bottom: none; }
+    .kv-key { font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-muted); opacity: 0.65; flex-shrink: 0; }
+    .kv-val { font-size: 0.68rem; letter-spacing: 0.05em; color: var(--cream); text-align: right; }
+    .kv-val.gold { color: var(--gold); }
+
+    /* Message thread */
+    .message-thread { display: flex; flex-direction: column; gap: 0.75rem; max-height: 280px; overflow-y: auto; padding-right: 0.25rem; }
+    .message-thread::-webkit-scrollbar { width: 3px; }
+    .message-thread::-webkit-scrollbar-thumb { background: rgba(201,169,110,0.2); }
+    .msg-bubble {
+      padding: 0.8rem 1rem;
+      border: 1px solid var(--border-dim);
+    }
+    .msg-bubble.customer { border-left: 2px solid rgba(201,169,110,0.35); }
+    .msg-bubble.admin    { border-left: 2px solid rgba(112,201,160,0.35); background: rgba(112,201,160,0.04); }
+    .msg-header { display: flex; justify-content: space-between; margin-bottom: 0.4rem; }
+    .msg-sender { font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase; }
+    .msg-bubble.customer .msg-sender { color: var(--gold); opacity: 0.75; }
+    .msg-bubble.admin    .msg-sender { color: var(--success); opacity: 0.75; }
+    .msg-time   { font-size: 0.56rem; color: var(--text-muted); opacity: 0.45; }
+    .msg-text   { font-size: 0.7rem; letter-spacing: 0.05em; color: var(--text-muted); line-height: 1.7; }
+
+    /* Reply box */
+    .reply-box { border-top: 1px solid var(--border-dim); padding-top: 1.25rem; }
+    .reply-textarea {
+      width: 100%; background: var(--input-bg); border: 1px solid var(--border);
+      color: var(--text-main); font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.7rem; letter-spacing: 0.06em; padding: 0.75rem 1rem;
+      outline: none; resize: vertical; min-height: 80px; line-height: 1.7;
+      transition: border-color 0.2s; margin-bottom: 0.75rem;
+    }
+    .reply-textarea::placeholder { color: var(--text-muted); }
+    .reply-textarea:focus { border-color: rgba(201,169,110,0.55); }
+    .reply-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+    .btn-reply {
+      flex: 1; padding: 0.65rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.6rem; letter-spacing: 0.25em; text-transform: uppercase;
+      color: var(--teal); background: var(--gold);
+      border: 1px solid var(--gold); cursor: pointer; transition: all 0.25s;
+    }
+    .btn-reply:hover { background: transparent; color: var(--gold); }
+    .btn-resolve {
+      padding: 0.65rem 1.1rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.6rem; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--success); border: 1px solid rgba(112,201,160,0.35);
+      background: none; cursor: pointer; transition: all 0.25s;
+    }
+    .btn-resolve:hover { background: rgba(112,201,160,0.08); }
+
+    /* Status select */
+    .status-row { display: flex; align-items: center; gap: 0.75rem; }
+    .status-select { flex: 1; background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main); font-family: 'Josefin Sans', sans-serif; font-size: 0.68rem; letter-spacing: 0.08em; padding: 0.5rem 0.8rem; outline: none; -webkit-appearance: none; }
+    .status-select option { background: var(--teal); }
+    .btn-update-status { padding: 0.55rem 1rem; font-family: 'Josefin Sans', sans-serif; font-size: 0.58rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--teal); background: var(--gold); border: 1px solid var(--gold); cursor: pointer; transition: all 0.25s; white-space: nowrap; }
+    .btn-update-status:hover { background: transparent; color: var(--gold); }
+
+    /* Empty detail state */
+    .detail-empty { text-align: center; padding: 3rem 1.5rem; font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-muted); opacity: 0.4; }
+
+    /* ─── State messages ────────────────────────────── */
+    .state-msg { text-align: center; padding: 3rem 2rem; font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-muted); }
+
+    /* ─── Pagination ────────────────────────────────── */
+    .pagination { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.75rem; border-top: 1px solid var(--border-dim); flex-wrap: wrap; gap: 0.75rem; }
+    .page-info { font-size: 0.62rem; letter-spacing: 0.1em; color: var(--text-muted); opacity: 0.55; }
+    .page-btns { display: flex; gap: 0.4rem; }
+    .page-btn { background: none; border: 1px solid var(--border); color: var(--text-muted); font-family: 'Josefin Sans', sans-serif; font-size: 0.58rem; letter-spacing: 0.15em; padding: 0.38rem 0.75rem; cursor: pointer; transition: all 0.2s; }
+    .page-btn:hover  { border-color: var(--gold); color: var(--gold); }
+    .page-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(201,169,110,0.08); }
+    .page-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+
+    /* Utility */
+    .btn-export { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.52rem 1.1rem; font-family: 'Josefin Sans', sans-serif; font-size: 0.58rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-muted); border: 1px solid var(--border); background: none; cursor: pointer; transition: all 0.2s; }
+    .btn-export:hover { border-color: var(--gold); color: var(--gold); }
+    .toast { position: fixed; bottom: 2rem; right: 2rem; z-index: 300; background: var(--gold); color: var(--teal); font-family: 'Josefin Sans', sans-serif; font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; padding: 0.75rem 1.5rem; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+    .toast.visible { opacity: 1; }
+    .admin-footer { padding: 1.25rem 2.5rem; border-top: 1px solid var(--border-dim); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+    .admin-footer p { font-size: 0.56rem; letter-spacing: 0.12em; color: var(--text-muted); opacity: 0.4; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 1200px) { .support-layout { grid-template-columns: 1fr; } .ticket-detail { position: static; } }
+    @media (max-width: 1100px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 900px) { .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); } .admin-main { margin-left: 0; } .sidebar-toggle { display: block; } .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .page-content { padding: 1.5rem; } .search-input { width: 150px; } }
+  </style>
 </head>
 <body>
-    <header class="site-header">
-        <nav class="nav-container">
-            <div class="nav-center">
-                <a href="/admin/dashboard.html" class="brand-logo">ADMIN PANEL</a>
-            </div>
-        </nav>
-    </header>
-    
-    <main class="admin-page">
-        <h1>Support Tickets</h1>
-        
-        <div class="ticket-stats">
-            <div class="stat-card urgent">
-                <h3>Urgent</h3>
-                <p id="urgentTickets">0</p>
-            </div>
-            <div class="stat-card">
-                <h3>Open</h3>
-                <p id="openTickets">0</p>
-            </div>
-            <div class="stat-card">
-                <h3>Resolved</h3>
-                <p id="resolvedTickets">0</p>
-            </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- ══ AUTH GATE ══════════════════════════════════════ -->
+  <div class="auth-gate" id="authGate">
+    <div class="auth-box">
+      <div class="auth-box-logo">ATELIER ĀKĀRA</div>
+      <div class="auth-box-sub">Studio Control</div>
+      <div class="auth-divider"></div>
+      <div class="auth-field"><label>Email</label><input type="email" id="adminEmail" placeholder="admin@akaraonline.co.in" autocomplete="email"></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="adminPassword" placeholder="••••••••" autocomplete="current-password"></div>
+      <button class="btn-auth" id="adminLoginBtn" onclick="handleAdminLogin()">Enter Studio</button>
+      <p class="auth-err" id="authErr"></p>
+    </div>
+  </div>
+
+  <!-- ══ SIDEBAR ══════════════════════════════════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-name">ĀKĀRA</div>
+      <div class="sidebar-brand-tag">Studio Control</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="sidebar-link"><span class="link-icon">⬡</span> Dashboard</a>
+      <div class="nav-section-label">Manage</div>
+      <a href="admin-orders.html" class="sidebar-link"><span class="link-icon">↗</span> Orders</a>
+      <a href="inventory.html"    class="sidebar-link"><span class="link-icon">◈</span> Inventory</a>
+      <a href="customers.html"    class="sidebar-link"><span class="link-icon">🛍</span> Customers</a>
+      <a href="users.html"        class="sidebar-link"><span class="link-icon">👥</span> Members</a>
+      <div class="nav-section-label">Support</div>
+      <a href="support.html"      class="sidebar-link active"><span class="link-icon">💬</span> Tickets <span class="link-badge" id="urgentBadge">0</span></a>
+      <div class="nav-section-label">Analytics</div>
+      <a href="reports.html"      class="sidebar-link"><span class="link-icon">↑</span> Reports</a>
+      <div class="nav-section-label">System</div>
+      <a href="settings.html"     class="sidebar-link"><span class="link-icon">⊙</span> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <p class="sidebar-user-email" id="sidebarEmail">—</p>
+      <button class="btn-signout" onclick="handleSignOut()">Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN ══════════════════════════════════════════ -->
+  <div class="admin-main" id="adminMain">
+
+    <div class="top-bar">
+      <div class="top-bar-left">
+        <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+        <div>
+          <div class="top-bar-title">Support Tickets</div>
+          <nav class="breadcrumb">
+            <a href="dashboard.html">Dashboard</a>
+            <span>/</span> Support
+          </nav>
         </div>
-        
-        <div class="tickets-list" id="ticketsList">
-            <!-- Tickets loaded here -->
+      </div>
+      <div class="top-bar-right">
+        <div class="live-dot"></div>
+        <span class="top-bar-time" id="liveClock"></span>
+        <a href="../index.html" style="font-size:0.58rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-muted);transition:color 0.2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text-muted)'">← Store</a>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card urgent-card"><div class="stat-icon">🔴</div><div class="stat-value" id="statUrgent">—</div><div class="stat-label">Urgent</div></div>
+        <div class="stat-card"><div class="stat-icon">📬</div><div class="stat-value" id="statOpen">—</div><div class="stat-label">Open</div></div>
+        <div class="stat-card"><div class="stat-icon">⚡</div><div class="stat-value" id="statInProgress">—</div><div class="stat-label">In Progress</div></div>
+        <div class="stat-card"><div class="stat-icon">✓</div><div class="stat-value" id="statResolved">—</div><div class="stat-label">Resolved</div></div>
+        <div class="stat-card"><div class="stat-icon">⊙</div><div class="stat-value" id="statAvgHrs">—</div><div class="stat-label">Avg. Response (hrs)</div></div>
+      </div>
+
+      <div class="support-layout">
+
+        <!-- ── Ticket List ── -->
+        <div>
+          <div class="section-card">
+            <div class="section-header">
+              <h2>All Tickets</h2>
+              <div class="section-header-right">
+                <span class="result-count" id="resultCount"></span>
+                <button class="btn-export" onclick="exportCSV()">↓ Export</button>
+              </div>
+            </div>
+
+            <div class="toolbar">
+              <div class="toolbar-left">
+                <div class="search-wrap">
+                  <span class="search-icon">⌕</span>
+                  <input type="text" class="search-input" id="searchInput" placeholder="Search tickets…" maxlength="80" oninput="applyFilters()">
+                </div>
+                <select class="sort-select" id="sortSelect" onchange="applyFilters()">
+                  <option value="newest">Newest First</option>
+                  <option value="oldest">Oldest First</option>
+                  <option value="priority">Priority (Urgent first)</option>
+                  <option value="updated">Recently Updated</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="filter-tabs-wrap">
+              <div class="filter-tabs">
+                <button class="filter-tab active" onclick="setFilter('all',         this)">All</button>
+                <button class="filter-tab"        onclick="setFilter('urgent',      this)">Urgent</button>
+                <button class="filter-tab"        onclick="setFilter('open',        this)">Open</button>
+                <button class="filter-tab"        onclick="setFilter('in_progress', this)">In Progress</button>
+                <button class="filter-tab"        onclick="setFilter('resolved',    this)">Resolved</button>
+                <button class="filter-tab"        onclick="setFilter('closed',      this)">Closed</button>
+              </div>
+            </div>
+
+            <div class="ticket-list" id="ticketList">
+              <div class="state-msg">Loading tickets…</div>
+            </div>
+
+            <div class="pagination" id="paginationBar">
+              <span class="page-info" id="pageInfo"></span>
+              <div class="page-btns" id="pageBtns"></div>
+            </div>
+          </div>
         </div>
-    </main>
+
+        <!-- ── Ticket Detail Panel ── -->
+        <div class="ticket-detail" id="ticketDetail">
+          <div class="detail-empty">Select a ticket to view details</div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="admin-footer">
+      <p>Precision Forge Labs &nbsp;|&nbsp; GST: 27GZCPS9353H1ZQ</p>
+      <p>Studio Control v1.0 &nbsp;·&nbsp; Atelier Ākāra</p>
+    </div>
+  </div>
+
+  <script>
+    // ─────────────────────────────────────────────────
+    // CREDENTIALS
+    // ─────────────────────────────────────────────────
+    const SUPABASE_URL      = '';
+    const SUPABASE_ANON_KEY = '';
+    const ADMIN_EMAIL       = 'support@akaraonline.co.in';
+    const PAGE_SIZE         = 15;
+
+    const PRIORITY_ORDER = { urgent: 0, high: 1, medium: 2, low: 3 };
+
+    let supabase          = null;
+    let allTickets        = [];
+    let filteredTickets   = [];
+    let activeFilter      = 'all';
+    let currentPage       = 1;
+    let selectedTicketIdx = null;
+
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    // ── Clock ─────────────────────────────────────────
+    setInterval(() => {
+      document.getElementById('liveClock').textContent =
+        new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    }, 1000);
+
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+    // ── Auth ──────────────────────────────────────────
+    async function handleAdminLogin() {
+      const email = document.getElementById('adminEmail').value.trim();
+      const pass  = document.getElementById('adminPassword').value;
+      const btn   = document.getElementById('adminLoginBtn');
+      const errEl = document.getElementById('authErr');
+      btn.disabled = true; btn.textContent = 'Verifying…';
+      errEl.classList.remove('visible');
+
+      if (!supabase) {
+        await new Promise(r => setTimeout(r, 700));
+        showDashboard('demo@akaraonline.co.in');
+        return;
+      }
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
+      btn.disabled = false; btn.textContent = 'Enter Studio';
+      if (error) { errEl.textContent = error.message; errEl.classList.add('visible'); return; }
+      if (data.user.email !== ADMIN_EMAIL) { await supabase.auth.signOut(); errEl.textContent = 'Access denied.'; errEl.classList.add('visible'); return; }
+      showDashboard(data.user.email);
+    }
+
+    function showDashboard(email) {
+      document.getElementById('authGate').classList.add('hidden');
+      document.getElementById('sidebarEmail').textContent = email;
+      loadTickets();
+    }
+
+    async function handleSignOut() {
+      if (supabase) await supabase.auth.signOut();
+      document.getElementById('authGate').classList.remove('hidden');
+    }
+
+    async function checkSession() {
+      if (!supabase) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session && session.user.email === ADMIN_EMAIL) showDashboard(session.user.email);
+    }
+    checkSession();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('adminPassword')?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') handleAdminLogin();
+      });
+    });
+
+    // ── Load tickets ──────────────────────────────────
+    async function loadTickets() {
+      if (!supabase) { allTickets = DEMO_TICKETS; computeStats(); applyFilters(); return; }
+      try {
+        const { data, error } = await supabase
+          .from('support_tickets')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (error) throw error;
+        allTickets = data || [];
+      } catch { allTickets = DEMO_TICKETS; }
+      computeStats();
+      applyFilters();
+    }
+
+    // ── Stats ─────────────────────────────────────────
+    function computeStats() {
+      const urgent     = allTickets.filter(t => t.priority === 'urgent').length;
+      const open       = allTickets.filter(t => t.status === 'open').length;
+      const inProgress = allTickets.filter(t => t.status === 'in_progress').length;
+      const resolved   = allTickets.filter(t => t.status === 'resolved').length;
+
+      document.getElementById('statUrgent').textContent    = urgent;
+      document.getElementById('statOpen').textContent      = open;
+      document.getElementById('statInProgress').textContent= inProgress;
+      document.getElementById('statResolved').textContent  = resolved;
+      document.getElementById('statAvgHrs').textContent    = '4.2'; // demo
+      document.getElementById('urgentBadge').textContent   = urgent;
+    }
+
+    // ── Filters ───────────────────────────────────────
+    function setFilter(filter, btn) {
+      activeFilter = filter;
+      document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentPage = 1;
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const q    = document.getElementById('searchInput').value.toLowerCase().trim();
+      const sort = document.getElementById('sortSelect').value;
+
+      let result = allTickets.filter(t => {
+        const matchQ = !q ||
+          (t.subject   || '').toLowerCase().includes(q) ||
+          (t.name      || '').toLowerCase().includes(q) ||
+          (t.email     || '').toLowerCase().includes(q) ||
+          (t.ticket_id || '').toLowerCase().includes(q);
+
+        const matchF =
+          activeFilter === 'all'         ? true :
+          activeFilter === 'urgent'      ? t.priority === 'urgent' :
+          activeFilter === 'in_progress' ? t.status === 'in_progress' :
+          t.status === activeFilter;
+
+        return matchQ && matchF;
+      });
+
+      result.sort((a, b) => {
+        if (sort === 'oldest')   return new Date(a.created_at) - new Date(b.created_at);
+        if (sort === 'priority') return (PRIORITY_ORDER[a.priority] || 3) - (PRIORITY_ORDER[b.priority] || 3);
+        if (sort === 'updated')  return new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at);
+        return new Date(b.created_at) - new Date(a.created_at);
+      });
+
+      filteredTickets = result;
+      document.getElementById('resultCount').textContent =
+        `${result.length} ticket${result.length !== 1 ? 's' : ''}`;
+      renderPage(1);
+    }
+
+    // ── Render ticket list ────────────────────────────
+    function renderPage(page) {
+      currentPage = page;
+      const total = filteredTickets.length;
+      const pages = Math.ceil(total / PAGE_SIZE);
+      const start = (page - 1) * PAGE_SIZE;
+      const slice = filteredTickets.slice(start, start + PAGE_SIZE);
+      const container = document.getElementById('ticketList');
+
+      if (!slice.length) {
+        container.innerHTML = '<div class="state-msg">No tickets found</div>';
+        document.getElementById('paginationBar').style.display = 'none';
+        return;
+      }
+
+      document.getElementById('paginationBar').style.display = 'flex';
+      document.getElementById('pageInfo').textContent = `${start+1}–${Math.min(start+PAGE_SIZE,total)} of ${total}`;
+
+      container.innerHTML = slice.map((t, i) => {
+        const isSelected = selectedTicketIdx === (start + i);
+        const preview    = (t.messages?.[0]?.text || t.preview || '').slice(0, 80);
+        const ago        = timeAgo(t.created_at);
+        return `
+          <div class="ticket-row${isSelected ? ' selected' : ''}" onclick="openTicket(${start + i})">
+            <div class="priority-dot ${t.priority || 'medium'}"></div>
+            <div class="ticket-main">
+              <div class="ticket-row-top">
+                <span class="ticket-id">${t.ticket_id || '#—'}</span>
+                <span class="ticket-subject">${t.subject || '—'}</span>
+                <span class="badge ${t.status || 'open'}">${(t.status || 'open').replace('_',' ')}</span>
+                <span class="badge ${t.category || 'general'}">${t.category || 'general'}</span>
+              </div>
+              <div class="ticket-preview">${preview || 'No message preview'}</div>
+              <div class="ticket-meta">
+                <span class="ticket-sender">${t.name || 'Unknown'} · ${t.email || ''}</span>
+                <span class="ticket-date">${ago}</span>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+
+      // Pagination
+      const pageBtns = document.getElementById('pageBtns');
+      pageBtns.innerHTML = '';
+      const prev = document.createElement('button');
+      prev.className = 'page-btn'; prev.textContent = '←'; prev.disabled = page === 1;
+      prev.onclick = () => renderPage(page - 1);
+      pageBtns.appendChild(prev);
+
+      const maxV = 5;
+      let sp = Math.max(1, page - 2), ep = Math.min(pages, sp + maxV - 1);
+      if (ep - sp < maxV - 1) sp = Math.max(1, ep - maxV + 1);
+      for (let p = sp; p <= ep; p++) {
+        const btn = document.createElement('button');
+        btn.className = 'page-btn' + (p === page ? ' active' : '');
+        btn.textContent = p;
+        btn.onclick = ((pg) => () => renderPage(pg))(p);
+        pageBtns.appendChild(btn);
+      }
+
+      const next = document.createElement('button');
+      next.className = 'page-btn'; next.textContent = '→'; next.disabled = page >= pages;
+      next.onclick = () => renderPage(page + 1);
+      pageBtns.appendChild(next);
+    }
+
+    // ── Open ticket detail ────────────────────────────
+    function openTicket(index) {
+      selectedTicketIdx = index;
+      const t = filteredTickets[index];
+      if (!t) return;
+
+      // Re-render list to update selection highlight
+      renderPage(currentPage);
+
+      const messages = t.messages || [{ sender: 'customer', text: t.message || 'No message body.', time: t.created_at }];
+
+      document.getElementById('ticketDetail').innerHTML = `
+        <div class="detail-header">
+          <div class="detail-title">${t.subject || '—'}</div>
+          <div class="detail-meta">
+            <span class="badge ${t.priority || 'medium'}">${t.priority || 'medium'}</span>
+            <span class="badge ${t.status || 'open'}">${(t.status || 'open').replace('_',' ')}</span>
+            <span class="badge ${t.category || 'general'}">${t.category || 'general'}</span>
+          </div>
+        </div>
+
+        <div class="detail-body">
+
+          <!-- Customer -->
+          <div>
+            <div class="detail-section-label">Customer</div>
+            <div class="kv-row"><span class="kv-key">Name</span>     <span class="kv-val">${t.name || '—'}</span></div>
+            <div class="kv-row"><span class="kv-key">Email</span>    <span class="kv-val">${t.email || '—'}</span></div>
+            <div class="kv-row"><span class="kv-key">Order ID</span> <span class="kv-val gold">${t.order_id || 'Not linked'}</span></div>
+            <div class="kv-row"><span class="kv-key">Ticket ID</span><span class="kv-val">${t.ticket_id || '—'}</span></div>
+            <div class="kv-row"><span class="kv-key">Submitted</span><span class="kv-val">${new Date(t.created_at).toLocaleDateString('en-IN', {day:'numeric',month:'long',year:'numeric'})}</span></div>
+          </div>
+
+          <!-- Update status -->
+          <div>
+            <div class="detail-section-label">Update Status</div>
+            <div class="status-row">
+              <select class="status-select" id="statusSelect">
+                <option value="open"        ${t.status==='open'        ?'selected':''}>Open</option>
+                <option value="in_progress" ${t.status==='in_progress' ?'selected':''}>In Progress</option>
+                <option value="resolved"    ${t.status==='resolved'    ?'selected':''}>Resolved</option>
+                <option value="closed"      ${t.status==='closed'      ?'selected':''}>Closed</option>
+              </select>
+              <button class="btn-update-status" onclick="updateStatus('${t.ticket_id}', '${t.id || ''}')">Update</button>
+            </div>
+          </div>
+
+          <!-- Thread -->
+          <div>
+            <div class="detail-section-label">Message Thread (${messages.length})</div>
+            <div class="message-thread">
+              ${messages.map(m => `
+                <div class="msg-bubble ${m.sender || 'customer'}">
+                  <div class="msg-header">
+                    <span class="msg-sender">${m.sender === 'admin' ? 'Support' : (t.name || 'Customer')}</span>
+                    <span class="msg-time">${timeAgo(m.time || m.created_at || t.created_at)}</span>
+                  </div>
+                  <div class="msg-text">${m.text || '—'}</div>
+                </div>`).join('')}
+            </div>
+          </div>
+
+          <!-- Reply -->
+          <div class="reply-box">
+            <div class="detail-section-label">Reply</div>
+            <textarea class="reply-textarea" id="replyText" placeholder="Type your reply to ${t.name || 'the customer'}…"></textarea>
+            <div class="reply-actions">
+              <button class="btn-reply" onclick="sendReply('${t.ticket_id}', '${t.id || ''}')">Send Reply</button>
+              <button class="btn-resolve" onclick="quickResolve('${t.ticket_id}', '${t.id || ''}')">✓ Mark Resolved</button>
+            </div>
+          </div>
+
+        </div>`;
+    }
+
+    // ── Actions ───────────────────────────────────────
+    async function updateStatus(ticketId, dbId) {
+      const newStatus = document.getElementById('statusSelect').value;
+      if (supabase && dbId) {
+        await supabase.from('support_tickets').update({ status: newStatus }).eq('id', dbId).catch(() => {});
+      }
+      const t = allTickets.find(x => x.ticket_id === ticketId || x.id === dbId);
+      if (t) t.status = newStatus;
+      computeStats();
+      applyFilters();
+      showToast(`Ticket ${newStatus.replace('_',' ')}`);
+    }
+
+    async function sendReply(ticketId, dbId) {
+      const text = document.getElementById('replyText')?.value.trim();
+      if (!text) { showToast('Reply cannot be empty'); return; }
+
+      const t = allTickets.find(x => x.ticket_id === ticketId || x.id === dbId);
+      if (t) {
+        if (!t.messages) t.messages = [];
+        t.messages.push({ sender: 'admin', text, time: new Date().toISOString() });
+        t.status = t.status === 'open' ? 'in_progress' : t.status;
+      }
+
+      if (supabase && dbId) {
+        await supabase.from('support_tickets').update({
+          status: t?.status || 'in_progress',
+          messages: t?.messages,
+          updated_at: new Date().toISOString(),
+        }).eq('id', dbId).catch(() => {});
+      }
+
+      // In real app: send email to customer via Supabase Edge Function
+      showToast('Reply sent');
+      computeStats();
+      applyFilters();
+      // Reopen same ticket to show new message
+      if (selectedTicketIdx !== null) openTicket(selectedTicketIdx);
+    }
+
+    async function quickResolve(ticketId, dbId) {
+      const t = allTickets.find(x => x.ticket_id === ticketId || x.id === dbId);
+      if (t) t.status = 'resolved';
+      if (supabase && dbId) {
+        await supabase.from('support_tickets').update({ status: 'resolved', updated_at: new Date().toISOString() }).eq('id', dbId).catch(() => {});
+      }
+      computeStats(); applyFilters();
+      showToast('Ticket marked resolved');
+    }
+
+    // ── Export CSV ────────────────────────────────────
+    function exportCSV() {
+      const headers = ['Ticket ID','Subject','Name','Email','Priority','Status','Category','Order ID','Date'];
+      const rows = filteredTickets.map(t => [
+        t.ticket_id || '', t.subject || '', t.name || '', t.email || '',
+        t.priority || '', t.status || '', t.category || '', t.order_id || '',
+        new Date(t.created_at).toLocaleDateString('en-IN'),
+      ]);
+      const csv = [headers,...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+      const a = document.createElement('a');
+      a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+      a.download = `akara_tickets_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click(); showToast('CSV exported');
+    }
+
+    // ── Helpers ───────────────────────────────────────
+    function timeAgo(dateStr) {
+      if (!dateStr) return '—';
+      const diff = Date.now() - new Date(dateStr);
+      const mins = Math.floor(diff / 60000);
+      const hrs  = Math.floor(diff / 3600000);
+      const days = Math.floor(diff / 86400000);
+      if (mins < 1)  return 'Just now';
+      if (mins < 60) return `${mins}m ago`;
+      if (hrs < 24)  return `${hrs}h ago`;
+      if (days < 7)  return `${days}d ago`;
+      return new Date(dateStr).toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('visible');
+      setTimeout(() => t.classList.remove('visible'), 2500);
+    }
+
+    // ── Demo data ─────────────────────────────────────
+    const DEMO_TICKETS = [
+      {
+        id:'1', ticket_id:'TKT-0024', subject:'My order arrived cracked', priority:'urgent', status:'open',
+        category:'return', name:'Priya Sharma', email:'priya@example.com', order_id:'INV-00123',
+        created_at: new Date(Date.now()-3600000).toISOString(),
+        messages:[{sender:'customer',text:'Hi, my Geodesic Planter arrived with a crack along the top edge. Very disappointed. I have photos. Please help.',time:new Date(Date.now()-3600000).toISOString()}]
+      },
+      {
+        id:'2', ticket_id:'TKT-0023', subject:'Where is my order?', priority:'high', status:'in_progress',
+        category:'shipping', name:'Rahul Mehta', email:'rahul@example.com', order_id:'INV-00124',
+        created_at: new Date(Date.now()-86400000).toISOString(),
+        messages:[
+          {sender:'customer',text:'I placed my order 3 weeks ago and still no update. Tracking says "in transit" since 4 days.',time:new Date(Date.now()-86400000).toISOString()},
+          {sender:'admin',text:'Hi Rahul, I have checked with Delhivery and your package is at the Mumbai hub. Expected delivery within 24 hours. Apologies for the delay.',time:new Date(Date.now()-43200000).toISOString()},
+        ]
+      },
+      {
+        id:'3', ticket_id:'TKT-0022', subject:'Can I change the colour of my order?', priority:'medium', status:'resolved',
+        category:'product', name:'Ankita Desai', email:'ankita@example.com', order_id:'INV-00121',
+        created_at: new Date(Date.now()-3*86400000).toISOString(),
+        messages:[{sender:'customer',text:'I ordered the natural teal but would like to change to warm sand. Is that possible?',time:new Date(Date.now()-3*86400000).toISOString()},{sender:'admin',text:"Hi Ankita! Since we hadn't started production yet, I've updated your order to Warm Sand. You'll receive a new confirmation email shortly.",time:new Date(Date.now()-2.5*86400000).toISOString()}]
+      },
+      {
+        id:'4', ticket_id:'TKT-0021', subject:'GST invoice for corporate purchase', priority:'low', status:'closed',
+        category:'general', name:'Vikram Nair', email:'vikram@example.com', order_id:'INV-00120',
+        created_at: new Date(Date.now()-7*86400000).toISOString(),
+        messages:[{sender:'customer',text:'We need a GST invoice with our company GSTIN. GSTIN: 29ABCDE1234F1Z5.',time:new Date(Date.now()-7*86400000).toISOString()},{sender:'admin',text:'Hi Vikram! I have updated your invoice with your GSTIN. You should receive the revised invoice within the hour.',time:new Date(Date.now()-6.5*86400000).toISOString()}]
+      },
+      {
+        id:'5', ticket_id:'TKT-0020', subject:'Bulk order enquiry — 100 units', priority:'high', status:'open',
+        category:'general', name:'Interior Co.', email:'design@interiorco.in', order_id:'',
+        created_at: new Date(Date.now()-2*86400000).toISOString(),
+        messages:[{sender:'customer',text:'We are an interior design firm looking to order 100 planters for a large residential project in Bengaluru. Can you share your wholesale pricing and lead time?',time:new Date(Date.now()-2*86400000).toISOString()}]
+      },
+    ];
+  </script>
+
 </body>
 </html>

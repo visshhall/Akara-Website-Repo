@@ -1,79 +1,824 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Refund Policy - Atelier Ākāra</title>
-    <link rel="stylesheet" href="/auth-styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Refund & Return Policy — Atelier Ākāra | Precision Forge Labs">
+  <link rel="icon" type="image/png" href="assets/images/favicon.png">
+  <title>Refund Policy — Atelier Ākāra</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --teal:       #002b2b;
+      --cream:      #fff8e7;
+      --gold:       #c9a96e;
+      --gold-light: #e2c99a;
+      --text-main:  #fff8e7;
+      --text-muted: rgba(255,248,231,0.55);
+      --border:     rgba(201,169,110,0.25);
+      --border-dim: rgba(201,169,110,0.12);
+      --card-bg:    rgba(255,248,231,0.03);
+      --error:      #e07070;
+      --success:    #70c9a0;
+      --warning:    #e2a96e;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Josefin Sans', sans-serif;
+      background: var(--teal);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 15% 5%,  rgba(0,95,95,0.28) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 85% 90%,  rgba(0,64,64,0.32) 0%, transparent 55%);
+      pointer-events: none; z-index: 0;
+    }
+    body::after {
+      content: ''; position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,169,110,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,169,110,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ─── Header ──────────────────────────────────── */
+    .site-header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(0,43,43,0.88); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-container {
+      display: flex; align-items: center; justify-content: space-between;
+      max-width: 1280px; margin: 0 auto; padding: 0 2rem; height: 64px;
+    }
+    .nav-left, .nav-right {
+      display: flex; align-items: center; gap: 2rem; min-width: 160px;
+    }
+    .nav-right { justify-content: flex-end; }
+    .nav-links { display: flex; gap: 2rem; }
+    .nav-links a {
+      font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text-muted); transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--gold); }
+    .brand-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; font-weight: 300;
+      letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--cream); white-space: nowrap;
+    }
+    .menu-toggle {
+      display: none; background: none; border: none;
+      color: var(--text-main); font-size: 1.2rem; cursor: pointer;
+    }
+    .mobile-nav {
+      display: none; position: fixed; top: 64px; left: 0; right: 0;
+      background: rgba(0,43,43,0.97); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border); padding: 1.5rem 2rem;
+      z-index: 99; flex-direction: column; gap: 1.2rem;
+    }
+    .mobile-nav.open { display: flex; }
+    .mobile-nav a {
+      font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text-muted); padding: 0.4rem 0;
+      border-bottom: 1px solid rgba(201,169,110,0.1);
+    }
+    .mobile-nav a:hover { color: var(--gold); }
+
+    /* ─── Page ────────────────────────────────────── */
+    .legal-page {
+      position: relative; z-index: 1;
+      max-width: 1280px; margin: 0 auto;
+      padding: 84px 2rem 6rem;
+    }
+
+    .breadcrumbs {
+      font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text-muted); padding: 1.5rem 0 0;
+    }
+    .breadcrumbs a { color: var(--gold); opacity: 0.7; transition: opacity 0.2s; }
+    .breadcrumbs a:hover { opacity: 1; }
+    .breadcrumbs span { opacity: 0.45; margin: 0 0.5rem; }
+
+    /* ─── Layout ──────────────────────────────────── */
+    .legal-layout {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 4rem;
+      align-items: start;
+      margin-top: 2.5rem;
+    }
+
+    /* ─── Sidebar ─────────────────────────────────── */
+    .legal-sidebar {
+      position: sticky; top: 84px;
+      animation: fadeUp 0.6s ease both;
+    }
+    .sidebar-label {
+      font-size: 0.56rem; letter-spacing: 0.38em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.7; margin-bottom: 1.25rem;
+    }
+    .toc-list { display: flex; flex-direction: column; gap: 0.1rem; }
+    .toc-link {
+      font-size: 0.65rem; letter-spacing: 0.1em;
+      color: var(--text-muted); padding: 0.45rem 0.75rem;
+      border-left: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s; display: block;
+    }
+    .toc-link:hover  { color: var(--gold-light); border-left-color: rgba(201,169,110,0.3); }
+    .toc-link.active { color: var(--gold); border-left-color: var(--gold); }
+
+    .sidebar-meta {
+      margin-top: 2rem; padding-top: 1.5rem;
+      border-top: 1px solid var(--border-dim);
+    }
+    .meta-row { display: flex; flex-direction: column; gap: 0.15rem; margin-bottom: 0.85rem; }
+    .meta-key { font-size: 0.53rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); opacity: 0.6; }
+    .meta-val { font-size: 0.65rem; letter-spacing: 0.06em; color: var(--text-muted); }
+
+    /* Quick links in sidebar */
+    .sidebar-quick { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-dim); }
+    .sidebar-quick-label { font-size: 0.53rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); opacity: 0.6; margin-bottom: 0.85rem; }
+    .quick-link {
+      display: flex; align-items: center; gap: 0.4rem;
+      font-size: 0.63rem; letter-spacing: 0.1em;
+      color: var(--text-muted); padding: 0.35rem 0;
+      transition: color 0.2s;
+    }
+    .quick-link:hover { color: var(--gold); }
+
+    /* ─── Main Content ────────────────────────────── */
+    .legal-content { animation: fadeUp 0.6s ease 0.1s both; }
+
+    .legal-eyebrow { font-size: 0.6rem; letter-spacing: 0.38em; text-transform: uppercase; color: var(--gold); opacity: 0.75; margin-bottom: 0.75rem; }
+    .legal-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      font-weight: 300; letter-spacing: 0.1em;
+      color: var(--cream); line-height: 1.05; margin-bottom: 0.75rem;
+    }
+    .legal-divider { width: 50px; height: 1px; background: var(--gold); opacity: 0.4; margin-bottom: 1.5rem; }
+    .legal-intro {
+      font-size: 0.82rem; letter-spacing: 0.06em;
+      color: var(--text-muted); line-height: 1.9;
+      margin-bottom: 3rem; max-width: 680px;
+    }
+
+    /* ─── Section blocks ──────────────────────────── */
+    .legal-section { margin-bottom: 3rem; padding-top: 1rem; }
+    .section-num {
+      font-size: 0.55rem; letter-spacing: 0.4em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.55; margin-bottom: 0.3rem;
+    }
+    .legal-section h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem; font-weight: 400; letter-spacing: 0.1em; color: var(--cream);
+      margin-bottom: 1rem; padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border-dim);
+    }
+    .legal-section h3 {
+      font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--gold-light); opacity: 0.85;
+      margin-bottom: 0.65rem; margin-top: 1.5rem;
+    }
+    .legal-section p {
+      font-size: 0.75rem; letter-spacing: 0.05em;
+      color: var(--text-muted); line-height: 1.9; margin-bottom: 0.85rem;
+    }
+    .legal-section p:last-child { margin-bottom: 0; }
+    .legal-section strong { color: var(--cream); font-weight: 500; }
+
+    .legal-list {
+      list-style: none; padding: 0;
+      display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.85rem;
+    }
+    .legal-list li {
+      display: flex; align-items: flex-start; gap: 0.65rem;
+      font-size: 0.75rem; letter-spacing: 0.05em;
+      color: var(--text-muted); line-height: 1.75;
+    }
+    .legal-list li::before {
+      content: '→'; color: var(--gold); opacity: 0.6;
+      font-size: 0.65rem; flex-shrink: 0; margin-top: 0.1rem;
+    }
+    .legal-list.ticks li::before { content: '✓'; color: var(--success); opacity: 0.8; }
+    .legal-list.crosses li::before { content: '✕'; color: var(--error); opacity: 0.7; }
+
+    /* ─── Numbered steps ──────────────────────────── */
+    .steps-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 0; }
+    .step-item {
+      display: flex; gap: 1.25rem; align-items: flex-start;
+      padding: 1.25rem 0; border-bottom: 1px solid var(--border-dim);
+    }
+    .step-item:last-child { border-bottom: none; }
+    .step-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem; font-weight: 300; color: var(--gold); opacity: 0.4;
+      line-height: 1; flex-shrink: 0; width: 44px; text-align: right;
+    }
+    .step-body {}
+    .step-title {
+      font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--cream); margin-bottom: 0.35rem;
+    }
+    .step-desc { font-size: 0.72rem; letter-spacing: 0.05em; color: var(--text-muted); line-height: 1.8; }
+
+    /* ─── Info / alert boxes ──────────────────────── */
+    .info-box {
+      background: rgba(201,169,110,0.06); border: 1px solid rgba(201,169,110,0.25);
+      padding: 1.25rem 1.5rem; margin: 1rem 0;
+    }
+    .info-box.success { background: rgba(112,201,160,0.06); border-color: rgba(112,201,160,0.3); }
+    .info-box.warning { background: rgba(226,169,110,0.06); border-color: rgba(226,169,110,0.3); }
+    .info-box.error   { background: rgba(224,112,112,0.06); border-color: rgba(224,112,112,0.3); }
+    .info-box-label {
+      font-size: 0.55rem; letter-spacing: 0.3em; text-transform: uppercase;
+      margin-bottom: 0.45rem;
+    }
+    .info-box.success .info-box-label { color: var(--success); }
+    .info-box.warning .info-box-label { color: var(--warning); }
+    .info-box.error   .info-box-label { color: var(--error); }
+    .info-box        .info-box-label  { color: var(--gold); }
+    .info-box p { font-size: 0.73rem; letter-spacing: 0.05em; color: var(--text-muted); line-height: 1.8; }
+    .info-box p strong { color: var(--cream); }
+
+    /* ─── Two-column comparison ───────────────────── */
+    .compare-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin: 1rem 0;
+    }
+    .compare-card { border: 1px solid var(--border-dim); padding: 1.25rem; }
+    .compare-card.yes { border-color: rgba(112,201,160,0.3); background: rgba(112,201,160,0.04); }
+    .compare-card.no  { border-color: rgba(224,112,112,0.3); background: rgba(224,112,112,0.04); }
+    .compare-card-label {
+      font-size: 0.58rem; letter-spacing: 0.28em; text-transform: uppercase; margin-bottom: 1rem;
+    }
+    .compare-card.yes .compare-card-label { color: var(--success); }
+    .compare-card.no  .compare-card-label { color: var(--error); }
+    .compare-list { list-style: none; display: flex; flex-direction: column; gap: 0.45rem; }
+    .compare-list li { font-size: 0.7rem; letter-spacing: 0.05em; color: var(--text-muted); line-height: 1.7; display: flex; align-items: flex-start; gap: 0.5rem; }
+    .compare-card.yes .compare-list li::before { content: '✓'; color: var(--success); opacity: 0.8; flex-shrink: 0; font-size: 0.65rem; margin-top: 0.1rem; }
+    .compare-card.no  .compare-list li::before { content: '✕'; color: var(--error);   opacity: 0.7; flex-shrink: 0; font-size: 0.65rem; margin-top: 0.1rem; }
+
+    /* ─── Timeline ────────────────────────────────── */
+    .timeline { display: flex; flex-direction: column; gap: 0; }
+    .timeline-item {
+      display: flex; gap: 1.25rem;
+      padding: 1rem 0; position: relative;
+    }
+    .timeline-item:not(:last-child)::after {
+      content: ''; position: absolute;
+      left: 17px; top: 44px; bottom: -8px;
+      width: 1px; background: var(--border-dim);
+    }
+    .timeline-dot {
+      width: 36px; height: 36px; flex-shrink: 0;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; color: var(--gold);
+      background: rgba(201,169,110,0.08);
+      position: relative; z-index: 1;
+    }
+    .timeline-content {}
+    .timeline-title { font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cream); margin-bottom: 0.25rem; }
+    .timeline-desc  { font-size: 0.7rem; letter-spacing: 0.05em; color: var(--text-muted); line-height: 1.75; }
+    .timeline-time  { font-size: 0.58rem; letter-spacing: 0.12em; color: var(--gold); opacity: 0.65; margin-top: 0.2rem; }
+
+    /* ─── Legal table ─────────────────────────────── */
+    .legal-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+    .legal-table th { font-size: 0.56rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); opacity: 0.8; padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border); text-align: left; }
+    .legal-table td { font-size: 0.72rem; letter-spacing: 0.05em; color: var(--text-muted); padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border-dim); vertical-align: top; line-height: 1.7; }
+    .legal-table tr:last-child td { border-bottom: none; }
+    .legal-table tr:hover td { background: rgba(255,248,231,0.02); }
+
+    /* ─── Contact box ─────────────────────────────── */
+    .contact-box {
+      background: var(--card-bg); border: 1px solid var(--border);
+      padding: 1.75rem; margin-top: 1rem;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1.75rem;
+    }
+    .contact-item {}
+    .contact-label { font-size: 0.55rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); opacity: 0.7; margin-bottom: 0.35rem; }
+    .contact-value { font-size: 0.72rem; letter-spacing: 0.07em; color: var(--cream); line-height: 1.7; }
+    .contact-value a { color: var(--gold); transition: opacity 0.2s; }
+    .contact-value a:hover { opacity: 0.75; }
+
+    /* ─── Related policies ────────────────────────── */
+    .related-policies { display: flex; gap: 0; border: 1px solid var(--border); margin-top: 3rem; }
+    .policy-link { flex: 1; padding: 1.25rem; border-right: 1px solid var(--border); transition: background 0.2s; }
+    .policy-link:last-child { border-right: none; }
+    .policy-link:hover { background: rgba(201,169,110,0.04); }
+    .policy-link-label { font-size: 0.55rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); opacity: 0.65; margin-bottom: 0.3rem; }
+    .policy-link-name  { font-size: 0.7rem; letter-spacing: 0.1em; color: var(--cream); margin-bottom: 0.15rem; }
+    .policy-link-arrow { font-size: 0.65rem; color: var(--gold); opacity: 0.5; }
+
+    /* ─── Bottom nav ──────────────────────────────── */
+    .bottom-nav { display: flex; gap: 0.75rem; margin-top: 3rem; flex-wrap: wrap; }
+    .btn-back {
+      display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 2rem;
+      font-family: 'Josefin Sans', sans-serif; font-size: 0.63rem; letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--teal); background: var(--gold); border: 1px solid var(--gold); transition: all 0.25s; cursor: pointer;
+    }
+    .btn-back:hover { background: transparent; color: var(--gold); }
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem;
+      font-family: 'Josefin Sans', sans-serif; font-size: 0.62rem; letter-spacing: 0.25em; text-transform: uppercase;
+      color: var(--text-muted); border: 1px solid var(--border); transition: all 0.25s; cursor: pointer;
+    }
+    .btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ─── Footer ──────────────────────────────────── */
+    .site-footer { background: rgba(0,20,20,0.6); border-top: 1px solid var(--border); padding: 4rem 2rem 2rem; position: relative; z-index: 1; }
+    .footer-content { max-width: 1280px; margin: 0 auto; }
+    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
+    .footer-section h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 400; letter-spacing: 0.2em; color: var(--cream); margin-bottom: 0.5rem; }
+    .footer-section > p { font-size: 0.7rem; letter-spacing: 0.12em; color: var(--text-muted); }
+    .footer-section h4 { font-size: 0.6rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); opacity: 0.75; margin-bottom: 1.2rem; }
+    .footer-section a { display: block; font-size: 0.72rem; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.6rem; transition: color 0.2s; }
+    .footer-section a:hover { color: var(--gold); }
+    .footer-bottom { border-top: 1px solid var(--border); padding-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+    .footer-bottom p { font-size: 0.62rem; letter-spacing: 0.12em; color: var(--text-muted); opacity: 0.6; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 900px) {
+      .legal-layout { grid-template-columns: 1fr; gap: 2rem; }
+      .legal-sidebar { position: static; }
+      .toc-list { flex-direction: row; flex-wrap: wrap; border: 1px solid var(--border-dim); }
+      .toc-link { border-left: none; border-bottom: 2px solid transparent; padding: 0.5rem 1rem; }
+      .toc-link.active { border-left: none; border-bottom-color: var(--gold); }
+      .contact-box { grid-template-columns: 1fr; gap: 1rem; }
+      .compare-grid { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+    }
+    @media (max-width: 768px) {
+      .menu-toggle { display: block; }
+      .nav-left, .nav-right { min-width: auto; }
+      .related-policies { flex-direction: column; }
+      .policy-link { border-right: none; border-bottom: 1px solid var(--border); }
+      .policy-link:last-child { border-bottom: none; }
+    }
+    @media (max-width: 480px) {
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+    }
+  </style>
 </head>
+
 <body>
-    <header class="site-header">
-        <nav class="nav-container">
-            <div class="nav-center">
-                <a href="/" class="brand-logo">ATELIER ĀKĀRA</a>
-            </div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <nav class="nav-container">
+      <div class="nav-left">
+        <button class="menu-toggle" id="menuToggle">☰</button>
+        <div class="nav-links desktop-only">
+          <a href="catalog.html">Catalog</a>
+          <a href="about.html">About</a>
+        </div>
+      </div>
+      <a href="index.html" class="brand-logo">ATELIER ĀKĀRA</a>
+      <div class="nav-right">
+        <a href="contact.html" style="font-size:0.7rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-muted);transition:color 0.2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text-muted)'">Contact</a>
+      </div>
+    </nav>
+  </header>
+
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="catalog.html">Catalog</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="user/profile.html">My Account</a>
+  </nav>
+
+  <!-- Page -->
+  <main class="legal-page">
+
+    <nav class="breadcrumbs">
+      <a href="index.html">Home</a>
+      <span>/</span>
+      Refund Policy
+    </nav>
+
+    <div class="legal-layout">
+
+      <!-- ── Sidebar ── -->
+      <aside class="legal-sidebar">
+        <p class="sidebar-label">Contents</p>
+        <nav class="toc-list" id="tocList">
+          <a class="toc-link active" href="#s1">1. Overview</a>
+          <a class="toc-link" href="#s2">2. Return Window</a>
+          <a class="toc-link" href="#s3">3. Eligible Returns</a>
+          <a class="toc-link" href="#s4">4. Non-Returnable</a>
+          <a class="toc-link" href="#s5">5. Return Process</a>
+          <a class="toc-link" href="#s6">6. Refund Timeline</a>
+          <a class="toc-link" href="#s7">7. Refund Methods</a>
+          <a class="toc-link" href="#s8">8. Exchanges</a>
+          <a class="toc-link" href="#s9">9. Shipping Costs</a>
+          <a class="toc-link" href="#s10">10. Warranty</a>
+          <a class="toc-link" href="#s11">11. Contact</a>
         </nav>
-    </header>
-    
-    <main class="legal-page">
-        <h1>Refund & Return Policy</h1>
-        <p><strong>Last Updated:</strong> March 4, 2024</p>
-        
-        <h2>1. Returns</h2>
-        <p>We offer a 7-day return policy from the date of delivery as per the Consumer Protection Act, 2019.</p>
-        
-        <h3>Conditions for Returns:</h3>
-        <ul>
-            <li>Product must be unused and in original condition</li>
-            <li>Original packaging must be intact</li>
-            <li>Return must be initiated within 7 days of delivery</li>
-            <li>Proof of purchase required</li>
-        </ul>
-        
-        <h2>2. Eligible for Return</h2>
-        <ul>
-            <li>Damaged products</li>
-            <li>Defective items</li>
-            <li>Wrong product delivered</li>
-        </ul>
-        
-        <h2>3. Non-Returnable Items</h2>
-        <ul>
-            <li>Customized or personalized products</li>
-            <li>Products showing signs of use</li>
-            <li>Damaged packaging due to customer handling</li>
-        </ul>
-        
-        <h2>4. Refund Process</h2>
-        <ol>
-            <li>Contact us at support@akaraonline.co.in with order number and reason</li>
-            <li>We will review your request within 24 hours</li>
-            <li>If approved, arrange for product pickup</li>
-            <li>Refund processed within 7-14 business days after receiving returned item</li>
-        </ol>
-        
-        <h2>5. Refund Method</h2>
-        <p>Refunds will be processed to the original payment method used during purchase.</p>
-        
-        <h2>6. Exchanges</h2>
-        <p>We offer exchanges for different sizes/colors subject to availability. Contact support@akaraonline.co.in for exchange requests.</p>
-        
-        <h2>7. Return Shipping</h2>
-        <ul>
-            <li>Damaged/Defective products: We bear return shipping costs</li>
-            <li>Change of mind: Customer bears return shipping costs</li>
-        </ul>
-        
-        <h2>8. Contact</h2>
-        <p>For returns/refunds: support@akaraonline.co.in<br>
-        Phone: +91-8278085572<br>
-        Response time: Within 24 hours</p>
-        
-        <p><a href="/" class="btn-primary">Back to Home</a></p>
-    </main>
-    
-    <footer class="site-footer">
-        <p>© 2025 Atelier Ākāra</p>
-    </footer>
+
+        <div class="sidebar-meta">
+          <div class="meta-row">
+            <span class="meta-key">Last Updated</span>
+            <span class="meta-val">5 May 2026</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-key">Effective Date</span>
+            <span class="meta-val">1 February 2026</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-key">Law</span>
+            <span class="meta-val">Consumer Protection Act, 2019</span>
+          </div>
+        </div>
+
+        <div class="sidebar-quick">
+          <p class="sidebar-quick-label">Start a Return</p>
+          <a href="mailto:support@akaraonline.co.in" class="quick-link">→ Email us with your order ID</a>
+          <a href="user/profile.html" class="quick-link">→ View my orders</a>
+          <a href="contact.html" class="quick-link">→ Contact support</a>
+        </div>
+      </aside>
+
+      <!-- ── Main Content ── -->
+      <div class="legal-content">
+
+        <p class="legal-eyebrow">Legal Document</p>
+        <h1 class="legal-title">Refund & Return Policy</h1>
+        <div class="legal-divider"></div>
+        <p class="legal-intro">
+          We want you to be completely satisfied with your Atelier Ākāra purchase. This policy explains your rights and the process for returns, refunds, and exchanges in accordance with the Consumer Protection Act, 2019.
+        </p>
+
+        <!-- Section 1 -->
+        <div class="legal-section" id="s1">
+          <p class="section-num">Section 01</p>
+          <h2>Overview</h2>
+          <p>Every piece we make is precision-crafted to order, so we take quality seriously. If something arrives damaged, defective, or not as described, we will make it right — fully, without friction.</p>
+          <div class="info-box success">
+            <div class="info-box-label">Our Promise</div>
+            <p>If a product arrives damaged or defective, we will arrange a free pickup and issue a full refund or replacement — no questions asked. Email us within 7 days of delivery with your order number and a photo.</p>
+          </div>
+        </div>
+
+        <!-- Section 2 -->
+        <div class="legal-section" id="s2">
+          <p class="section-num">Section 02</p>
+          <h2>Return Window</h2>
+          <p>We offer a <strong>7-day return window</strong> from the date of delivery, as mandated by the Consumer Protection Act, 2019.</p>
+          <p>The 7-day period begins from the day the product is marked as delivered by our logistics partner. To be eligible, the return request must be initiated via email to <a href="mailto:support@akaraonline.co.in" style="color:var(--gold);">support@akaraonline.co.in</a> within this window, with your order number.</p>
+
+          <h3>Conditions for All Returns</h3>
+          <ul class="legal-list ticks">
+            <li>Return request initiated within 7 days of delivery</li>
+            <li>Product in its original condition — unused and unaltered</li>
+            <li>Original packaging intact (minor transit-related marks on outer packaging are acceptable)</li>
+            <li>Proof of purchase (order confirmation email or invoice)</li>
+            <li>Clear photograph of the product and any damage provided at time of request</li>
+          </ul>
+        </div>
+
+        <!-- Section 3 -->
+        <div class="legal-section" id="s3">
+          <p class="section-num">Section 03</p>
+          <h2>What Can Be Returned</h2>
+          <div class="compare-grid">
+            <div class="compare-card yes">
+              <div class="compare-card-label">✓ Eligible for Return</div>
+              <ul class="compare-list">
+                <li>Product arrived physically damaged (cracked, broken, chipped)</li>
+                <li>Manufacturing defect (visible print layer failure, structural fault)</li>
+                <li>Wrong product delivered (different item from what was ordered)</li>
+                <li>Product significantly different from website description</li>
+                <li>Missing product from a multi-item order</li>
+              </ul>
+            </div>
+            <div class="compare-card no">
+              <div class="compare-card-label">✕ Not Eligible for Return</div>
+              <ul class="compare-list">
+                <li>Custom colour orders (non-returnable — stated at checkout)</li>
+                <li>Products showing signs of use, cleaning, or modification</li>
+                <li>Damage caused by customer mishandling after delivery</li>
+                <li>Change of mind after receiving an undamaged product</li>
+                <li>Normal dimensional tolerance of ±2–3mm</li>
+                <li>Variation in colour due to screen display differences</li>
+                <li>Products returned after the 7-day window</li>
+              </ul>
+            </div>
+          </div>
+          <div class="info-box warning">
+            <div class="info-box-label">Note on Custom Colours</div>
+            <p>Custom colour selections (non-standard finishes requested at checkout) are <strong>final sale</strong> — they cannot be returned unless the product is defective. This is disclosed at the time of ordering.</p>
+          </div>
+        </div>
+
+        <!-- Section 4 -->
+        <div class="legal-section" id="s4">
+          <p class="section-num">Section 04</p>
+          <h2>Non-Returnable Items</h2>
+          <p>The following items cannot be returned under any circumstance, except where a manufacturing defect is confirmed:</p>
+          <ul class="legal-list crosses">
+            <li>Personalised or custom-colour pieces</li>
+            <li>Products that have been used, planted in (planters), or filled with water (vases)</li>
+            <li>Products with packaging damage caused by the customer</li>
+            <li>Items returned without prior approval from our team</li>
+            <li>Products that are part of a bundle, once partially used</li>
+          </ul>
+        </div>
+
+        <!-- Section 5 -->
+        <div class="legal-section" id="s5">
+          <p class="section-num">Section 05</p>
+          <h2>Return Process — Step by Step</h2>
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-dot">1</div>
+              <div class="timeline-content">
+                <div class="timeline-title">Initiate Your Return</div>
+                <div class="timeline-desc">Email <a href="mailto:support@akaraonline.co.in" style="color:var(--gold);">support@akaraonline.co.in</a> with your order number, a brief description of the issue, and 2–3 clear photographs of the product and damage.</div>
+                <div class="timeline-time">Within 7 days of delivery</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot">2</div>
+              <div class="timeline-content">
+                <div class="timeline-title">Review &amp; Approval</div>
+                <div class="timeline-desc">Our team reviews your request, assesses the photographs, and confirms eligibility. We may request additional images in some cases.</div>
+                <div class="timeline-time">Within 24 hours of your email</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot">3</div>
+              <div class="timeline-content">
+                <div class="timeline-title">Pickup Arranged</div>
+                <div class="timeline-desc">If approved, we arrange a reverse pickup from your delivery address at no cost (for defective/damaged items). You will receive a pickup confirmation with a date and time window.</div>
+                <div class="timeline-time">Within 2 business days of approval</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot">4</div>
+              <div class="timeline-content">
+                <div class="timeline-title">Item Received &amp; Inspected</div>
+                <div class="timeline-desc">Once the product is received at our studio, we inspect it to confirm the reported issue. We will notify you by email of the outcome.</div>
+                <div class="timeline-time">Within 2 business days of receiving the item</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot">5</div>
+              <div class="timeline-content">
+                <div class="timeline-title">Refund or Replacement Issued</div>
+                <div class="timeline-desc">Refund is processed to your original payment method, or a replacement is dispatched — whichever you prefer.</div>
+                <div class="timeline-time">Refund: 7–14 business days · Replacement: 2–3 weeks lead time</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 6 -->
+        <div class="legal-section" id="s6">
+          <p class="section-num">Section 06</p>
+          <h2>Refund Timeline</h2>
+          <table class="legal-table">
+            <thead>
+              <tr>
+                <th>Payment Method</th>
+                <th>Refund Timeline</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Razorpay (Card / UPI / Net Banking)</td>
+                <td>5–7 business days</td>
+                <td>Processed via Razorpay to the original source</td>
+              </tr>
+              <tr>
+                <td>UPI Direct</td>
+                <td>3–5 business days</td>
+                <td>Refunded to the originating UPI ID</td>
+              </tr>
+              <tr>
+                <td>Bank Transfer (NEFT / IMPS)</td>
+                <td>7–14 business days</td>
+                <td>We will request your bank account details</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>Timelines are from the date we confirm the refund, not from the date of return initiation. Bank processing times may vary and are outside our control.</p>
+          <div class="info-box">
+            <div class="info-box-label">GST Note</div>
+            <p>The refund amount will include GST as shown on your invoice. A credit note will be issued in accordance with GST rules (Section 34 of the CGST Act, 2017).</p>
+          </div>
+        </div>
+
+        <!-- Section 7 -->
+        <div class="legal-section" id="s7">
+          <p class="section-num">Section 07</p>
+          <h2>Refund Methods</h2>
+          <p>Refunds are always issued to the <strong>original payment method</strong> used at the time of purchase. We do not issue cash refunds or store credit unless the original payment method is no longer available, in which case we will contact you to arrange an alternative.</p>
+          <p>We do not charge any processing fee for approved refunds.</p>
+        </div>
+
+        <!-- Section 8 -->
+        <div class="legal-section" id="s8">
+          <p class="section-num">Section 08</p>
+          <h2>Exchanges</h2>
+          <p>We offer exchanges for a different size or colour variant of the same product, subject to availability in our current stock. Exchange requests are handled the same way as returns:</p>
+          <ul class="legal-list">
+            <li>Initiate the exchange within 7 days of delivery via email</li>
+            <li>The original product must meet all return conditions (unused, original packaging)</li>
+            <li>If the replacement variant costs more, the price difference will be billed; if less, a partial refund will be issued</li>
+            <li>Custom colour pieces cannot be exchanged for other custom colours — only for standard catalogue colours</li>
+          </ul>
+          <p>Lead time for exchanged products is <strong>2–3 weeks</strong> from when we receive the original item back.</p>
+        </div>
+
+        <!-- Section 9 -->
+        <div class="legal-section" id="s9">
+          <p class="section-num">Section 09</p>
+          <h2>Return Shipping Costs</h2>
+          <table class="legal-table">
+            <thead>
+              <tr>
+                <th>Return Reason</th>
+                <th>Who Pays</th>
+                <th>Method</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Damaged / defective product</td>
+                <td><strong style="color:var(--success);">We pay</strong></td>
+                <td>We arrange reverse pickup at no cost</td>
+              </tr>
+              <tr>
+                <td>Wrong product delivered</td>
+                <td><strong style="color:var(--success);">We pay</strong></td>
+                <td>We arrange reverse pickup at no cost</td>
+              </tr>
+              <tr>
+                <td>Change of mind (undamaged product)</td>
+                <td><strong style="color:var(--warning);">Customer pays</strong></td>
+                <td>Customer to ship to our studio; cost varies by courier</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>For customer-paid returns, we recommend using a tracked courier. We are not responsible for items lost in transit when the customer arranges the return shipment.</p>
+        </div>
+
+        <!-- Section 10 -->
+        <div class="legal-section" id="s10">
+          <p class="section-num">Section 10</p>
+          <h2>Warranty</h2>
+          <p>All Atelier Ākāra products carry a <strong>30-day manufacturing defect warranty</strong> from the date of delivery. This covers:</p>
+          <ul class="legal-list ticks">
+            <li>Structural failure under normal indoor use</li>
+            <li>Print layer delamination not caused by water exposure or physical impact</li>
+            <li>Significant colour fading or surface defect not caused by sunlight exposure</li>
+          </ul>
+
+          <h3>Warranty does not cover</h3>
+          <ul class="legal-list crosses">
+            <li>Damage from dropping, impact, or mishandling</li>
+            <li>Outdoor use — our products are rated for indoor use only</li>
+            <li>Water damage from submerging, overwatering, or prolonged moisture exposure</li>
+            <li>Normal wear and surface micro-scratches from regular use</li>
+            <li>Dimensional tolerance of ±2–3mm (inherent to 3D printing)</li>
+          </ul>
+
+          <div class="info-box warning">
+            <div class="info-box-label">Important</div>
+            <p>Custom colour orders carry the same 30-day manufacturing warranty but are <strong>non-returnable</strong> for preference-based reasons. The warranty applies only to structural/print defects, not colour preference.</p>
+          </div>
+        </div>
+
+        <!-- Section 11 -->
+        <div class="legal-section" id="s11">
+          <p class="section-num">Section 11</p>
+          <h2>Contact Us</h2>
+          <p>To initiate a return, exchange, or warranty claim — or if you have any questions about this policy — please reach out:</p>
+          <div class="contact-box">
+            <div class="contact-item">
+              <div class="contact-label">Returns Email</div>
+              <div class="contact-value"><a href="mailto:support@akaraonline.co.in">support@akaraonline.co.in</a></div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-label">Phone</div>
+              <div class="contact-value"><a href="tel:+918278085572">+91 82780 85572</a></div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-label">Response Time</div>
+              <div class="contact-value">Within 24 hours on business days</div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-label">Business Hours</div>
+              <div class="contact-value">Mon–Sat, 10am–6pm IST</div>
+            </div>
+          </div>
+          <p style="margin-top:1rem;">When emailing, please include your <strong>order number</strong>, photographs of the product, and a brief description of the issue to help us resolve your request as quickly as possible.</p>
+        </div>
+
+        <!-- Related Policies -->
+        <div class="related-policies">
+          <a href="privacy.html" class="policy-link">
+            <div class="policy-link-label">Legal</div>
+            <div class="policy-link-name">Privacy Policy</div>
+            <div class="policy-link-arrow">→</div>
+          </a>
+          <a href="terms.html" class="policy-link">
+            <div class="policy-link-label">Legal</div>
+            <div class="policy-link-name">Terms of Service</div>
+            <div class="policy-link-arrow">→</div>
+          </a>
+          <a href="shipping-policy.html" class="policy-link">
+            <div class="policy-link-label">Legal</div>
+            <div class="policy-link-name">Shipping Policy</div>
+            <div class="policy-link-arrow">→</div>
+          </a>
+        </div>
+
+        <div class="bottom-nav">
+          <a href="index.html" class="btn-back">← Back to Home</a>
+          <a href="contact.html" class="btn-secondary">Contact Support</a>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-grid">
+        <div class="footer-section">
+          <h3>ATELIER ĀKĀRA</h3>
+          <p>Artifacts for the Modern Spaces</p>
+        </div>
+        <div class="footer-section">
+          <h4>Shop</h4>
+          <a href="catalog.html">All Products</a>
+          <a href="catalog.html?category=planters">Planters</a>
+          <a href="catalog.html?category=vases">Vases</a>
+          <a href="catalog.html?category=lighting">Lighting</a>
+        </div>
+        <div class="footer-section">
+          <h4>Legal</h4>
+          <a href="privacy.html">Privacy Policy</a>
+          <a href="terms.html">Terms of Service</a>
+          <a href="refund-policy.html">Refund Policy</a>
+          <a href="shipping-policy.html">Shipping Policy</a>
+        </div>
+        <div class="footer-section">
+          <h4>Connect</h4>
+          <a href="https://instagram.com/atelier.akara" target="_blank">Instagram</a>
+          <a href="mailto:support@akaraonline.co.in">Email Us</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>Precision Forge Labs &nbsp;|&nbsp; GST: 27GZCPS9353H1ZQ</p>
+        <p>© <span id="year"></span> Atelier Ākāra. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    document.getElementById('menuToggle').addEventListener('click', () =>
+      document.getElementById('mobileNav').classList.toggle('open'));
+
+    // Active TOC on scroll
+    const sections = document.querySelectorAll('.legal-section[id]');
+    const tocLinks  = document.querySelectorAll('.toc-link');
+
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(l => l.classList.remove('active'));
+          const active = document.querySelector(`.toc-link[href="#${entry.target.id}"]`);
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+
+    sections.forEach(s => observer.observe(s));
+  </script>
+
 </body>
 </html>

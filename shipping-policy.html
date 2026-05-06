@@ -1,68 +1,713 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shipping Policy - Atelier Ākāra</title>
-    <link rel="stylesheet" href="/auth-styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Shipping Policy — Atelier Ākāra | Precision Forge Labs">
+  <link rel="icon" type="image/png" href="assets/images/favicon.png">
+  <title>Shipping Policy — Atelier Ākāra</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --teal:       #002b2b;
+      --cream:      #fff8e7;
+      --gold:       #c9a96e;
+      --gold-light: #e2c99a;
+      --text-main:  #fff8e7;
+      --text-muted: rgba(255,248,231,0.55);
+      --border:     rgba(201,169,110,0.25);
+      --border-dim: rgba(201,169,110,0.12);
+      --card-bg:    rgba(255,248,231,0.03);
+      --error:      #e07070;
+      --success:    #70c9a0;
+      --warning:    #e2a96e;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Josefin Sans', sans-serif;
+      background: var(--teal); color: var(--text-main);
+      min-height: 100vh; overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 15% 5%,  rgba(0,95,95,0.28) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 85% 90%,  rgba(0,64,64,0.32) 0%, transparent 55%);
+      pointer-events: none; z-index: 0;
+    }
+    body::after {
+      content: ''; position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,169,110,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,169,110,0.03) 1px, transparent 1px);
+      background-size: 60px 60px; pointer-events: none; z-index: 0;
+    }
+
+    /* ─── Header ──────────────────────────────────── */
+    .site-header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(0,43,43,0.88); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-container {
+      display: flex; align-items: center; justify-content: space-between;
+      max-width: 1280px; margin: 0 auto; padding: 0 2rem; height: 64px;
+    }
+    .nav-left, .nav-right { display: flex; align-items: center; gap: 2rem; min-width: 160px; }
+    .nav-right { justify-content: flex-end; }
+    .nav-links { display: flex; gap: 2rem; }
+    .nav-links a { font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-muted); transition: color 0.2s; }
+    .nav-links a:hover { color: var(--gold); }
+    .brand-logo {
+      font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 300;
+      letter-spacing: 0.3em; text-transform: uppercase; color: var(--cream); white-space: nowrap;
+    }
+    .menu-toggle { display: none; background: none; border: none; color: var(--text-main); font-size: 1.2rem; cursor: pointer; }
+    .mobile-nav {
+      display: none; position: fixed; top: 64px; left: 0; right: 0;
+      background: rgba(0,43,43,0.97); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border); padding: 1.5rem 2rem;
+      z-index: 99; flex-direction: column; gap: 1.2rem;
+    }
+    .mobile-nav.open { display: flex; }
+    .mobile-nav a { font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-muted); padding: 0.4rem 0; border-bottom: 1px solid rgba(201,169,110,0.1); }
+    .mobile-nav a:hover { color: var(--gold); }
+
+    /* ─── Page ────────────────────────────────────── */
+    .legal-page {
+      position: relative; z-index: 1;
+      max-width: 1280px; margin: 0 auto;
+      padding: 84px 2rem 6rem;
+    }
+
+    .breadcrumbs { font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-muted); padding: 1.5rem 0 0; }
+    .breadcrumbs a { color: var(--gold); opacity: 0.7; transition: opacity 0.2s; }
+    .breadcrumbs a:hover { opacity: 1; }
+    .breadcrumbs span { opacity: 0.45; margin: 0 0.5rem; }
+
+    /* ─── Layout ──────────────────────────────────── */
+    .legal-layout {
+      display: grid; grid-template-columns: 240px 1fr;
+      gap: 4rem; align-items: start; margin-top: 2.5rem;
+    }
+
+    /* ─── Sidebar ─────────────────────────────────── */
+    .legal-sidebar { position: sticky; top: 84px; animation: fadeUp 0.6s ease both; }
+    .sidebar-label { font-size: 0.56rem; letter-spacing: 0.38em; text-transform: uppercase; color: var(--gold); opacity: 0.7; margin-bottom: 1.25rem; }
+    .toc-list { display: flex; flex-direction: column; gap: 0.1rem; }
+    .toc-link { font-size: 0.65rem; letter-spacing: 0.1em; color: var(--text-muted); padding: 0.45rem 0.75rem; border-left: 2px solid transparent; transition: color 0.2s, border-color 0.2s; display: block; }
+    .toc-link:hover  { color: var(--gold-light); border-left-color: rgba(201,169,110,0.3); }
+    .toc-link.active { color: var(--gold); border-left-color: var(--gold); }
+    .sidebar-meta { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-dim); }
+    .meta-row { display: flex; flex-direction: column; gap: 0.15rem; margin-bottom: 0.85rem; }
+    .meta-key { font-size: 0.53rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); opacity: 0.6; }
+    .meta-val { font-size: 0.65rem; letter-spacing: 0.06em; color: var(--text-muted); }
+    .sidebar-quick { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-dim); }
+    .sidebar-quick-label { font-size: 0.53rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); opacity: 0.6; margin-bottom: 0.85rem; }
+    .quick-link { display: flex; align-items: center; gap: 0.4rem; font-size: 0.63rem; letter-spacing: 0.1em; color: var(--text-muted); padding: 0.35rem 0; transition: color 0.2s; }
+    .quick-link:hover { color: var(--gold); }
+
+    /* ─── Content ─────────────────────────────────── */
+    .legal-content { animation: fadeUp 0.6s ease 0.1s both; }
+    .legal-eyebrow { font-size: 0.6rem; letter-spacing: 0.38em; text-transform: uppercase; color: var(--gold); opacity: 0.75; margin-bottom: 0.75rem; }
+    .legal-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      font-weight: 300; letter-spacing: 0.1em; color: var(--cream);
+      line-height: 1.05; margin-bottom: 0.75rem;
+    }
+    .legal-divider { width: 50px; height: 1px; background: var(--gold); opacity: 0.4; margin-bottom: 1.5rem; }
+    .legal-intro { font-size: 0.82rem; letter-spacing: 0.06em; color: var(--text-muted); line-height: 1.9; margin-bottom: 3rem; max-width: 680px; }
+
+    /* ─── Sections ────────────────────────────────── */
+    .legal-section { margin-bottom: 3rem; padding-top: 1rem; }
+    .section-num { font-size: 0.55rem; letter-spacing: 0.4em; text-transform: uppercase; color: var(--gold); opacity: 0.55; margin-bottom: 0.3rem; }
+    .legal-section h2 {
+      font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 400;
+      letter-spacing: 0.1em; color: var(--cream); margin-bottom: 1rem;
+      padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-dim);
+    }
+    .legal-section h3 { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold-light); opacity: 0.85; margin-bottom: 0.65rem; margin-top: 1.5rem; }
+    .legal-section p { font-size: 0.75rem; letter-spacing: 0.05em; color: var(--text-muted); line-height: 1.9; margin-bottom: 0.85rem; }
+    .legal-section p:last-child { margin-bottom: 0; }
+    .legal-section strong { color: var(--cream); font-weight: 500; }
+
+    .legal-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.85rem; }
+    .legal-list li { display: flex; align-items: flex-start; gap: 0.65rem; font-size: 0.75rem; letter-spacing: 0.05em; color: var(--text-muted); line-height: 1.75; }
+    .legal-list li::before { content: '→'; color: var(--gold); opacity: 0.6; font-size: 0.65rem; flex-shrink: 0; margin-top: 0.1rem; }
+    .legal-list.ticks  li::before { content: '✓'; color: var(--success); opacity: 0.8; }
+    .legal-list.crosses li::before { content: '✕'; color: var(--error);   opacity: 0.7; }
+
+    /* ─── Shipping rate cards ─────────────────────── */
+    .rate-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1rem 0; }
+    .rate-card {
+      background: var(--card-bg); border: 1px solid var(--border-dim);
+      padding: 1.5rem; text-align: center;
+      transition: border-color 0.2s;
+    }
+    .rate-card:hover { border-color: rgba(201,169,110,0.4); }
+    .rate-card.highlight { border-color: var(--border); background: rgba(201,169,110,0.05); }
+    .rate-icon   { font-size: 1.2rem; opacity: 0.4; margin-bottom: 0.75rem; }
+    .rate-method { font-size: 0.58rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); opacity: 0.8; margin-bottom: 0.35rem; }
+    .rate-price  { font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; font-weight: 300; color: var(--cream); margin-bottom: 0.35rem; }
+    .rate-price.free { color: var(--success); }
+    .rate-eta    { font-size: 0.65rem; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 0.4rem; }
+    .rate-note   { font-size: 0.6rem; letter-spacing: 0.08em; color: var(--text-muted); opacity: 0.55; line-height: 1.6; }
+
+    /* ─── Timeline ────────────────────────────────── */
+    .timeline { display: flex; flex-direction: column; gap: 0; }
+    .timeline-item { display: flex; gap: 1.25rem; padding: 1rem 0; position: relative; }
+    .timeline-item:not(:last-child)::after { content: ''; position: absolute; left: 17px; top: 44px; bottom: -8px; width: 1px; background: var(--border-dim); }
+    .timeline-dot { width: 36px; height: 36px; flex-shrink: 0; border: 1px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--gold); background: rgba(201,169,110,0.08); position: relative; z-index: 1; }
+    .timeline-title { font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cream); margin-bottom: 0.25rem; }
+    .timeline-desc  { font-size: 0.7rem; letter-spacing: 0.05em; color: var(--text-muted); line-height: 1.75; }
+    .timeline-time  { font-size: 0.58rem; letter-spacing: 0.12em; color: var(--gold); opacity: 0.65; margin-top: 0.2rem; }
+
+    /* ─── Legal table ─────────────────────────────── */
+    .legal-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+    .legal-table th { font-size: 0.56rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); opacity: 0.8; padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border); text-align: left; }
+    .legal-table td { font-size: 0.72rem; letter-spacing: 0.05em; color: var(--text-muted); padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border-dim); vertical-align: top; line-height: 1.7; }
+    .legal-table tr:last-child td { border-bottom: none; }
+    .legal-table tr:hover td { background: rgba(255,248,231,0.02); }
+
+    /* ─── Info boxes ──────────────────────────────── */
+    .info-box { background: rgba(201,169,110,0.06); border: 1px solid rgba(201,169,110,0.25); padding: 1.25rem 1.5rem; margin: 1rem 0; }
+    .info-box.success { background: rgba(112,201,160,0.06); border-color: rgba(112,201,160,0.3); }
+    .info-box.warning { background: rgba(226,169,110,0.06); border-color: rgba(226,169,110,0.3); }
+    .info-box-label { font-size: 0.55rem; letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 0.45rem; }
+    .info-box.success .info-box-label { color: var(--success); }
+    .info-box.warning .info-box-label { color: var(--warning); }
+    .info-box         .info-box-label { color: var(--gold); }
+    .info-box p { font-size: 0.73rem; letter-spacing: 0.05em; color: var(--text-muted); line-height: 1.8; }
+    .info-box p strong { color: var(--cream); }
+
+    /* ─── Contact box ─────────────────────────────── */
+    .contact-box { background: var(--card-bg); border: 1px solid var(--border); padding: 1.75rem; margin-top: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.75rem; }
+    .contact-label { font-size: 0.55rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); opacity: 0.7; margin-bottom: 0.35rem; }
+    .contact-value { font-size: 0.72rem; letter-spacing: 0.07em; color: var(--cream); line-height: 1.7; }
+    .contact-value a { color: var(--gold); transition: opacity 0.2s; }
+    .contact-value a:hover { opacity: 0.75; }
+
+    /* ─── Courier badges ──────────────────────────── */
+    .courier-grid { display: flex; gap: 0.75rem; flex-wrap: wrap; margin: 1rem 0; }
+    .courier-badge {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      border: 1px solid var(--border-dim); padding: 0.5rem 1rem;
+      font-size: 0.62rem; letter-spacing: 0.12em;
+      color: var(--text-muted); background: var(--card-bg);
+    }
+
+    /* ─── Related policies ────────────────────────── */
+    .related-policies { display: flex; gap: 0; border: 1px solid var(--border); margin-top: 3rem; }
+    .policy-link { flex: 1; padding: 1.25rem; border-right: 1px solid var(--border); transition: background 0.2s; }
+    .policy-link:last-child { border-right: none; }
+    .policy-link:hover { background: rgba(201,169,110,0.04); }
+    .policy-link-label { font-size: 0.55rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); opacity: 0.65; margin-bottom: 0.3rem; }
+    .policy-link-name  { font-size: 0.7rem; letter-spacing: 0.1em; color: var(--cream); margin-bottom: 0.15rem; }
+    .policy-link-arrow { font-size: 0.65rem; color: var(--gold); opacity: 0.5; }
+
+    /* ─── Bottom nav ──────────────────────────────── */
+    .bottom-nav { display: flex; gap: 0.75rem; margin-top: 3rem; flex-wrap: wrap; }
+    .btn-back { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 2rem; font-family: 'Josefin Sans', sans-serif; font-size: 0.63rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--teal); background: var(--gold); border: 1px solid var(--gold); transition: all 0.25s; cursor: pointer; }
+    .btn-back:hover { background: transparent; color: var(--gold); }
+    .btn-secondary { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; font-family: 'Josefin Sans', sans-serif; font-size: 0.62rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-muted); border: 1px solid var(--border); transition: all 0.25s; cursor: pointer; }
+    .btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ─── Footer ──────────────────────────────────── */
+    .site-footer { background: rgba(0,20,20,0.6); border-top: 1px solid var(--border); padding: 4rem 2rem 2rem; position: relative; z-index: 1; }
+    .footer-content { max-width: 1280px; margin: 0 auto; }
+    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
+    .footer-section h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 400; letter-spacing: 0.2em; color: var(--cream); margin-bottom: 0.5rem; }
+    .footer-section > p { font-size: 0.7rem; letter-spacing: 0.12em; color: var(--text-muted); }
+    .footer-section h4 { font-size: 0.6rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); opacity: 0.75; margin-bottom: 1.2rem; }
+    .footer-section a { display: block; font-size: 0.72rem; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.6rem; transition: color 0.2s; }
+    .footer-section a:hover { color: var(--gold); }
+    .footer-bottom { border-top: 1px solid var(--border); padding-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+    .footer-bottom p { font-size: 0.62rem; letter-spacing: 0.12em; color: var(--text-muted); opacity: 0.6; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 900px) {
+      .legal-layout { grid-template-columns: 1fr; gap: 2rem; }
+      .legal-sidebar { position: static; }
+      .toc-list { flex-direction: row; flex-wrap: wrap; border: 1px solid var(--border-dim); }
+      .toc-link { border-left: none; border-bottom: 2px solid transparent; padding: 0.5rem 1rem; }
+      .toc-link.active { border-left: none; border-bottom-color: var(--gold); }
+      .rate-grid { grid-template-columns: 1fr 1fr; }
+      .contact-box { grid-template-columns: 1fr; gap: 1rem; }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+    }
+    @media (max-width: 768px) {
+      .menu-toggle { display: block; }
+      .nav-left, .nav-right { min-width: auto; }
+      .related-policies { flex-direction: column; }
+      .policy-link { border-right: none; border-bottom: 1px solid var(--border); }
+      .policy-link:last-child { border-bottom: none; }
+    }
+    @media (max-width: 480px) {
+      .rate-grid { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+    }
+  </style>
 </head>
+
 <body>
-    <header class="site-header">
-        <nav class="nav-container">
-            <div class="nav-center">
-                <a href="/" class="brand-logo">ATELIER ĀKĀRA</a>
-            </div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <nav class="nav-container">
+      <div class="nav-left">
+        <button class="menu-toggle" id="menuToggle">☰</button>
+        <div class="nav-links desktop-only">
+          <a href="catalog.html">Catalog</a>
+          <a href="about.html">About</a>
+        </div>
+      </div>
+      <a href="index.html" class="brand-logo">ATELIER ĀKĀRA</a>
+      <div class="nav-right">
+        <a href="contact.html" style="font-size:0.7rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-muted);transition:color 0.2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text-muted)'">Contact</a>
+      </div>
+    </nav>
+  </header>
+
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="catalog.html">Catalog</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="user/profile.html">My Account</a>
+  </nav>
+
+  <!-- Page -->
+  <main class="legal-page">
+
+    <nav class="breadcrumbs">
+      <a href="index.html">Home</a>
+      <span>/</span>
+      Shipping Policy
+    </nav>
+
+    <div class="legal-layout">
+
+      <!-- ── Sidebar ── -->
+      <aside class="legal-sidebar">
+        <p class="sidebar-label">Contents</p>
+        <nav class="toc-list" id="tocList">
+          <a class="toc-link active" href="#s1">1. Overview</a>
+          <a class="toc-link" href="#s2">2. Shipping Rates</a>
+          <a class="toc-link" href="#s3">3. Lead Time</a>
+          <a class="toc-link" href="#s4">4. Processing</a>
+          <a class="toc-link" href="#s5">5. Tracking</a>
+          <a class="toc-link" href="#s6">6. Coverage</a>
+          <a class="toc-link" href="#s7">7. Courier Partners</a>
+          <a class="toc-link" href="#s8">8. Failed Delivery</a>
+          <a class="toc-link" href="#s9">9. Damaged in Transit</a>
+          <a class="toc-link" href="#s10">10. B2B & Bulk Orders</a>
+          <a class="toc-link" href="#s11">11. International</a>
+          <a class="toc-link" href="#s12">12. Contact</a>
         </nav>
-    </header>
-    
-    <main class="legal-page">
-        <h1>Shipping Policy</h1>
-        <p><strong>Last Updated:</strong> March 4, 2024</p>
-        
-        <h2>1. Shipping Timeline</h2>
-        <p>We aim to deliver your products within <strong>7-10 business days</strong> across India.</p>
-        
-        <h2>2. Shipping Charges</h2>
-        <ul>
-            <li><strong>FREE Shipping:</strong> Orders above ₹2,000</li>
-            <li><strong>Standard Shipping:</strong> ₹150 for orders below ₹2,000</li>
-        </ul>
-        
-        <h2>3. Serviceable Areas</h2>
-        <p>We currently ship pan-India to all serviceable pincodes. Enter your pincode at checkout to verify delivery availability.</p>
-        
-        <h2>4. Order Processing</h2>
-        <ul>
-            <li>Orders placed before 2 PM are processed same day</li>
-            <li>Orders placed after 2 PM are processed next business day</li>
-            <li>No processing on Sundays and public holidays</li>
-        </ul>
-        
-        <h2>5. Tracking</h2>
-        <p>Once shipped, you will receive a tracking number via email and SMS. Track your order in the "My Orders" section of your account.</p>
-        
-        <h2>6. Shipping Partners</h2>
-        <p>We use reputable courier partners including Delhivery, BlueDart, and India Post.</p>
-        
-        <h2>7. Failed Delivery</h2>
-        <p>If delivery fails due to incorrect address or unavailability:</p>
-        <ul>
-            <li>Courier will attempt redelivery</li>
-            <li>After 3 failed attempts, product returns to us</li>
-            <li>Reshipping charges apply</li>
-        </ul>
-        
-        <h2>8. International Shipping</h2>
-        <p>Currently, we only ship within India. International shipping coming soon.</p>
-        
-        <h2>9. Contact</h2>
-        <p>Shipping queries: support@akaraonline.co.in</p>
-        
-        <p><a href="/" class="btn-primary">Back to Home</a></p>
-    </main>
-    
-    <footer class="site-footer">
-        <p>© 2024 Atelier Ākāra</p>
-    </footer>
+
+        <div class="sidebar-meta">
+          <div class="meta-row">
+            <span class="meta-key">Last Updated</span>
+            <span class="meta-val">5 May 2026</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-key">Coverage</span>
+            <span class="meta-val">Pan-India</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-key">International</span>
+            <span class="meta-val">Coming soon</span>
+          </div>
+        </div>
+
+        <div class="sidebar-quick">
+          <p class="sidebar-quick-label">Quick Help</p>
+          <a href="user/profile.html" class="quick-link">→ Track my order</a>
+          <a href="mailto:support@akaraonline.co.in" class="quick-link">→ Shipping query</a>
+          <a href="refund-policy.html" class="quick-link">→ Return policy</a>
+        </div>
+      </aside>
+
+      <!-- ── Content ── -->
+      <div class="legal-content">
+
+        <p class="legal-eyebrow">Legal Document</p>
+        <h1 class="legal-title">Shipping Policy</h1>
+        <div class="legal-divider"></div>
+        <p class="legal-intro">
+          All Atelier Ākāra pieces are precision-crafted to order in our Thane studio. This policy details our shipping rates, timelines, packaging standards, and how we handle delivery exceptions — so you know exactly what to expect.
+        </p>
+
+        <!-- Section 1 -->
+        <div class="legal-section" id="s1">
+          <p class="section-num">Section 01</p>
+          <h2>Overview</h2>
+          <p>Because every product is made-to-order using our Bambu Lab 3D printers, there is a <strong>production lead time of 2–3 weeks</strong> before your order ships. This is not a stock-clearance delay — it means your piece is being crafted specifically for you after your order is placed.</p>
+          <div class="info-box success">
+            <div class="info-box-label">What to Expect</div>
+            <p><strong>Total delivery time = Production (2–3 weeks) + Shipping (5–8 business days).</strong> You will receive a shipping confirmation with tracking details the moment your order leaves our studio.</p>
+          </div>
+        </div>
+
+        <!-- Section 2 -->
+        <div class="legal-section" id="s2">
+          <p class="section-num">Section 02</p>
+          <h2>Shipping Rates</h2>
+          <div class="rate-grid">
+            <div class="rate-card highlight">
+              <div class="rate-icon">🚚</div>
+              <div class="rate-method">Standard Delivery</div>
+              <div class="rate-price free">Free</div>
+              <div class="rate-eta">5–8 business days</div>
+              <div class="rate-note">On all orders above ₹2,500</div>
+            </div>
+            <div class="rate-card">
+              <div class="rate-icon">🚚</div>
+              <div class="rate-method">Standard Delivery</div>
+              <div class="rate-price">₹150</div>
+              <div class="rate-eta">5–8 business days</div>
+              <div class="rate-note">On orders below ₹2,500</div>
+            </div>
+            <div class="rate-card">
+              <div class="rate-icon">⚡</div>
+              <div class="rate-method">Express Delivery</div>
+              <div class="rate-price">₹199</div>
+              <div class="rate-eta">2–3 business days</div>
+              <div class="rate-note">After production is complete. Select at checkout.</div>
+            </div>
+          </div>
+          <p>All shipping rates are GST-inclusive. Free shipping threshold is calculated on the order subtotal after any discounts or bundle savings are applied.</p>
+        </div>
+
+        <!-- Section 3 -->
+        <div class="legal-section" id="s3">
+          <p class="section-num">Section 03</p>
+          <h2>Production Lead Time</h2>
+          <p>Every product is made-to-order. Current production lead time is <strong>2–3 weeks</strong> from the date your order is confirmed and payment is received.</p>
+          <table class="legal-table">
+            <thead>
+              <tr><th>Order Type</th><th>Lead Time</th><th>Notes</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Standard catalogue products</td>
+                <td>2–3 weeks</td>
+                <td>Current production capacity: 60–90 units/month</td>
+              </tr>
+              <tr>
+                <td>Custom colour selections</td>
+                <td>3–4 weeks</td>
+                <td>Additional time for colour mixing and testing</td>
+              </tr>
+              <tr>
+                <td>Bulk / B2B orders (50+ units)</td>
+                <td>4–6 weeks</td>
+                <td>Confirmed by quote before payment</td>
+              </tr>
+              <tr>
+                <td>Bundle orders</td>
+                <td>2–3 weeks</td>
+                <td>All items in a bundle ship together</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="info-box warning">
+            <div class="info-box-label">During High Demand</div>
+            <p>During festive seasons (Diwali, year-end) and limited drop releases, lead times may extend by 1–2 weeks. We will communicate any delays by email before they affect your estimated delivery date.</p>
+          </div>
+        </div>
+
+        <!-- Section 4 -->
+        <div class="legal-section" id="s4">
+          <p class="section-num">Section 04</p>
+          <h2>Order Processing</h2>
+          <p>Once production is complete, orders enter our dispatch queue. Dispatch processing follows these rules:</p>
+          <ul class="legal-list">
+            <li>Orders ready for dispatch before 2:00 PM IST are shipped same day</li>
+            <li>Orders ready after 2:00 PM IST are shipped on the next business day</li>
+            <li>No dispatch on Sundays or national public holidays</li>
+            <li>You will receive an email with your tracking number within 2 hours of dispatch</li>
+          </ul>
+          <div class="timeline" style="margin-top:1.5rem;">
+            <div class="timeline-item">
+              <div class="timeline-dot">📦</div>
+              <div class="timeline-content">
+                <div class="timeline-title">Order Confirmed</div>
+                <div class="timeline-desc">Payment received, production queue updated, confirmation email sent.</div>
+                <div class="timeline-time">Day 0</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot">🖨</div>
+              <div class="timeline-content">
+                <div class="timeline-title">In Production</div>
+                <div class="timeline-desc">Your piece is printed, quality-checked, and packaged in our Thane studio.</div>
+                <div class="timeline-time">Days 1 – 14 (approx.)</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot">🚚</div>
+              <div class="timeline-content">
+                <div class="timeline-title">Dispatched</div>
+                <div class="timeline-desc">Handed to courier. Tracking number sent by email.</div>
+                <div class="timeline-time">Day 14–21 (approx.)</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot">✓</div>
+              <div class="timeline-content">
+                <div class="timeline-title">Delivered</div>
+                <div class="timeline-desc">Delivered to your address. You have 7 days to raise any delivery or quality concerns.</div>
+                <div class="timeline-time">+5–8 business days after dispatch</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 5 -->
+        <div class="legal-section" id="s5">
+          <p class="section-num">Section 05</p>
+          <h2>Tracking Your Order</h2>
+          <p>Once your order is dispatched, you will receive:</p>
+          <ul class="legal-list ticks">
+            <li>A shipping confirmation email with your AWB (airway bill) tracking number</li>
+            <li>An SMS to your registered mobile number</li>
+            <li>A direct tracking link to the courier's website</li>
+          </ul>
+          <p>You can also track your order at any time by signing into your account and visiting <strong>My Account → Orders</strong>. If you haven't received a tracking update within 48 hours of your dispatch confirmation, please email us.</p>
+        </div>
+
+        <!-- Section 6 -->
+        <div class="legal-section" id="s6">
+          <p class="section-num">Section 06</p>
+          <h2>Delivery Coverage</h2>
+          <p>We ship to all serviceable pincodes across India. Coverage is determined by our courier partners' network and may vary by region.</p>
+          <ul class="legal-list">
+            <li>Enter your pincode at checkout to instantly verify delivery availability</li>
+            <li>Metro cities (Mumbai, Delhi, Bengaluru, Chennai, Hyderabad, Kolkata): standard ETAs apply</li>
+            <li>Tier-2 and Tier-3 cities: add 1–2 business days to standard ETAs</li>
+            <li>Remote or non-serviceable pincodes: we will contact you to arrange India Post delivery or a nearby pickup alternative</li>
+          </ul>
+          <p>Delivery ETA starts from the dispatch date, not the order date. Actual delivery may be affected by courier network conditions, weather, or local holidays outside our control.</p>
+        </div>
+
+        <!-- Section 7 -->
+        <div class="legal-section" id="s7">
+          <p class="section-num">Section 07</p>
+          <h2>Courier Partners</h2>
+          <p>We work with established, reliable courier partners to ensure your piece arrives safely. Your order will be shipped via one of the following:</p>
+          <div class="courier-grid">
+            <span class="courier-badge">🚚 Delhivery</span>
+            <span class="courier-badge">🚚 BlueDart (DHL)</span>
+            <span class="courier-badge">🚚 Shiprocket Network</span>
+            <span class="courier-badge">🚚 India Post (remote areas)</span>
+          </div>
+          <p>Courier selection is based on your pincode, parcel weight, and dimensions. We choose the partner best suited to deliver your order safely and on time. You cannot select a specific courier at checkout.</p>
+
+          <h3>Packaging</h3>
+          <p>Every Atelier Ākāra piece is packed in our custom 2-sided branded boxes — logo-front, all essential information on the side panel. Items are internally cushioned with bubble wrap and void fill to protect the geometry during transit. We do not use single-use plastic where an alternative is available.</p>
+        </div>
+
+        <!-- Section 8 -->
+        <div class="legal-section" id="s8">
+          <p class="section-num">Section 08</p>
+          <h2>Failed Delivery</h2>
+          <p>If delivery is unsuccessful, our courier partner will make up to <strong>3 delivery attempts</strong> on consecutive business days. You will be notified by SMS before each attempt.</p>
+          <ul class="legal-list">
+            <li>After 3 failed attempts, the package is held at the nearest courier facility for 5 business days</li>
+            <li>If uncollected, the package is returned to our studio in Thane</li>
+            <li>You will be notified by email when the package is returned to us</li>
+          </ul>
+
+          <h3>Re-shipment after return</h3>
+          <p>If your package is returned to us due to failed delivery:</p>
+          <ul class="legal-list">
+            <li>We will confirm your correct delivery address before re-shipping</li>
+            <li>Re-shipping is charged at standard shipping rates (₹150 or ₹199 express)</li>
+            <li>If the failed delivery was due to a courier error (confirmed by tracking), re-shipping is free</li>
+          </ul>
+          <div class="info-box warning">
+            <div class="info-box-label">Prevention Tip</div>
+            <p>Please ensure your phone number is active and reachable at the delivery address. Most courier partners call ahead before arrival. Confirm your pincode carefully at checkout — we cannot modify addresses after dispatch.</p>
+          </div>
+        </div>
+
+        <!-- Section 9 -->
+        <div class="legal-section" id="s9">
+          <p class="section-num">Section 09</p>
+          <h2>Damaged in Transit</h2>
+          <p>Despite our robust packaging, transit damage can occasionally occur. If your order arrives damaged:</p>
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-dot">📸</div>
+              <div class="timeline-content">
+                <div class="timeline-title">Document the Damage</div>
+                <div class="timeline-desc">Take clear photographs of the outer packaging AND the product before disposing of any packaging materials.</div>
+                <div class="timeline-time">Immediately on receipt</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot">✉</div>
+              <div class="timeline-content">
+                <div class="timeline-title">Email Us</div>
+                <div class="timeline-desc">Send your order number and photographs to support@akaraonline.co.in. Do not return the package without prior approval.</div>
+                <div class="timeline-time">Within 7 days of delivery</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot">✓</div>
+              <div class="timeline-content">
+                <div class="timeline-title">Resolution</div>
+                <div class="timeline-desc">We will arrange free reverse pickup and issue a full refund or free replacement — your choice.</div>
+                <div class="timeline-time">Confirmed within 24 hours of your email</div>
+              </div>
+            </div>
+          </div>
+          <p>We do not require you to retain damaged packaging for more than 7 days. However, please keep it until we confirm the return logistics.</p>
+        </div>
+
+        <!-- Section 10 -->
+        <div class="legal-section" id="s10">
+          <p class="section-num">Section 10</p>
+          <h2>B2B & Bulk Orders</h2>
+          <p>For corporate gifting, interior designer, or wholesale orders of <strong>50 or more units</strong>, we offer customised shipping arrangements:</p>
+          <ul class="legal-list">
+            <li>Dedicated shipping quote based on total volume, weight, and destination</li>
+            <li>Option to ship in single consolidated consignment or multiple partial shipments</li>
+            <li>GST invoice with IGST or CGST/SGST applied correctly based on delivery state</li>
+            <li>Palletised packaging available for very large orders on request</li>
+          </ul>
+          <p>Contact us at <a href="mailto:support@akaraonline.co.in" style="color:var(--gold);">support@akaraonline.co.in</a> to discuss your bulk order before placing it online. We will provide a written quote within 24 hours.</p>
+        </div>
+
+        <!-- Section 11 -->
+        <div class="legal-section" id="s11">
+          <p class="section-num">Section 11</p>
+          <h2>International Shipping</h2>
+          <p>We currently ship within India only. International shipping is on our roadmap and will be introduced in a future phase of the business.</p>
+          <p>If you are based outside India and would like to discuss a specific order, please email us at <a href="mailto:support@akaraonline.co.in" style="color:var(--gold);">support@akaraonline.co.in</a> — we may be able to accommodate individual requests on a case-by-case basis.</p>
+        </div>
+
+        <!-- Section 12 -->
+        <div class="legal-section" id="s12">
+          <p class="section-num">Section 12</p>
+          <h2>Contact Us</h2>
+          <p>For any shipping queries, tracking issues, or delivery concerns:</p>
+          <div class="contact-box">
+            <div class="contact-item">
+              <div class="contact-label">Shipping Support</div>
+              <div class="contact-value"><a href="mailto:support@akaraonline.co.in">support@akaraonline.co.in</a></div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-label">Phone</div>
+              <div class="contact-value"><a href="tel:+918278085572">+91 82780 85572</a></div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-label">Response Time</div>
+              <div class="contact-value">Within 24 hours on business days</div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-label">Studio Location</div>
+              <div class="contact-value">Thane, Maharashtra 400601, India</div>
+            </div>
+          </div>
+          <p style="margin-top:1rem;">When emailing about a shipment, please include your <strong>order number</strong> and the tracking number (if available) so we can assist you as quickly as possible.</p>
+        </div>
+
+        <!-- Related policies -->
+        <div class="related-policies">
+          <a href="privacy.html" class="policy-link">
+            <div class="policy-link-label">Legal</div>
+            <div class="policy-link-name">Privacy Policy</div>
+            <div class="policy-link-arrow">→</div>
+          </a>
+          <a href="terms.html" class="policy-link">
+            <div class="policy-link-label">Legal</div>
+            <div class="policy-link-name">Terms of Service</div>
+            <div class="policy-link-arrow">→</div>
+          </a>
+          <a href="refund-policy.html" class="policy-link">
+            <div class="policy-link-label">Legal</div>
+            <div class="policy-link-name">Refund Policy</div>
+            <div class="policy-link-arrow">→</div>
+          </a>
+        </div>
+
+        <div class="bottom-nav">
+          <a href="index.html" class="btn-back">← Back to Home</a>
+          <a href="contact.html" class="btn-secondary">Contact Support</a>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-grid">
+        <div class="footer-section">
+          <h3>ATELIER ĀKĀRA</h3>
+          <p>Artifacts for the Modern Spaces</p>
+        </div>
+        <div class="footer-section">
+          <h4>Shop</h4>
+          <a href="catalog.html">All Products</a>
+          <a href="catalog.html?category=planters">Planters</a>
+          <a href="catalog.html?category=vases">Vases</a>
+          <a href="catalog.html?category=lighting">Lighting</a>
+        </div>
+        <div class="footer-section">
+          <h4>Legal</h4>
+          <a href="privacy.html">Privacy Policy</a>
+          <a href="terms.html">Terms of Service</a>
+          <a href="refund-policy.html">Refund Policy</a>
+          <a href="shipping-policy.html">Shipping Policy</a>
+        </div>
+        <div class="footer-section">
+          <h4>Connect</h4>
+          <a href="https://instagram.com/atelier.akara" target="_blank">Instagram</a>
+          <a href="mailto:support@akaraonline.co.in">Email Us</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>Precision Forge Labs &nbsp;|&nbsp; GST: 27GZCPS9353H1ZQ</p>
+        <p>© <span id="year"></span> Atelier Ākāra. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    document.getElementById('menuToggle').addEventListener('click', () =>
+      document.getElementById('mobileNav').classList.toggle('open'));
+
+    const sections = document.querySelectorAll('.legal-section[id]');
+    const tocLinks  = document.querySelectorAll('.toc-link');
+
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(l => l.classList.remove('active'));
+          const active = document.querySelector(`.toc-link[href="#${entry.target.id}"]`);
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+
+    sections.forEach(s => observer.observe(s));
+  </script>
+
 </body>
 </html>

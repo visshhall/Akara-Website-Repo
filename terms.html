@@ -1,73 +1,695 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terms of Service - Atelier Ākāra</title>
-    <link rel="stylesheet" href="/auth-styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Terms of Service — Atelier Ākāra | Precision Forge Labs">
+  <link rel="icon" type="image/png" href="assets/images/favicon.png">
+  <title>Terms of Service — Atelier Ākāra</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --teal:       #002b2b;
+      --cream:      #fff8e7;
+      --gold:       #c9a96e;
+      --gold-light: #e2c99a;
+      --text-main:  #fff8e7;
+      --text-muted: rgba(255,248,231,0.55);
+      --border:     rgba(201,169,110,0.25);
+      --border-dim: rgba(201,169,110,0.12);
+      --card-bg:    rgba(255,248,231,0.03);
+      --error:      #e07070;
+      --success:    #70c9a0;
+      --warning:    #e2a96e;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Josefin Sans', sans-serif;
+      background: var(--teal); color: var(--text-main);
+      min-height: 100vh; overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 15% 5%,  rgba(0,95,95,0.28) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 85% 90%,  rgba(0,64,64,0.32) 0%, transparent 55%);
+      pointer-events: none; z-index: 0;
+    }
+    body::after {
+      content: ''; position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,169,110,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,169,110,0.03) 1px, transparent 1px);
+      background-size: 60px 60px; pointer-events: none; z-index: 0;
+    }
+
+    /* ─── Header ──────────────────────────────────── */
+    .site-header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(0,43,43,0.88); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-container {
+      display: flex; align-items: center; justify-content: space-between;
+      max-width: 1280px; margin: 0 auto; padding: 0 2rem; height: 64px;
+    }
+    .nav-left, .nav-right { display: flex; align-items: center; gap: 2rem; min-width: 160px; }
+    .nav-right { justify-content: flex-end; }
+    .nav-links { display: flex; gap: 2rem; }
+    .nav-links a { font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-muted); transition: color 0.2s; }
+    .nav-links a:hover { color: var(--gold); }
+    .brand-logo {
+      font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 300;
+      letter-spacing: 0.3em; text-transform: uppercase; color: var(--cream); white-space: nowrap;
+    }
+    .menu-toggle { display: none; background: none; border: none; color: var(--text-main); font-size: 1.2rem; cursor: pointer; }
+    .mobile-nav {
+      display: none; position: fixed; top: 64px; left: 0; right: 0;
+      background: rgba(0,43,43,0.97); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border); padding: 1.5rem 2rem;
+      z-index: 99; flex-direction: column; gap: 1.2rem;
+    }
+    .mobile-nav.open { display: flex; }
+    .mobile-nav a { font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-muted); padding: 0.4rem 0; border-bottom: 1px solid rgba(201,169,110,0.1); }
+    .mobile-nav a:hover { color: var(--gold); }
+
+    /* ─── Page ────────────────────────────────────── */
+    .legal-page {
+      position: relative; z-index: 1;
+      max-width: 1280px; margin: 0 auto;
+      padding: 84px 2rem 6rem;
+    }
+
+    .breadcrumbs { font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-muted); padding: 1.5rem 0 0; }
+    .breadcrumbs a { color: var(--gold); opacity: 0.7; transition: opacity 0.2s; }
+    .breadcrumbs a:hover { opacity: 1; }
+    .breadcrumbs span { opacity: 0.45; margin: 0 0.5rem; }
+
+    /* ─── Layout ──────────────────────────────────── */
+    .legal-layout {
+      display: grid; grid-template-columns: 240px 1fr;
+      gap: 4rem; align-items: start; margin-top: 2.5rem;
+    }
+
+    /* ─── Sidebar ─────────────────────────────────── */
+    .legal-sidebar { position: sticky; top: 84px; animation: fadeUp 0.6s ease both; }
+    .sidebar-label { font-size: 0.56rem; letter-spacing: 0.38em; text-transform: uppercase; color: var(--gold); opacity: 0.7; margin-bottom: 1.25rem; }
+    .toc-list { display: flex; flex-direction: column; gap: 0.1rem; }
+    .toc-link { font-size: 0.65rem; letter-spacing: 0.1em; color: var(--text-muted); padding: 0.45rem 0.75rem; border-left: 2px solid transparent; transition: color 0.2s, border-color 0.2s; display: block; }
+    .toc-link:hover  { color: var(--gold-light); border-left-color: rgba(201,169,110,0.3); }
+    .toc-link.active { color: var(--gold); border-left-color: var(--gold); }
+    .sidebar-meta { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-dim); }
+    .meta-row { display: flex; flex-direction: column; gap: 0.15rem; margin-bottom: 0.85rem; }
+    .meta-key { font-size: 0.53rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); opacity: 0.6; }
+    .meta-val { font-size: 0.65rem; letter-spacing: 0.06em; color: var(--text-muted); }
+    .sidebar-quick { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-dim); }
+    .sidebar-quick-label { font-size: 0.53rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); opacity: 0.6; margin-bottom: 0.85rem; }
+    .quick-link { display: flex; align-items: center; gap: 0.4rem; font-size: 0.63rem; letter-spacing: 0.1em; color: var(--text-muted); padding: 0.35rem 0; transition: color 0.2s; }
+    .quick-link:hover { color: var(--gold); }
+
+    /* ─── Content ─────────────────────────────────── */
+    .legal-content { animation: fadeUp 0.6s ease 0.1s both; }
+    .legal-eyebrow { font-size: 0.6rem; letter-spacing: 0.38em; text-transform: uppercase; color: var(--gold); opacity: 0.75; margin-bottom: 0.75rem; }
+    .legal-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      font-weight: 300; letter-spacing: 0.1em; color: var(--cream);
+      line-height: 1.05; margin-bottom: 0.75rem;
+    }
+    .legal-divider { width: 50px; height: 1px; background: var(--gold); opacity: 0.4; margin-bottom: 1.5rem; }
+    .legal-intro { font-size: 0.82rem; letter-spacing: 0.06em; color: var(--text-muted); line-height: 1.9; margin-bottom: 3rem; max-width: 680px; }
+
+    /* ─── Sections ────────────────────────────────── */
+    .legal-section { margin-bottom: 3rem; padding-top: 1rem; }
+    .section-num { font-size: 0.55rem; letter-spacing: 0.4em; text-transform: uppercase; color: var(--gold); opacity: 0.55; margin-bottom: 0.3rem; }
+    .legal-section h2 {
+      font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 400;
+      letter-spacing: 0.1em; color: var(--cream); margin-bottom: 1rem;
+      padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-dim);
+    }
+    .legal-section h3 { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold-light); opacity: 0.85; margin-bottom: 0.65rem; margin-top: 1.5rem; }
+    .legal-section p { font-size: 0.75rem; letter-spacing: 0.05em; color: var(--text-muted); line-height: 1.9; margin-bottom: 0.85rem; }
+    .legal-section p:last-child { margin-bottom: 0; }
+    .legal-section strong { color: var(--cream); font-weight: 500; }
+    .legal-section a { color: var(--gold); transition: opacity 0.2s; }
+    .legal-section a:hover { opacity: 0.75; }
+
+    .legal-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.85rem; }
+    .legal-list li { display: flex; align-items: flex-start; gap: 0.65rem; font-size: 0.75rem; letter-spacing: 0.05em; color: var(--text-muted); line-height: 1.75; }
+    .legal-list li::before { content: '→'; color: var(--gold); opacity: 0.6; font-size: 0.65rem; flex-shrink: 0; margin-top: 0.1rem; }
+    .legal-list.ticks  li::before { content: '✓'; color: var(--success); opacity: 0.8; }
+
+    /* ─── Key Terms grid ──────────────────────────── */
+    .terms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+    .term-card { background: var(--card-bg); border: 1px solid var(--border-dim); padding: 1.25rem; }
+    .term-word  { font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); opacity: 0.8; margin-bottom: 0.35rem; }
+    .term-def   { font-size: 0.7rem; letter-spacing: 0.05em; color: var(--text-muted); line-height: 1.75; }
+
+    /* ─── Obligation table ────────────────────────── */
+    .legal-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+    .legal-table th { font-size: 0.56rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); opacity: 0.8; padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border); text-align: left; }
+    .legal-table td { font-size: 0.72rem; letter-spacing: 0.05em; color: var(--text-muted); padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border-dim); vertical-align: top; line-height: 1.7; }
+    .legal-table tr:last-child td { border-bottom: none; }
+    .legal-table tr:hover td { background: rgba(255,248,231,0.02); }
+
+    /* ─── Info boxes ──────────────────────────────── */
+    .info-box { background: rgba(201,169,110,0.06); border: 1px solid rgba(201,169,110,0.25); padding: 1.25rem 1.5rem; margin: 1rem 0; }
+    .info-box.warning { background: rgba(226,169,110,0.06); border-color: rgba(226,169,110,0.3); }
+    .info-box.error   { background: rgba(224,112,112,0.06); border-color: rgba(224,112,112,0.3); }
+    .info-box-label { font-size: 0.55rem; letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 0.45rem; }
+    .info-box         .info-box-label  { color: var(--gold); }
+    .info-box.warning .info-box-label  { color: var(--warning); }
+    .info-box.error   .info-box-label  { color: var(--error); }
+    .info-box p { font-size: 0.73rem; letter-spacing: 0.05em; color: var(--text-muted); line-height: 1.8; }
+    .info-box p strong { color: var(--cream); }
+
+    /* ─── Contact box ─────────────────────────────── */
+    .contact-box { background: var(--card-bg); border: 1px solid var(--border); padding: 1.75rem; margin-top: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.75rem; }
+    .contact-label { font-size: 0.55rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); opacity: 0.7; margin-bottom: 0.35rem; }
+    .contact-value { font-size: 0.72rem; letter-spacing: 0.07em; color: var(--cream); line-height: 1.7; }
+    .contact-value a { color: var(--gold); transition: opacity 0.2s; }
+    .contact-value a:hover { opacity: 0.75; }
+
+    /* ─── Related policies ────────────────────────── */
+    .related-policies { display: flex; gap: 0; border: 1px solid var(--border); margin-top: 3rem; }
+    .policy-link { flex: 1; padding: 1.25rem; border-right: 1px solid var(--border); transition: background 0.2s; }
+    .policy-link:last-child { border-right: none; }
+    .policy-link:hover { background: rgba(201,169,110,0.04); }
+    .policy-link-label { font-size: 0.55rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); opacity: 0.65; margin-bottom: 0.3rem; }
+    .policy-link-name  { font-size: 0.7rem; letter-spacing: 0.1em; color: var(--cream); margin-bottom: 0.15rem; }
+    .policy-link-arrow { font-size: 0.65rem; color: var(--gold); opacity: 0.5; }
+
+    /* ─── Bottom nav ──────────────────────────────── */
+    .bottom-nav { display: flex; gap: 0.75rem; margin-top: 3rem; flex-wrap: wrap; }
+    .btn-back { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 2rem; font-family: 'Josefin Sans', sans-serif; font-size: 0.63rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--teal); background: var(--gold); border: 1px solid var(--gold); transition: all 0.25s; cursor: pointer; }
+    .btn-back:hover { background: transparent; color: var(--gold); }
+    .btn-secondary { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; font-family: 'Josefin Sans', sans-serif; font-size: 0.62rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-muted); border: 1px solid var(--border); transition: all 0.25s; cursor: pointer; }
+    .btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ─── Footer ──────────────────────────────────── */
+    .site-footer { background: rgba(0,20,20,0.6); border-top: 1px solid var(--border); padding: 4rem 2rem 2rem; position: relative; z-index: 1; }
+    .footer-content { max-width: 1280px; margin: 0 auto; }
+    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
+    .footer-section h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 400; letter-spacing: 0.2em; color: var(--cream); margin-bottom: 0.5rem; }
+    .footer-section > p { font-size: 0.7rem; letter-spacing: 0.12em; color: var(--text-muted); }
+    .footer-section h4 { font-size: 0.6rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); opacity: 0.75; margin-bottom: 1.2rem; }
+    .footer-section a { display: block; font-size: 0.72rem; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.6rem; transition: color 0.2s; }
+    .footer-section a:hover { color: var(--gold); }
+    .footer-bottom { border-top: 1px solid var(--border); padding-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+    .footer-bottom p { font-size: 0.62rem; letter-spacing: 0.12em; color: var(--text-muted); opacity: 0.6; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 900px) {
+      .legal-layout { grid-template-columns: 1fr; gap: 2rem; }
+      .legal-sidebar { position: static; }
+      .toc-list { flex-direction: row; flex-wrap: wrap; border: 1px solid var(--border-dim); }
+      .toc-link { border-left: none; border-bottom: 2px solid transparent; padding: 0.5rem 1rem; }
+      .toc-link.active { border-left: none; border-bottom-color: var(--gold); }
+      .terms-grid { grid-template-columns: 1fr; }
+      .contact-box { grid-template-columns: 1fr; gap: 1rem; }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+    }
+    @media (max-width: 768px) {
+      .menu-toggle { display: block; }
+      .nav-left, .nav-right { min-width: auto; }
+      .related-policies { flex-direction: column; }
+      .policy-link { border-right: none; border-bottom: 1px solid var(--border); }
+      .policy-link:last-child { border-bottom: none; }
+    }
+    @media (max-width: 480px) {
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+    }
+  </style>
 </head>
+
 <body>
-    <header class="site-header">
-        <nav class="nav-container">
-            <div class="nav-center">
-                <a href="/" class="brand-logo">ATELIER ĀKĀRA</a>
-            </div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <nav class="nav-container">
+      <div class="nav-left">
+        <button class="menu-toggle" id="menuToggle">☰</button>
+        <div class="nav-links desktop-only">
+          <a href="catalog.html">Catalog</a>
+          <a href="about.html">About</a>
+        </div>
+      </div>
+      <a href="index.html" class="brand-logo">ATELIER ĀKĀRA</a>
+      <div class="nav-right">
+        <a href="contact.html" style="font-size:0.7rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-muted);transition:color 0.2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text-muted)'">Contact</a>
+      </div>
+    </nav>
+  </header>
+
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="catalog.html">Catalog</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="user/profile.html">My Account</a>
+  </nav>
+
+  <!-- Page -->
+  <main class="legal-page">
+
+    <nav class="breadcrumbs">
+      <a href="index.html">Home</a>
+      <span>/</span>
+      Terms of Service
+    </nav>
+
+    <div class="legal-layout">
+
+      <!-- ── Sidebar ── -->
+      <aside class="legal-sidebar">
+        <p class="sidebar-label">Contents</p>
+        <nav class="toc-list" id="tocList">
+          <a class="toc-link active" href="#s1">1. Agreement</a>
+          <a class="toc-link" href="#s2">2. Definitions</a>
+          <a class="toc-link" href="#s3">3. Eligibility</a>
+          <a class="toc-link" href="#s4">4. Account</a>
+          <a class="toc-link" href="#s5">5. Products & Pricing</a>
+          <a class="toc-link" href="#s6">6. Orders & Payment</a>
+          <a class="toc-link" href="#s7">7. Shipping</a>
+          <a class="toc-link" href="#s8">8. Returns & Refunds</a>
+          <a class="toc-link" href="#s9">9. Intellectual Property</a>
+          <a class="toc-link" href="#s10">10. Prohibited Use</a>
+          <a class="toc-link" href="#s11">11. Limitation of Liability</a>
+          <a class="toc-link" href="#s12">12. Indemnification</a>
+          <a class="toc-link" href="#s13">13. Governing Law</a>
+          <a class="toc-link" href="#s14">14. Changes</a>
+          <a class="toc-link" href="#s15">15. Contact</a>
         </nav>
-    </header>
-    
-    <main class="legal-page">
-        <h1>Terms of Service</h1>
-        <p><strong>Last Updated:</strong> March 4, 2024</p>
-        
-        <h2>1. Agreement to Terms</h2>
-        <p>By accessing and using akaraonline.co.in ("Site"), you agree to be bound by these Terms of Service and our Privacy Policy.</p>
-        
-        <h2>2. Eligibility</h2>
-        <p>You must be at least 18 years old to use this Site and make purchases.</p>
-        
-        <h2>3. Products and Pricing</h2>
-        <ul>
-            <li>All prices are in Indian Rupees (INR) and include GST</li>
-            <li>We reserve the right to change prices without notice</li>
-            <li>Product images are for illustration purposes</li>
-            <li>We make every effort to display colors accurately, but cannot guarantee exact color representation</li>
-        </ul>
-        
-        <h2>4. Orders and Payment</h2>
-        <ul>
-            <li>All orders are subject to acceptance and availability</li>
-            <li>We reserve the right to refuse any order</li>
-            <li>Payment must be received before order processing</li>
-            <li>We accept UPI, Credit/Debit Cards via secure payment gateway</li>
-        </ul>
-        
-        <h2>5. Shipping and Delivery</h2>
-        <ul>
-            <li>Delivery timeline: 7-10 business days within India</li>
-            <li>Free shipping on orders above ₹2,000</li>
-            <li>Shipping charges apply to orders below ₹2,000</li>
-            <li>We are not responsible for delays caused by courier partners</li>
-        </ul>
-        
-        <h2>6. Returns and Refunds</h2>
-        <p>See our <a href="/refund-policy.html">Refund Policy</a> for details.</p>
-        
-        <h2>7. Limitation of Liability</h2>
-        <p>We are not liable for indirect, incidental, or consequential damages arising from use of products.</p>
-        
-        <h2>8. Governing Law</h2>
-        <p>These terms are governed by the laws of India. Any disputes shall be subject to the exclusive jurisdiction of courts in Mumbai, Maharashtra.</p>
-        
-        <h2>9. Contact</h2>
-        <p><strong>Precision Forge Labs</strong><br>
-        Email: support@akaraonline.co.in<br>
-        GST: 27GZCPS9353H1ZQ</p>
-        
-        <p><a href="/" class="btn-primary">Back to Home</a></p>
-    </main>
-    
-    <footer class="site-footer">
-        <p>© 2024 Atelier Ākāra</p>
-    </footer>
+
+        <div class="sidebar-meta">
+          <div class="meta-row">
+            <span class="meta-key">Last Updated</span>
+            <span class="meta-val">5 May 2026</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-key">Effective Date</span>
+            <span class="meta-val">1 February 2026</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-key">Jurisdiction</span>
+            <span class="meta-val">Mumbai, Maharashtra, India</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-key">Version</span>
+            <span class="meta-val">1.0</span>
+          </div>
+        </div>
+
+        <div class="sidebar-quick">
+          <p class="sidebar-quick-label">Related</p>
+          <a href="privacy.html"         class="quick-link">→ Privacy Policy</a>
+          <a href="refund-policy.html"   class="quick-link">→ Refund Policy</a>
+          <a href="shipping-policy.html" class="quick-link">→ Shipping Policy</a>
+        </div>
+      </aside>
+
+      <!-- ── Content ── -->
+      <div class="legal-content">
+
+        <p class="legal-eyebrow">Legal Document</p>
+        <h1 class="legal-title">Terms of Service</h1>
+        <div class="legal-divider"></div>
+        <p class="legal-intro">
+          Please read these Terms of Service carefully before using <strong>akaraonline.co.in</strong>. By accessing or using our website, creating an account, or placing an order, you agree to be bound by these Terms and our Privacy Policy. If you do not agree, please do not use our site.
+        </p>
+
+        <!-- 1 -->
+        <div class="legal-section" id="s1">
+          <p class="section-num">Section 01</p>
+          <h2>Agreement to Terms</h2>
+          <p>These Terms of Service ("Terms") constitute a legally binding agreement between you ("you," "User") and Precision Forge Labs ("we," "us," "Company"), the operator of <strong>akaraonline.co.in</strong> and the brand Atelier Ākāra.</p>
+          <p>Your use of this website, creation of an account, or placement of an order constitutes your unconditional acceptance of these Terms in their entirety, including our <a href="privacy.html">Privacy Policy</a>, <a href="refund-policy.html">Refund Policy</a>, and <a href="shipping-policy.html">Shipping Policy</a>, all of which are incorporated herein by reference.</p>
+          <div class="info-box">
+            <div class="info-box-label">Summary</div>
+            <p>By using our site, you agree to these terms. If you disagree with any part, please stop using the site and contact us if you have questions.</p>
+          </div>
+        </div>
+
+        <!-- 2 -->
+        <div class="legal-section" id="s2">
+          <p class="section-num">Section 02</p>
+          <h2>Definitions</h2>
+          <div class="terms-grid">
+            <div class="term-card">
+              <div class="term-word">"Site"</div>
+              <div class="term-def">akaraonline.co.in and all associated subdomains and pages</div>
+            </div>
+            <div class="term-card">
+              <div class="term-word">"Products"</div>
+              <div class="term-def">3D-printed home décor items offered for sale on the Site</div>
+            </div>
+            <div class="term-card">
+              <div class="term-word">"Order"</div>
+              <div class="term-def">A request to purchase one or more Products submitted via the Site</div>
+            </div>
+            <div class="term-card">
+              <div class="term-word">"Account"</div>
+              <div class="term-def">A registered user profile on the Site</div>
+            </div>
+            <div class="term-card">
+              <div class="term-word">"Content"</div>
+              <div class="term-def">All text, images, designs, product descriptions, and other materials on the Site</div>
+            </div>
+            <div class="term-card">
+              <div class="term-word">"Company"</div>
+              <div class="term-def">Precision Forge Labs, GSTIN: 27GZCPS9353H1ZQ, Maharashtra, India</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 -->
+        <div class="legal-section" id="s3">
+          <p class="section-num">Section 03</p>
+          <h2>Eligibility</h2>
+          <p>To use this Site and place orders, you must:</p>
+          <ul class="legal-list ticks">
+            <li>Be at least <strong>18 years of age</strong></li>
+            <li>Be capable of entering into a legally binding contract under applicable law</li>
+            <li>Provide accurate and complete information when creating an account or placing an order</li>
+            <li>Be located in a jurisdiction where our products may be legally delivered</li>
+          </ul>
+          <p>If you are placing an order on behalf of a company or organisation, you represent that you have the authority to bind that entity to these Terms. If you do not have such authority, you must not accept these Terms or use the Site on behalf of such entity.</p>
+          <div class="info-box warning">
+            <div class="info-box-label">Minors</div>
+            <p>Our website is not intended for use by persons under the age of 18. If we discover that a person under 18 has created an account, we will terminate that account and delete any associated data.</p>
+          </div>
+        </div>
+
+        <!-- 4 -->
+        <div class="legal-section" id="s4">
+          <p class="section-num">Section 04</p>
+          <h2>Your Account</h2>
+          <p>When you create an account on our Site, you agree to:</p>
+          <ul class="legal-list">
+            <li>Provide accurate, current, and complete information at registration</li>
+            <li>Maintain the security of your password and accept responsibility for all activity under your account</li>
+            <li>Notify us immediately at <a href="mailto:support@akaraonline.co.in">support@akaraonline.co.in</a> of any unauthorised access to your account</li>
+            <li>Not share your account credentials with any third party</li>
+            <li>Not create more than one account per individual</li>
+          </ul>
+          <p>We reserve the right to suspend or terminate accounts at our discretion if we suspect misuse, fraudulent activity, or a breach of these Terms. You may delete your account at any time via Account Settings or by contacting us.</p>
+        </div>
+
+        <!-- 5 -->
+        <div class="legal-section" id="s5">
+          <p class="section-num">Section 05</p>
+          <h2>Products & Pricing</h2>
+
+          <h3>Pricing</h3>
+          <ul class="legal-list">
+            <li>All prices are listed in Indian Rupees (INR) and are <strong>GST-inclusive</strong> (18% GST applied as CGST 9% + SGST 9% for Maharashtra, or IGST 18% for other states)</li>
+            <li>We reserve the right to change prices at any time without prior notice; however, the price displayed at the time of your order will be honoured</li>
+            <li>Wholesale / bulk pricing (50+ units) is available on request and governed by a separate written quote</li>
+          </ul>
+
+          <h3>Product Descriptions</h3>
+          <ul class="legal-list">
+            <li>All products are made-to-order using plant-based PLA on Bambu Lab 3D printers in our Thane, Maharashtra studio</li>
+            <li>Product images are representative; actual appearance may vary slightly due to screen calibration and photographic conditions</li>
+            <li>Dimensional tolerances of ±2–3mm are inherent to the 3D printing process and are not considered defects</li>
+            <li>Custom colour orders are final — colour representation on screen may differ from the printed output</li>
+            <li>All products are rated for <strong>indoor use only</strong></li>
+          </ul>
+
+          <h3>Availability</h3>
+          <p>All products are made-to-order and are therefore always "available" — subject to our current production capacity of 60–90 units per month. If an exceptional demand event prevents us from fulfilling your order within the stated lead time, we will notify you and offer a revised timeline or a full refund.</p>
+        </div>
+
+        <!-- 6 -->
+        <div class="legal-section" id="s6">
+          <p class="section-num">Section 06</p>
+          <h2>Orders & Payment</h2>
+
+          <h3>Order Acceptance</h3>
+          <p>Submitting an order does not constitute a contract until we confirm acceptance by email. We reserve the right to refuse or cancel any order at our discretion, including but not limited to:</p>
+          <ul class="legal-list">
+            <li>Suspected fraudulent or abusive orders</li>
+            <li>Incorrect pricing due to a technical error (we will notify you and offer a refund or the correct price)</li>
+            <li>Unusually large orders that exceed current production capacity</li>
+          </ul>
+
+          <h3>Payment</h3>
+          <ul class="legal-list">
+            <li>Full payment is required before production begins — we do not offer payment on delivery</li>
+            <li>Accepted methods: UPI, Credit/Debit Cards, Net Banking (via Razorpay), and Bank Transfer (NEFT/IMPS)</li>
+            <li>All transactions are processed over secure, encrypted connections</li>
+            <li>We do not store your card details — payment processing is handled by Razorpay (PCI-DSS compliant)</li>
+          </ul>
+
+          <h3>GST Invoice</h3>
+          <p>A GST-compliant tax invoice will be issued for every order and emailed to your registered email address. For B2B purchases requiring GSTIN on the invoice, please enter your GSTIN in your account profile before placing the order.</p>
+        </div>
+
+        <!-- 7 -->
+        <div class="legal-section" id="s7">
+          <p class="section-num">Section 07</p>
+          <h2>Shipping & Delivery</h2>
+          <p>Shipping terms are governed by our <a href="shipping-policy.html">Shipping Policy</a>, incorporated into these Terms by reference. Key points:</p>
+          <ul class="legal-list">
+            <li>Production lead time: 2–3 weeks (custom colours: 3–4 weeks)</li>
+            <li>Standard delivery: 5–8 business days after dispatch</li>
+            <li>Free standard shipping on orders above ₹2,500; ₹150 on orders below</li>
+            <li>Express delivery available at ₹199 after production is complete</li>
+            <li>We are not liable for delivery delays caused by courier partners, weather events, or force majeure situations outside our control</li>
+          </ul>
+          <p>Title and risk of loss for Products passes to you upon confirmed delivery to the address you provided. We are not responsible for loss or damage after delivery is confirmed.</p>
+        </div>
+
+        <!-- 8 -->
+        <div class="legal-section" id="s8">
+          <p class="section-num">Section 08</p>
+          <h2>Returns & Refunds</h2>
+          <p>Returns and refunds are governed by our <a href="refund-policy.html">Refund Policy</a>, incorporated into these Terms by reference. Key points:</p>
+          <ul class="legal-list">
+            <li>7-day return window from delivery date (Consumer Protection Act, 2019)</li>
+            <li>Eligible for return: damaged, defective, or wrong product delivered</li>
+            <li>Custom colour orders are non-returnable (except for manufacturing defects)</li>
+            <li>Refunds processed to original payment method within 5–14 business days depending on payment method</li>
+            <li>30-day manufacturing defect warranty from delivery date</li>
+          </ul>
+        </div>
+
+        <!-- 9 -->
+        <div class="legal-section" id="s9">
+          <p class="section-num">Section 09</p>
+          <h2>Intellectual Property</h2>
+          <p>All content on this Site — including but not limited to product designs, photographs, text, the ĀKĀRA wordmark, logo, brand name, and all 3D-printed design files — is the exclusive property of Precision Forge Labs and is protected by Indian copyright, trademark, and design law.</p>
+          <ul class="legal-list">
+            <li>You may not reproduce, distribute, modify, or create derivative works from any Site content without our prior written permission</li>
+            <li>You may not use our brand name, logo, or product imagery in any commercial context without explicit written authorisation</li>
+            <li>Personal, non-commercial use of product photographs (e.g., sharing on social media after purchase) is permitted, provided you credit @atelier.akara</li>
+          </ul>
+          <p>Nothing in these Terms transfers any intellectual property rights to you. All rights not expressly granted are reserved by the Company.</p>
+        </div>
+
+        <!-- 10 -->
+        <div class="legal-section" id="s10">
+          <p class="section-num">Section 10</p>
+          <h2>Prohibited Use</h2>
+          <p>You agree not to use this Site or our products for any of the following:</p>
+          <ul class="legal-list">
+            <li>Any unlawful purpose or in violation of applicable Indian law</li>
+            <li>Transmitting spam, phishing attempts, or malicious code</li>
+            <li>Attempting to access, scrape, or copy our pricing, product, or customer data by automated means</li>
+            <li>Creating fake accounts, placing fraudulent orders, or submitting false information</li>
+            <li>Reselling our products under a different brand without written authorisation</li>
+            <li>Reverse-engineering, copying, or reproducing our product designs for commercial purposes</li>
+            <li>Harassing or threatening our staff, customers, or suppliers</li>
+          </ul>
+          <p>Violation of this section may result in immediate account termination, cancellation of pending orders, and legal action where appropriate.</p>
+        </div>
+
+        <!-- 11 -->
+        <div class="legal-section" id="s11">
+          <p class="section-num">Section 11</p>
+          <h2>Limitation of Liability</h2>
+          <p>To the maximum extent permitted by applicable Indian law, Precision Forge Labs shall not be liable for:</p>
+          <ul class="legal-list">
+            <li>Indirect, incidental, special, consequential, or punitive damages arising from your use of our products or Site</li>
+            <li>Loss of revenue, data, profits, or business opportunities</li>
+            <li>Damage to property caused by misuse of our products (using outdoors, submerging in water, load-bearing use)</li>
+            <li>Errors or interruptions in Site availability</li>
+            <li>Third-party actions, including but not limited to payment processors or courier partners</li>
+          </ul>
+          <p>Our total liability to you in connection with any single transaction shall not exceed the amount paid by you for the product(s) in that transaction.</p>
+          <div class="info-box warning">
+            <div class="info-box-label">Consumer Rights</div>
+            <p>Nothing in this section limits your statutory rights under the Consumer Protection Act, 2019 (India), including your right to return defective goods and receive a refund.</p>
+          </div>
+        </div>
+
+        <!-- 12 -->
+        <div class="legal-section" id="s12">
+          <p class="section-num">Section 12</p>
+          <h2>Indemnification</h2>
+          <p>You agree to indemnify, defend, and hold harmless Precision Forge Labs, its founders, employees, and agents from and against any claims, damages, liabilities, and expenses (including reasonable legal fees) arising from:</p>
+          <ul class="legal-list">
+            <li>Your violation of these Terms</li>
+            <li>Your use or misuse of our products or Site</li>
+            <li>Your violation of any third party's rights, including intellectual property rights</li>
+            <li>Any content you submit, post, or transmit through the Site</li>
+          </ul>
+        </div>
+
+        <!-- 13 -->
+        <div class="legal-section" id="s13">
+          <p class="section-num">Section 13</p>
+          <h2>Governing Law & Dispute Resolution</h2>
+          <p>These Terms shall be governed by and construed in accordance with the laws of India, without regard to conflict of law principles.</p>
+
+          <h3>Dispute Resolution</h3>
+          <p>In the event of any dispute arising from these Terms or your use of our Site or products:</p>
+          <ul class="legal-list">
+            <li><strong>Step 1 — Informal Resolution:</strong> Contact us at <a href="mailto:support@akaraonline.co.in">support@akaraonline.co.in</a>. We will attempt to resolve disputes informally within 15 business days</li>
+            <li><strong>Step 2 — Jurisdiction:</strong> If informal resolution fails, any legal action shall be subject to the exclusive jurisdiction of the competent courts in <strong>Mumbai, Maharashtra, India</strong></li>
+          </ul>
+          <p>For consumer disputes, you also have the right to approach the relevant Consumer Disputes Redressal Forum under the Consumer Protection Act, 2019.</p>
+        </div>
+
+        <!-- 14 -->
+        <div class="legal-section" id="s14">
+          <p class="section-num">Section 14</p>
+          <h2>Changes to These Terms</h2>
+          <p>We reserve the right to modify these Terms at any time. When we make material changes, we will:</p>
+          <ul class="legal-list">
+            <li>Update the "Last Updated" date at the top of this page</li>
+            <li>Send a notification email to all registered customers</li>
+            <li>Provide a 14-day notice period before material changes take effect for existing customers</li>
+          </ul>
+          <p>Your continued use of the Site after the effective date of any changes constitutes your acceptance of the updated Terms. If you disagree with the changes, you must stop using the Site and may request account deletion.</p>
+        </div>
+
+        <!-- 15 -->
+        <div class="legal-section" id="s15">
+          <p class="section-num">Section 15</p>
+          <h2>Contact Us</h2>
+          <p>For any questions about these Terms, or to exercise any of your legal rights:</p>
+          <div class="contact-box">
+            <div>
+              <div class="contact-label">Legal Entity</div>
+              <div class="contact-value">Precision Forge Labs<br>Trading as Atelier Ākāra</div>
+            </div>
+            <div>
+              <div class="contact-label">GSTIN</div>
+              <div class="contact-value">27GZCPS9353H1ZQ</div>
+            </div>
+            <div>
+              <div class="contact-label">Email</div>
+              <div class="contact-value"><a href="mailto:support@akaraonline.co.in">support@akaraonline.co.in</a></div>
+            </div>
+            <div>
+              <div class="contact-label">Phone</div>
+              <div class="contact-value"><a href="tel:+918278085572">+91 82780 85572</a></div>
+            </div>
+            <div>
+              <div class="contact-label">Jurisdiction</div>
+              <div class="contact-value">Mumbai, Maharashtra, India</div>
+            </div>
+            <div>
+              <div class="contact-label">Response Time</div>
+              <div class="contact-value">Within 72 hours on business days</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Related policies -->
+        <div class="related-policies">
+          <a href="privacy.html" class="policy-link">
+            <div class="policy-link-label">Legal</div>
+            <div class="policy-link-name">Privacy Policy</div>
+            <div class="policy-link-arrow">→</div>
+          </a>
+          <a href="refund-policy.html" class="policy-link">
+            <div class="policy-link-label">Legal</div>
+            <div class="policy-link-name">Refund Policy</div>
+            <div class="policy-link-arrow">→</div>
+          </a>
+          <a href="shipping-policy.html" class="policy-link">
+            <div class="policy-link-label">Legal</div>
+            <div class="policy-link-name">Shipping Policy</div>
+            <div class="policy-link-arrow">→</div>
+          </a>
+        </div>
+
+        <div class="bottom-nav">
+          <a href="index.html" class="btn-back">← Back to Home</a>
+          <a href="contact.html" class="btn-secondary">Contact Us</a>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-grid">
+        <div class="footer-section">
+          <h3>ATELIER ĀKĀRA</h3>
+          <p>Artifacts for the Modern Spaces</p>
+        </div>
+        <div class="footer-section">
+          <h4>Shop</h4>
+          <a href="catalog.html">All Products</a>
+          <a href="catalog.html?category=planters">Planters</a>
+          <a href="catalog.html?category=vases">Vases</a>
+          <a href="catalog.html?category=lighting">Lighting</a>
+        </div>
+        <div class="footer-section">
+          <h4>Legal</h4>
+          <a href="privacy.html">Privacy Policy</a>
+          <a href="terms.html">Terms of Service</a>
+          <a href="refund-policy.html">Refund Policy</a>
+          <a href="shipping-policy.html">Shipping Policy</a>
+        </div>
+        <div class="footer-section">
+          <h4>Connect</h4>
+          <a href="https://instagram.com/atelier.akara" target="_blank">Instagram</a>
+          <a href="mailto:support@akaraonline.co.in">Email Us</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>Precision Forge Labs &nbsp;|&nbsp; GST: 27GZCPS9353H1ZQ</p>
+        <p>© <span id="year"></span> Atelier Ākāra. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    document.getElementById('menuToggle').addEventListener('click', () =>
+      document.getElementById('mobileNav').classList.toggle('open'));
+
+    const sections = document.querySelectorAll('.legal-section[id]');
+    const tocLinks  = document.querySelectorAll('.toc-link');
+
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(l => l.classList.remove('active'));
+          const active = document.querySelector(`.toc-link[href="#${entry.target.id}"]`);
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+
+    sections.forEach(s => observer.observe(s));
+  </script>
+
 </body>
 </html>
