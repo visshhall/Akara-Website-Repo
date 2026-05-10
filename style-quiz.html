@@ -1,114 +1,1009 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Style Quiz - Atelier Ākāra</title>
-    <link rel="stylesheet" href="/auth-styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Find Your Perfect Style — Atelier Ākāra Style Quiz">
+  <link rel="icon" type="image/png" href="assets/images/favicon.png">
+  <title>Style Quiz — Atelier Ākāra</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --teal:       #002b2b;
+      --teal-mid:   #004040;
+      --cream:      #fff8e7;
+      --gold:       #c9a96e;
+      --gold-light: #e2c99a;
+      --text-main:  #fff8e7;
+      --text-muted: rgba(255,248,231,0.55);
+      --border:     rgba(201,169,110,0.25);
+      --border-dim: rgba(201,169,110,0.12);
+      --card-bg:    rgba(255,248,231,0.03);
+      --error:      #e07070;
+      --success:    #70c9a0;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Josefin Sans', sans-serif;
+      background: var(--teal);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    /* ─── Background ──────────────────────────────── */
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 15% 5%,  rgba(0,95,95,0.3)  0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 85% 90%,  rgba(0,64,64,0.35) 0%, transparent 55%);
+      pointer-events: none; z-index: 0;
+    }
+    body::after {
+      content: ''; position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,169,110,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,169,110,0.035) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ─── Header ──────────────────────────────────── */
+    .site-header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(0,43,43,0.88); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-container {
+      display: flex; align-items: center; justify-content: space-between;
+      max-width: 1280px; margin: 0 auto; padding: 0 2rem; height: 64px;
+    }
+    .nav-left, .nav-right {
+      display: flex; align-items: center; gap: 2rem; min-width: 160px;
+    }
+    .nav-right { justify-content: flex-end; }
+    .nav-links { display: flex; gap: 2rem; }
+    .nav-links a {
+      font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text-muted); transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--gold); }
+    .brand-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; font-weight: 300;
+      letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--cream); white-space: nowrap;
+    }
+    .menu-toggle {
+      display: none; background: none; border: none;
+      color: var(--text-main); font-size: 1.2rem; cursor: pointer;
+    }
+    .mobile-nav {
+      display: none; position: fixed; top: 64px; left: 0; right: 0;
+      background: rgba(0,43,43,0.97); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border); padding: 1.5rem 2rem;
+      z-index: 99; flex-direction: column; gap: 1.2rem;
+    }
+    .mobile-nav.open { display: flex; }
+    .mobile-nav a {
+      font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text-muted); padding: 0.4rem 0;
+      border-bottom: 1px solid rgba(201,169,110,0.1);
+    }
+    .mobile-nav a:hover { color: var(--gold); }
+
+    /* ─── Page ────────────────────────────────────── */
+    .quiz-page {
+      position: relative; z-index: 1;
+      max-width: 860px; margin: 0 auto;
+      padding: 84px 2rem 6rem;
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+    }
+
+    /* ─── Page Header ─────────────────────────────── */
+    .page-header {
+      text-align: center; padding: 3rem 0 2.5rem; width: 100%;
+    }
+    .page-eyebrow {
+      font-size: 0.6rem; letter-spacing: 0.4em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.8; margin-bottom: 0.75rem;
+    }
+    .page-header h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 300; letter-spacing: 0.1em;
+      color: var(--cream); margin-bottom: 0.75rem; line-height: 1.05;
+    }
+    .header-divider {
+      width: 40px; height: 1px; background: var(--gold);
+      opacity: 0.4; margin: 0 auto 1rem;
+    }
+    .page-header p {
+      font-size: 0.78rem; letter-spacing: 0.07em;
+      color: var(--text-muted); line-height: 1.8;
+    }
+
+    /* ─── Progress bar ────────────────────────────── */
+    .progress-wrap {
+      width: 100%; margin-bottom: 2.5rem;
+    }
+    .progress-header {
+      display: flex; justify-content: space-between; align-items: baseline;
+      margin-bottom: 0.65rem;
+    }
+    .progress-label {
+      font-size: 0.58rem; letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.7;
+    }
+    .progress-fraction {
+      font-size: 0.62rem; letter-spacing: 0.12em;
+      color: var(--text-muted); opacity: 0.55;
+    }
+    .progress-track {
+      height: 2px; background: rgba(255,248,231,0.08);
+    }
+    .progress-fill {
+      height: 100%; background: var(--gold);
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ─── Question Card ───────────────────────────── */
+    .quiz-wrapper {
+      width: 100%;
+    }
+
+    .question-card {
+      display: none;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 2.5rem;
+      animation: questionIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    .question-card.active { display: block; }
+
+    @keyframes questionIn {
+      from { opacity: 0; transform: translateY(20px) scale(0.98); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes questionOut {
+      from { opacity: 1; transform: translateX(0); }
+      to   { opacity: 0; transform: translateX(-40px); }
+    }
+    .question-card.leaving {
+      animation: questionOut 0.3s ease forwards;
+    }
+
+    .question-step {
+      font-size: 0.55rem; letter-spacing: 0.35em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.6; margin-bottom: 0.5rem;
+    }
+    .question-card h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      font-weight: 300; letter-spacing: 0.1em;
+      color: var(--cream); margin-bottom: 0.4rem; line-height: 1.2;
+    }
+    .question-hint {
+      font-size: 0.65rem; letter-spacing: 0.08em;
+      color: var(--text-muted); margin-bottom: 2rem; line-height: 1.6;
+    }
+
+    /* ─── Options grid ────────────────────────────── */
+    .quiz-options {
+      display: grid;
+      gap: 0.75rem;
+    }
+    .quiz-options.cols-2 { grid-template-columns: 1fr 1fr; }
+    .quiz-options.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .quiz-options.cols-1 { grid-template-columns: 1fr; }
+
+    .quiz-option {
+      background: rgba(255,248,231,0.03);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.72rem; letter-spacing: 0.1em;
+      padding: 1.1rem 1.25rem;
+      text-align: left; cursor: pointer;
+      transition: all 0.2s; position: relative;
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .quiz-option:hover {
+      border-color: rgba(201,169,110,0.5);
+      color: var(--cream);
+      background: rgba(201,169,110,0.05);
+    }
+    .quiz-option.selected {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: rgba(201,169,110,0.08);
+    }
+    .quiz-option.selected::after {
+      content: '✓';
+      position: absolute; right: 1.1rem; top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.75rem; color: var(--gold);
+    }
+
+    /* Option icon */
+    .option-icon {
+      font-size: 1.1rem; opacity: 0.55; flex-shrink: 0;
+    }
+    .option-text {}
+    .option-title { display: block; }
+    .option-sub   {
+      display: block; font-size: 0.58rem; letter-spacing: 0.08em;
+      color: var(--text-muted); margin-top: 0.15rem; opacity: 0.7;
+    }
+    .quiz-option.selected .option-sub { color: var(--gold); opacity: 0.6; }
+
+    /* ─── Navigation ──────────────────────────────── */
+    .question-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 2rem; padding-top: 1.5rem;
+      border-top: 1px solid var(--border-dim);
+    }
+    .btn-back {
+      background: none; border: none;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.6rem; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--text-muted); cursor: pointer; transition: color 0.2s;
+      display: flex; align-items: center; gap: 0.4rem;
+      visibility: hidden;
+    }
+    .btn-back.visible { visibility: visible; }
+    .btn-back:hover { color: var(--gold); }
+    .btn-next {
+      padding: 0.72rem 2.5rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.63rem; letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--teal); background: var(--gold);
+      border: 1px solid var(--gold); cursor: pointer;
+      transition: all 0.25s; opacity: 0.4; pointer-events: none;
+    }
+    .btn-next.enabled { opacity: 1; pointer-events: auto; }
+    .btn-next:hover { background: transparent; color: var(--gold); }
+
+    /* ─── Results ─────────────────────────────────── */
+    .quiz-results {
+      display: none;
+      width: 100%;
+      animation: questionIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    .quiz-results.visible { display: block; }
+
+    .results-header {
+      text-align: center; margin-bottom: 2.5rem;
+    }
+    .results-eyebrow {
+      font-size: 0.6rem; letter-spacing: 0.4em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.8; margin-bottom: 0.75rem;
+    }
+    .results-header h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      font-weight: 300; letter-spacing: 0.1em;
+      color: var(--cream); margin-bottom: 0.5rem;
+    }
+    .results-header p {
+      font-size: 0.75rem; letter-spacing: 0.07em;
+      color: var(--text-muted); line-height: 1.8;
+    }
+    .style-badge {
+      display: inline-block;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem; font-weight: 400; letter-spacing: 0.2em;
+      color: var(--gold); border: 1px solid var(--border);
+      padding: 0.35rem 1.1rem; margin-top: 0.75rem;
+      text-transform: uppercase;
+    }
+
+    /* Recommendation cards */
+    .rec-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem; margin-bottom: 2rem;
+    }
+    .rec-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      transition: transform 0.3s, border-color 0.3s;
+      animation: questionIn 0.5s ease both;
+      cursor: pointer;
+    }
+    .rec-card:nth-child(1) { animation-delay: 0.1s; }
+    .rec-card:nth-child(2) { animation-delay: 0.2s; }
+    .rec-card:nth-child(3) { animation-delay: 0.3s; }
+    .rec-card:hover { transform: translateY(-4px); border-color: rgba(201,169,110,0.5); }
+
+    .rec-img {
+      aspect-ratio: 1; background: rgba(0,64,64,0.35);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    .rec-img img { width: 100%; height: 100%; object-fit: cover; }
+    .rec-img-placeholder { opacity: 0.1; }
+
+    .rec-body { padding: 1.1rem; }
+    .rec-label {
+      font-size: 0.55rem; letter-spacing: 0.32em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.7; margin-bottom: 0.3rem;
+    }
+    .rec-why {
+      font-size: 0.55rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--success); opacity: 0.75; margin-bottom: 0.3rem;
+      display: flex; align-items: center; gap: 0.3rem;
+    }
+    .rec-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.05rem; font-weight: 400; color: var(--cream);
+      margin-bottom: 0.3rem;
+    }
+    .rec-price { font-size: 0.72rem; color: var(--gold-light); }
+    .rec-match {
+      font-size: 0.58rem; letter-spacing: 0.1em;
+      color: var(--text-muted); margin-top: 0.4rem; opacity: 0.65;
+    }
+
+    /* Summary box */
+    .answers-summary {
+      background: rgba(201,169,110,0.05);
+      border: 1px solid var(--border-dim);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 2rem;
+      display: flex; gap: 1.5rem; flex-wrap: wrap;
+    }
+    .summary-item {}
+    .summary-key {
+      font-size: 0.52rem; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.65; margin-bottom: 0.2rem;
+    }
+    .summary-val {
+      font-size: 0.68rem; letter-spacing: 0.07em; color: var(--cream);
+    }
+
+    /* Result CTAs */
+    .results-actions {
+      display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;
+      margin-top: 2rem;
+    }
+    .btn-shop {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.88rem 2.8rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--teal); background: var(--gold);
+      border: 1px solid var(--gold); cursor: pointer; transition: all 0.25s;
+    }
+    .btn-shop:hover { background: transparent; color: var(--gold); }
+    .btn-retake {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.88rem 2rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.62rem; letter-spacing: 0.25em; text-transform: uppercase;
+      color: var(--text-muted); border: 1px solid var(--border);
+      background: none; cursor: pointer; transition: all 0.25s;
+    }
+    .btn-retake:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ─── Toast ───────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 2rem; right: 2rem; z-index: 999;
+      background: var(--gold); color: var(--teal);
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase;
+      padding: 0.75rem 1.5rem; opacity: 0; transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .toast.visible { opacity: 1; }
+
+    /* ─── Footer ──────────────────────────────────── */
+    .site-footer {
+      background: rgba(0,20,20,0.6); border-top: 1px solid var(--border);
+      padding: 2rem; position: relative; z-index: 1; text-align: center;
+    }
+    .site-footer p {
+      font-size: 0.62rem; letter-spacing: 0.12em;
+      color: var(--text-muted); opacity: 0.6;
+    }
+
+    /* ─── Animations ──────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── Responsive ──────────────────────────────── */
+    @media (max-width: 768px) {
+      .menu-toggle { display: block; }
+      .nav-left, .nav-right { min-width: auto; }
+      .quiz-options.cols-2 { grid-template-columns: 1fr; }
+      .quiz-options.cols-3 { grid-template-columns: 1fr; }
+      .rec-grid { grid-template-columns: 1fr; }
+      .question-card { padding: 1.75rem; }
+    }
+    @media (max-width: 480px) {
+      .quiz-page { padding: 84px 1rem 4rem; }
+      .answers-summary { flex-direction: column; gap: 0.75rem; }
+    }
+  </style>
 </head>
+
 <body>
-    <header class="site-header">
-        <nav class="nav-container">
-            <div class="nav-center">
-                <a href="/" class="brand-logo">ATELIER ĀKĀRA</a>
-            </div>
-        </nav>
-    </header>
-    
-    <main class="quiz-page">
-        <h1>Find Your Perfect Style</h1>
-        <p class="subtitle">Answer 5 quick questions to get personalized recommendations</p>
-        
-        <div class="quiz-container" id="quizContainer">
-            <div class="quiz-question active" data-question="1">
-                <h2>What's your interior style?</h2>
-                <div class="quiz-options">
-                    <button class="quiz-option" data-value="modern">Modern Minimalist</button>
-                    <button class="quiz-option" data-value="traditional">Traditional</button>
-                    <button class="quiz-option" data-value="eclectic">Eclectic</button>
-                    <button class="quiz-option" data-value="industrial">Industrial</button>
-                </div>
-            </div>
-            
-            <div class="quiz-question" data-question="2">
-                <h2>Preferred color palette?</h2>
-                <div class="quiz-options">
-                    <button class="quiz-option" data-value="neutral">Neutrals (Beige, Cream, White)</button>
-                    <button class="quiz-option" data-value="dark">Dark (Black, Charcoal)</button>
-                    <button class="quiz-option" data-value="colorful">Colorful</button>
-                    <button class="quiz-option" data-value="mixed">Mix & Match</button>
-                </div>
-            </div>
-            
-            <div class="quiz-question" data-question="3">
-                <h2>Room size?</h2>
-                <div class="quiz-options">
-                    <button class="quiz-option" data-value="small">Small (< 150 sq ft)</button>
-                    <button class="quiz-option" data-value="medium">Medium (150-250 sq ft)</button>
-                    <button class="quiz-option" data-value="large">Large (> 250 sq ft)</button>
-                </div>
-            </div>
-            
-            <div class="quiz-question" data-question="4">
-                <h2>Budget range?</h2>
-                <div class="quiz-options">
-                    <button class="quiz-option" data-value="budget">Under ₹2,000</button>
-                    <button class="quiz-option" data-value="mid">₹2,000 - ₹5,000</button>
-                    <button class="quiz-option" data-value="premium">Above ₹5,000</button>
-                </div>
-            </div>
-            
-            <div class="quiz-question" data-question="5">
-                <h2>What do you need most?</h2>
-                <div class="quiz-options">
-                    <button class="quiz-option" data-value="planters">Planters</button>
-                    <button class="quiz-option" data-value="vases">Vases</button>
-                    <button class="quiz-option" data-value="lighting">Lighting</button>
-                    <button class="quiz-option" data-value="all">Everything!</button>
-                </div>
-            </div>
-            
-            <div class="quiz-results" style="display:none;">
-                <h2>Your Perfect Match!</h2>
-                <div id="recommendations"></div>
-                <button class="btn-primary" onclick="location.href='/catalog.html'">Shop Your Style</button>
-            </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <nav class="nav-container">
+      <div class="nav-left">
+        <button class="menu-toggle" id="menuToggle">☰</button>
+        <div class="nav-links desktop-only">
+          <a href="catalog.html">Catalog</a>
+          <a href="about.html">About</a>
         </div>
-    </main>
-    
-    <script>
-        let currentQuestion = 1;
-        let answers = {};
-        
-        document.querySelectorAll('.quiz-option').forEach(btn => {
-            btn.addEventListener('click', function() {
-                answers[`q${currentQuestion}`] = this.dataset.value;
-                
-                document.querySelector(`[data-question="${currentQuestion}"]`).classList.remove('active');
-                currentQuestion++;
-                
-                if (currentQuestion <= 5) {
-                    document.querySelector(`[data-question="${currentQuestion}"]`).classList.add('active');
-                } else {
-                    showResults();
-                }
-            });
-        });
-        
-        function showResults() {
-            document.querySelectorAll('.quiz-question').forEach(q => q.style.display = 'none');
-            document.querySelector('.quiz-results').style.display = 'block';
-            
-            // Show personalized recommendations based on answers
-            document.getElementById('recommendations').innerHTML = `
-                <p>Based on your style, we recommend:</p>
-                <ul>
-                    <li>Vetra Planter (Beige)</li>
-                    <li>Tattva Vase (Black)</li>
-                    <li>Sway Planter (Cream)</li>
-                </ul>
-            `;
-        }
-    </script>
+      </div>
+      <a href="index.html" class="brand-logo">ATELIER ĀKĀRA</a>
+      <div class="nav-right">
+        <a href="user/cart.html" style="font-size:0.75rem;color:var(--text-muted);">🛒 <span id="cartCount">0</span></a>
+        <a href="user/profile.html" style="font-size:0.75rem;color:var(--text-muted);">👤</a>
+      </div>
+    </nav>
+  </header>
+
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="catalog.html">Catalog</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="user/cart.html">Cart</a>
+    <a href="user/profile.html">My Account</a>
+  </nav>
+
+  <!-- Page -->
+  <main class="quiz-page">
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <p class="page-eyebrow">Personalised for You</p>
+      <h1>Find Your Perfect Style</h1>
+      <div class="header-divider"></div>
+      <p>Answer 5 questions and we'll recommend pieces that suit your space, style, and budget.</p>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-header">
+        <span class="progress-label" id="progressLabel">Question 1 of 5</span>
+        <span class="progress-fraction" id="progressFraction">0% complete</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <!-- Quiz -->
+    <div class="quiz-wrapper">
+
+      <!-- Q1 — Interior Style -->
+      <div class="question-card active" id="q1">
+        <p class="question-step">Question 1 of 5</p>
+        <h2>What best describes your interior style?</h2>
+        <p class="question-hint">Choose the aesthetic that feels most like your home.</p>
+        <div class="quiz-options cols-2" id="opts-q1">
+          <button class="quiz-option" data-q="q1" data-val="minimalist">
+            <span class="option-icon">◈</span>
+            <span class="option-text">
+              <span class="option-title">Modern Minimalist</span>
+              <span class="option-sub">Clean lines, negative space, intentional objects</span>
+            </span>
+          </button>
+          <button class="quiz-option" data-q="q1" data-val="warm">
+            <span class="option-icon">⬡</span>
+            <span class="option-text">
+              <span class="option-title">Warm & Earthy</span>
+              <span class="option-sub">Natural textures, terracotta, woven accents</span>
+            </span>
+          </button>
+          <button class="quiz-option" data-q="q1" data-val="contemporary">
+            <span class="option-icon">↗</span>
+            <span class="option-text">
+              <span class="option-title">Contemporary Eclectic</span>
+              <span class="option-sub">Mix of styles, curated objects, bold choices</span>
+            </span>
+          </button>
+          <button class="quiz-option" data-q="q1" data-val="industrial">
+            <span class="option-icon">⊙</span>
+            <span class="option-text">
+              <span class="option-title">Industrial / Urban</span>
+              <span class="option-sub">Dark tones, raw materials, geometric shapes</span>
+            </span>
+          </button>
+        </div>
+        <div class="question-nav">
+          <button class="btn-back" id="back-q1">← Back</button>
+          <button class="btn-next" id="next-q1" onclick="goNext('q1', 'q2')">Next →</button>
+        </div>
+      </div>
+
+      <!-- Q2 — Colour Palette -->
+      <div class="question-card" id="q2">
+        <p class="question-step">Question 2 of 5</p>
+        <h2>What colours are in your space right now?</h2>
+        <p class="question-hint">Think about your walls, furniture, and soft furnishings.</p>
+        <div class="quiz-options cols-2" id="opts-q2">
+          <button class="quiz-option" data-q="q2" data-val="neutral">
+            <span class="option-icon" style="color:#d4c5a9;">●</span>
+            <span class="option-text">
+              <span class="option-title">Neutrals</span>
+              <span class="option-sub">Beige, cream, white, oatmeal</span>
+            </span>
+          </button>
+          <button class="quiz-option" data-q="q2" data-val="dark">
+            <span class="option-icon" style="color:#555;">●</span>
+            <span class="option-text">
+              <span class="option-title">Dark & Moody</span>
+              <span class="option-sub">Charcoal, black, deep forest, slate</span>
+            </span>
+          </button>
+          <button class="quiz-option" data-q="q2" data-val="teal">
+            <span class="option-icon" style="color:#4a9b9b;">●</span>
+            <span class="option-text">
+              <span class="option-title">Greens & Teals</span>
+              <span class="option-sub">Sage, olive, teal, deep green</span>
+            </span>
+          </button>
+          <button class="quiz-option" data-q="q2" data-val="mixed">
+            <span class="option-icon">◑</span>
+            <span class="option-text">
+              <span class="option-title">Mix & Match</span>
+              <span class="option-sub">Multiple tones, layered colour story</span>
+            </span>
+          </button>
+        </div>
+        <div class="question-nav">
+          <button class="btn-back visible" onclick="goBack('q2', 'q1')">← Back</button>
+          <button class="btn-next" id="next-q2" onclick="goNext('q2', 'q3')">Next →</button>
+        </div>
+      </div>
+
+      <!-- Q3 — Room Size -->
+      <div class="question-card" id="q3">
+        <p class="question-step">Question 3 of 5</p>
+        <h2>How would you describe the room you're decorating?</h2>
+        <p class="question-hint">This helps us suggest pieces in the right scale.</p>
+        <div class="quiz-options cols-1" id="opts-q3">
+          <button class="quiz-option" data-q="q3" data-val="small">
+            <span class="option-icon">▱</span>
+            <span class="option-text">
+              <span class="option-title">Compact &amp; Cosy</span>
+              <span class="option-sub">Small apartment, studio, or desk corner — under 150 sq ft</span>
+            </span>
+          </button>
+          <button class="quiz-option" data-q="q3" data-val="medium">
+            <span class="option-icon">▭</span>
+            <span class="option-text">
+              <span class="option-title">Comfortable Living Space</span>
+              <span class="option-sub">Standard bedroom or living room — 150–250 sq ft</span>
+            </span>
+          </button>
+          <button class="quiz-option" data-q="q3" data-val="large">
+            <span class="option-icon">▬</span>
+            <span class="option-text">
+              <span class="option-title">Open &amp; Expansive</span>
+              <span class="option-sub">Large living room, loft, or open-plan — above 250 sq ft</span>
+            </span>
+          </button>
+        </div>
+        <div class="question-nav">
+          <button class="btn-back visible" onclick="goBack('q3', 'q2')">← Back</button>
+          <button class="btn-next" id="next-q3" onclick="goNext('q3', 'q4')">Next →</button>
+        </div>
+      </div>
+
+      <!-- Q4 — Budget -->
+      <div class="question-card" id="q4">
+        <p class="question-step">Question 4 of 5</p>
+        <h2>What's your budget for this purchase?</h2>
+        <p class="question-hint">All prices are GST-inclusive.</p>
+        <div class="quiz-options cols-3" id="opts-q4">
+          <button class="quiz-option" data-q="q4" data-val="entry">
+            <span class="option-text">
+              <span class="option-title">Under ₹1,500</span>
+              <span class="option-sub">Starter pieces, single accents</span>
+            </span>
+          </button>
+          <button class="quiz-option" data-q="q4" data-val="mid">
+            <span class="option-text">
+              <span class="option-title">₹1,500 – ₹3,500</span>
+              <span class="option-sub">Statement planters or vases</span>
+            </span>
+          </button>
+          <button class="quiz-option" data-q="q4" data-val="premium">
+            <span class="option-text">
+              <span class="option-title">₹3,500+</span>
+              <span class="option-sub">Lighting, bundles, sets</span>
+            </span>
+          </button>
+        </div>
+        <div class="question-nav">
+          <button class="btn-back visible" onclick="goBack('q4', 'q3')">← Back</button>
+          <button class="btn-next" id="next-q4" onclick="goNext('q4', 'q5')">Next →</button>
+        </div>
+      </div>
+
+      <!-- Q5 — Category -->
+      <div class="question-card" id="q5">
+        <p class="question-step">Question 5 of 5</p>
+        <h2>What are you looking for?</h2>
+        <p class="question-hint">Choose what you'd most like to add to your space.</p>
+        <div class="quiz-options cols-2" id="opts-q5">
+          <button class="quiz-option" data-q="q5" data-val="planters">
+            <span class="option-icon">🪴</span>
+            <span class="option-text">
+              <span class="option-title">Planters</span>
+              <span class="option-sub">Geometric vessels for your plants</span>
+            </span>
+          </button>
+          <button class="quiz-option" data-q="q5" data-val="vases">
+            <span class="option-icon">◎</span>
+            <span class="option-text">
+              <span class="option-title">Vases</span>
+              <span class="option-sub">Sculptural vases for stems &amp; dried botanicals</span>
+            </span>
+          </button>
+          <button class="quiz-option" data-q="q5" data-val="lighting">
+            <span class="option-icon">◉</span>
+            <span class="option-text">
+              <span class="option-title">Lighting</span>
+              <span class="option-sub">Statement pendant lamps</span>
+            </span>
+          </button>
+          <button class="quiz-option" data-q="q5" data-val="all">
+            <span class="option-icon">✦</span>
+            <span class="option-text">
+              <span class="option-title">Surprise Me</span>
+              <span class="option-sub">Show me the best across all categories</span>
+            </span>
+          </button>
+        </div>
+        <div class="question-nav">
+          <button class="btn-back visible" onclick="goBack('q5', 'q4')">← Back</button>
+          <button class="btn-next" id="next-q5" onclick="showResults()">See My Recommendations →</button>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div class="quiz-results" id="quizResults">
+        <div class="results-header">
+          <p class="results-eyebrow">Curated for You</p>
+          <h2 id="resultsHeadline">Your Perfect Pieces</h2>
+          <p id="resultsDesc">Based on your answers, here are the pieces we think will feel right at home in your space.</p>
+          <div class="style-badge" id="styleBadge">—</div>
+        </div>
+
+        <!-- Answer summary -->
+        <div class="answers-summary" id="answersSummary"></div>
+
+        <!-- Recommendation cards -->
+        <div class="rec-grid" id="recGrid"></div>
+
+        <!-- CTAs -->
+        <div class="results-actions">
+          <a id="shopBtn" href="catalog.html" class="btn-shop">Shop My Style</a>
+          <button class="btn-retake" onclick="retakeQuiz()">↺ Retake Quiz</button>
+        </div>
+      </div>
+
+    </div><!-- /quiz-wrapper -->
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <p>© <span id="year"></span> Atelier Ākāra &nbsp;|&nbsp; Precision Forge Labs &nbsp;|&nbsp; GST: 27GZCPS9353H1ZQ</p>
+  </footer>
+
+  <script>
+    // ─────────────────────────────────────────────────
+    // CREDENTIALS
+    // ─────────────────────────────────────────────────
+    const SUPABASE_URL      = '';
+    const SUPABASE_ANON_KEY = '';
+
+    let supabase = null;
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // ── Mobile menu ─────────────────────────────────
+    document.getElementById('menuToggle').addEventListener('click', () =>
+      document.getElementById('mobileNav').classList.toggle('open'));
+
+    // ── Cart count ───────────────────────────────────
+    const cart = JSON.parse(localStorage.getItem('akara_cart') || '[]');
+    document.getElementById('cartCount').textContent = cart.reduce((s, i) => s + (i.qty || 1), 0);
+
+    // ─────────────────────────────────────────────────
+    // QUIZ STATE
+    // ─────────────────────────────────────────────────
+    const TOTAL = 5;
+    const answers = {};
+    const QUESTIONS = ['q1','q2','q3','q4','q5'];
+
+    function updateProgress(questionNum) {
+      const pct = Math.round(((questionNum - 1) / TOTAL) * 100);
+      document.getElementById('progressFill').style.width    = pct + '%';
+      document.getElementById('progressLabel').textContent   = `Question ${questionNum} of ${TOTAL}`;
+      document.getElementById('progressFraction').textContent= `${pct}% complete`;
+    }
+
+    // Attach option selection listeners
+    document.querySelectorAll('.quiz-option').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const q   = this.dataset.q;
+        const val = this.dataset.val;
+
+        // Deselect others in same question
+        document.querySelectorAll(`[data-q="${q}"]`).forEach(b => b.classList.remove('selected'));
+        this.classList.add('selected');
+
+        answers[q] = val;
+
+        // Enable next button
+        const nextBtn = document.getElementById(`next-${q}`);
+        if (nextBtn) nextBtn.classList.add('enabled');
+      });
+    });
+
+    // ─────────────────────────────────────────────────
+    // NAVIGATION
+    // ─────────────────────────────────────────────────
+    function goNext(currentId, nextId) {
+      if (!answers[currentId]) return;
+
+      const current = document.getElementById(currentId);
+      const next    = document.getElementById(nextId);
+      if (!current || !next) return;
+
+      // Animate out
+      current.classList.add('leaving');
+      setTimeout(() => {
+        current.classList.remove('active', 'leaving');
+        current.style.display = 'none';
+        next.style.display    = 'block';
+        next.classList.add('active');
+
+        const idx = QUESTIONS.indexOf(nextId);
+        updateProgress(idx + 1);
+
+        // Scroll to top of quiz
+        window.scrollTo({ top: 100, behavior: 'smooth' });
+      }, 300);
+    }
+
+    function goBack(currentId, prevId) {
+      const current = document.getElementById(currentId);
+      const prev    = document.getElementById(prevId);
+      if (!current || !prev) return;
+
+      current.classList.remove('active');
+      current.style.display = 'none';
+      prev.style.display    = 'block';
+      prev.classList.add('active');
+
+      const idx = QUESTIONS.indexOf(prevId);
+      updateProgress(idx + 1);
+      window.scrollTo({ top: 100, behavior: 'smooth' });
+    }
+
+    // ─────────────────────────────────────────────────
+    // RECOMMENDATION ENGINE
+    // Maps quiz answers to product recommendations.
+    // Replace CATALOG with your actual Supabase products
+    // or keep as static — the logic is already smart.
+    // ─────────────────────────────────────────────────
+
+    const CATALOG = [
+      { id:'vetra',    name:'Vetra Planter',    category:'Planters', price:849,  style:['minimalist','warm','industrial'], colour:['neutral','teal'],   size:['small','medium'], budget:['entry','mid'],     why:'Clean faceted geometry — scales beautifully in compact spaces.' },
+      { id:'vayu',     name:'Vāyu Planter',     category:'Planters', price:949,  style:['minimalist','contemporary'],     colour:['dark','teal'],       size:['medium','large'], budget:['entry','mid'],     why:'Airy profile with structural rigidity — ideal for medium rooms.' },
+      { id:'reva',     name:'Reva Planter',     category:'Planters', price:1049, style:['warm','contemporary'],           colour:['neutral','mixed'],    size:['medium','large'], budget:['mid'],             why:'Organic form with a warm finish — pairs with earthy palettes.' },
+      { id:'sway',     name:'Sway Planter',     category:'Planters', price:849,  style:['minimalist','industrial'],       colour:['dark','neutral'],     size:['small','medium'], budget:['entry','mid'],     why:'Slight asymmetry creates visual tension — great for industrial spaces.' },
+      { id:'tattva',   name:'Tattva Vase',      category:'Vases',    price:1249, style:['minimalist','warm','contemporary'],colour:['neutral','mixed'],  size:['small','medium','large'],budget:['mid'],      why:'A study in geometric tension — works in any palette.' },
+      { id:'aurelia',  name:'Aurelia Pendant',  category:'Lighting', price:3499, style:['contemporary','industrial','minimalist'],colour:['dark','mixed'],size:['medium','large'],budget:['premium'],        why:'The centrepiece your space has been waiting for.' },
+    ];
+
+    const STYLE_LABELS = {
+      minimalist:   'Modern Minimalist',
+      warm:         'Warm & Earthy',
+      contemporary: 'Contemporary',
+      industrial:   'Urban Industrial',
+    };
+
+    const COLOUR_SUGGESTIONS = {
+      neutral: 'Natural Teal or Warm Sand finish',
+      dark:    'Charcoal or Matte Black finish',
+      teal:    'Natural Teal or Forest Green finish',
+      mixed:   'Any finish — your space can handle it',
+    };
+
+    function getRecommendations() {
+      const style  = answers.q1 || 'minimalist';
+      const colour = answers.q2 || 'neutral';
+      const size   = answers.q3 || 'medium';
+      const budget = answers.q4 || 'mid';
+      const cat    = answers.q5 || 'all';
+
+      // Score each product
+      const scored = CATALOG.map(p => {
+        let score = 0;
+        if (p.style.includes(style))   score += 3;
+        if (p.colour.includes(colour)) score += 2;
+        if (p.size.includes(size))     score += 2;
+        if (p.budget.includes(budget)) score += 3;
+
+        const catMatch = cat === 'all' ||
+          (cat === 'planters' && p.category === 'Planters') ||
+          (cat === 'vases'    && p.category === 'Vases') ||
+          (cat === 'lighting' && p.category === 'Lighting');
+        if (catMatch) score += 4;
+
+        return { ...p, score };
+      });
+
+      // Sort by score, take top 3
+      return scored.sort((a, b) => b.score - a.score).slice(0, 3);
+    }
+
+    function getStylePersona() {
+      const style  = answers.q1 || 'minimalist';
+      const colour = answers.q2 || 'neutral';
+      if (style === 'minimalist' && (colour === 'neutral' || colour === 'teal'))   return 'The Refined Minimalist';
+      if (style === 'warm')                                                          return 'The Earthy Curator';
+      if (style === 'industrial' || colour === 'dark')                               return 'The Urban Tastemaker';
+      if (style === 'contemporary')                                                  return 'The Eclectic Collector';
+      return 'The Modern Decorator';
+    }
+
+    function getCatalogFilter() {
+      const cat = answers.q5;
+      if (cat === 'planters') return 'catalog.html?category=planters';
+      if (cat === 'vases')    return 'catalog.html?category=vases';
+      if (cat === 'lighting') return 'catalog.html?category=lighting';
+      return 'catalog.html';
+    }
+
+    // ─────────────────────────────────────────────────
+    // SHOW RESULTS
+    // ─────────────────────────────────────────────────
+    async function showResults() {
+      if (!answers.q5) return;
+
+      // Hide all questions
+      QUESTIONS.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.classList.remove('active'); el.style.display = 'none'; }
+      });
+
+      // Hide progress bar
+      document.getElementById('progressWrap').style.opacity = '0.4';
+
+      // Fill results
+      const recs   = getRecommendations();
+      const persona = getStylePersona();
+
+      document.getElementById('resultsHeadline').textContent = persona;
+      document.getElementById('styleBadge').textContent      = STYLE_LABELS[answers.q1] || 'Your Style';
+      document.getElementById('resultsDesc').textContent     = `Based on your answers, here are three pieces we think will feel right at home in your space. We suggest the ${COLOUR_SUGGESTIONS[answers.q2] || 'finish'}.`;
+      document.getElementById('shopBtn').href = getCatalogFilter();
+
+      // Answers summary
+      const summaryMap = {
+        q1: { label:'Style',    val: STYLE_LABELS[answers.q1] || answers.q1 },
+        q2: { label:'Palette',  val: { neutral:'Neutrals', dark:'Dark & Moody', teal:'Greens & Teals', mixed:'Mix & Match' }[answers.q2] || answers.q2 },
+        q3: { label:'Room',     val: { small:'Compact', medium:'Medium', large:'Open & Large' }[answers.q3] || answers.q3 },
+        q4: { label:'Budget',   val: { entry:'Under ₹1,500', mid:'₹1,500–₹3,500', premium:'₹3,500+' }[answers.q4] || answers.q4 },
+        q5: { label:'Category', val: { planters:'Planters', vases:'Vases', lighting:'Lighting', all:'Everything' }[answers.q5] || answers.q5 },
+      };
+      document.getElementById('answersSummary').innerHTML =
+        Object.values(summaryMap).map(s => `
+          <div class="summary-item">
+            <div class="summary-key">${s.label}</div>
+            <div class="summary-val">${s.val}</div>
+          </div>`).join('');
+
+      // Recommendation cards
+      document.getElementById('recGrid').innerHTML = recs.map(p => `
+        <div class="rec-card" onclick="window.location='product.html?id=${p.id}'">
+          <div class="rec-img">
+            <svg class="rec-img-placeholder" width="80" height="80" viewBox="0 0 80 80" fill="none">
+              <polygon points="40,4 76,22 76,58 40,76 4,58 4,22" stroke="#c9a96e" stroke-width="1"/>
+              <polygon points="40,20 60,30 60,50 40,60 20,50 20,30" stroke="#c9a96e" stroke-width="0.7" opacity="0.5"/>
+              <circle cx="40" cy="40" r="5" fill="#c9a96e" opacity="0.3"/>
+            </svg>
+          </div>
+          <div class="rec-body">
+            <p class="rec-label">${p.category}</p>
+            <p class="rec-why">✓ Recommended for you</p>
+            <p class="rec-name">${p.name}</p>
+            <p class="rec-price">₹${Number(p.price).toLocaleString('en-IN')}</p>
+            <p class="rec-match">${p.why}</p>
+          </div>
+        </div>`).join('');
+
+      // Show results
+      const resultsEl = document.getElementById('quizResults');
+      resultsEl.classList.add('visible');
+      window.scrollTo({ top: 100, behavior: 'smooth' });
+
+      // Save to Supabase (non-blocking)
+      if (supabase) {
+        supabase.from('quiz_results').insert([{
+          style:    answers.q1,
+          colour:   answers.q2,
+          size:     answers.q3,
+          budget:   answers.q4,
+          category: answers.q5,
+          persona,
+          recommendations: recs.map(r => r.id),
+          created_at: new Date().toISOString(),
+        }]).catch(() => {});
+      }
+    }
+
+    // ─────────────────────────────────────────────────
+    // RETAKE
+    // ─────────────────────────────────────────────────
+    function retakeQuiz() {
+      // Reset state
+      Object.keys(answers).forEach(k => delete answers[k]);
+
+      // Clear selections
+      document.querySelectorAll('.quiz-option').forEach(b => b.classList.remove('selected'));
+      document.querySelectorAll('.btn-next').forEach(b => b.classList.remove('enabled'));
+
+      // Hide results
+      document.getElementById('quizResults').classList.remove('visible');
+
+      // Show first question
+      QUESTIONS.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.classList.remove('active'); el.style.display = 'none'; }
+      });
+      const first = document.getElementById('q1');
+      first.style.display = 'block';
+      first.classList.add('active');
+
+      // Reset progress
+      document.getElementById('progressWrap').style.opacity = '1';
+      updateProgress(1);
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ─────────────────────────────────────────────────
+    // TOAST
+    // ─────────────────────────────────────────────────
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('visible');
+      setTimeout(() => t.classList.remove('visible'), 2500);
+    }
+
+    // ─────────────────────────────────────────────────
+    // INIT
+    // ─────────────────────────────────────────────────
+    updateProgress(1);
+  </script>
+
 </body>
 </html>
