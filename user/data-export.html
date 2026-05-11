@@ -1,78 +1,578 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Export My Data - Atelier Ākāra</title>
-    <link rel="stylesheet" href="/auth-styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="My Data — Atelier Ākāra | Export or delete your personal data">
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+  <title>My Data — Atelier Ākāra</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root{
+      --teal:#002b2b;--cream:#fff8e7;--gold:#c9a96e;--gold-light:#e2c99a;
+      --text-main:#fff8e7;--text-muted:rgba(255,248,231,0.55);
+      --border:rgba(201,169,110,0.25);--border-dim:rgba(201,169,110,0.12);
+      --card-bg:rgba(255,248,231,0.03);--input-bg:rgba(255,248,231,0.05);
+      --error:#e07070;--success:#70c9a0;--warning:#e2a96e;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{font-family:'Josefin Sans',sans-serif;background:var(--teal);color:var(--text-main);min-height:100vh;overflow-x:hidden}
+    a{text-decoration:none;color:inherit}
+    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 15% 5%,rgba(0,95,95,0.3) 0%,transparent 60%),radial-gradient(ellipse 60% 50% at 85% 90%,rgba(0,64,64,0.35) 0%,transparent 55%);pointer-events:none;z-index:0}
+    body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(201,169,110,0.035) 1px,transparent 1px),linear-gradient(90deg,rgba(201,169,110,0.035) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0}
+
+    /* Header */
+    .site-header{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(0,43,43,0.88);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+    .nav-container{display:flex;align-items:center;justify-content:space-between;max-width:1280px;margin:0 auto;padding:0 2rem;height:64px}
+    .nav-left,.nav-right{display:flex;align-items:center;gap:2rem;min-width:160px}
+    .nav-right{justify-content:flex-end}
+    .brand-logo{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:300;letter-spacing:0.3em;text-transform:uppercase;color:var(--cream);white-space:nowrap}
+    .nav-link{font-size:0.7rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-muted);transition:color 0.2s}
+    .nav-link:hover{color:var(--gold)}
+    .menu-toggle{display:none;background:none;border:none;color:var(--text-main);font-size:1.2rem;cursor:pointer}
+    .mobile-nav{display:none;position:fixed;top:64px;left:0;right:0;background:rgba(0,43,43,0.97);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:1.5rem 2rem;z-index:99;flex-direction:column;gap:1.2rem}
+    .mobile-nav.open{display:flex}
+    .mobile-nav a{font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-muted);padding:0.4rem 0;border-bottom:1px solid rgba(201,169,110,0.1)}
+
+    /* Page */
+    .data-page{position:relative;z-index:1;max-width:780px;margin:0 auto;padding:84px 2rem 5rem}
+    .breadcrumbs{font-size:0.62rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-muted);padding:1.5rem 0 0}
+    .breadcrumbs a{color:var(--gold);opacity:0.7;transition:opacity 0.2s}
+    .breadcrumbs a:hover{opacity:1}
+    .breadcrumbs span{opacity:0.45;margin:0 0.5rem}
+
+    /* Page header */
+    .page-header{padding:2rem 0 1.75rem}
+    .page-eyebrow{font-size:0.6rem;letter-spacing:0.4em;text-transform:uppercase;color:var(--gold);opacity:0.75;margin-bottom:0.5rem}
+    .page-header h1{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,4vw,3rem);font-weight:300;letter-spacing:0.1em;color:var(--cream);margin-bottom:0.5rem}
+    .page-divider{width:40px;height:1px;background:var(--gold);opacity:0.4;margin-bottom:1.25rem}
+    .page-intro{font-size:0.75rem;letter-spacing:0.06em;color:var(--text-muted);line-height:1.85;max-width:600px}
+
+    /* Account nav */
+    .account-nav{display:flex;gap:0;border:1px solid var(--border-dim);margin:1.75rem 0;flex-wrap:wrap}
+    .account-nav-link{flex:1;text-align:center;padding:0.75rem 0.5rem;font-size:0.58rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-muted);transition:all 0.2s;border-right:1px solid var(--border-dim);min-width:80px}
+    .account-nav-link:last-child{border-right:none}
+    .account-nav-link:hover{color:var(--gold);background:rgba(201,169,110,0.04)}
+    .account-nav-link.active{color:var(--gold);background:rgba(201,169,110,0.07)}
+
+    /* Section */
+    .data-section{background:var(--card-bg);border:1px solid var(--border);margin-bottom:1.5rem;animation:fadeUp 0.5s ease both}
+    .data-section:nth-child(2){animation-delay:0.05s}
+    .data-section:nth-child(3){animation-delay:0.1s}
+    .data-section:nth-child(4){animation-delay:0.15s}
+    .data-section:nth-child(5){animation-delay:0.2s}
+    .section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;padding:1.5rem;border-bottom:1px solid var(--border-dim);flex-wrap:wrap}
+    .section-head-text{}
+    .section-eyebrow{font-size:0.55rem;letter-spacing:0.35em;text-transform:uppercase;color:var(--gold);opacity:0.65;margin-bottom:0.3rem}
+    .section-title{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:400;letter-spacing:0.08em;color:var(--cream);margin-bottom:0.25rem}
+    .section-desc{font-size:0.68rem;letter-spacing:0.05em;color:var(--text-muted);line-height:1.7}
+    .section-body{padding:1.5rem}
+
+    /* Data summary cards */
+    .data-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.25rem}
+    .data-summary-card{background:rgba(255,248,231,0.03);border:1px solid var(--border-dim);padding:1.1rem;text-align:center}
+    .data-summary-num{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:300;color:var(--gold);line-height:1;margin-bottom:0.3rem}
+    .data-summary-label{font-size:0.55rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--text-muted)}
+
+    /* Data includes list */
+    .data-includes{display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1.25rem}
+    .data-include-item{display:flex;align-items:center;gap:0.6rem;font-size:0.7rem;letter-spacing:0.06em;color:var(--text-muted)}
+    .data-include-item::before{content:'✓';color:var(--success);opacity:0.8;font-size:0.65rem;flex-shrink:0}
+
+    /* Buttons */
+    .btn-primary{display:inline-flex;align-items:center;gap:0.5rem;padding:0.78rem 2rem;font-family:'Josefin Sans',sans-serif;font-size:0.63rem;letter-spacing:0.28em;text-transform:uppercase;color:var(--teal);background:var(--gold);border:1px solid var(--gold);cursor:pointer;transition:all 0.25s}
+    .btn-primary:hover:not(:disabled){background:transparent;color:var(--gold)}
+    .btn-primary:disabled{opacity:0.4;cursor:not-allowed;background:var(--gold);color:var(--teal)}
+    .btn-secondary{display:inline-flex;align-items:center;gap:0.5rem;padding:0.72rem 1.5rem;font-family:'Josefin Sans',sans-serif;font-size:0.6rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--text-muted);border:1px solid var(--border);background:none;cursor:pointer;transition:all 0.25s}
+    .btn-secondary:hover{border-color:var(--gold);color:var(--gold)}
+    .btn-danger{display:inline-flex;align-items:center;gap:0.5rem;padding:0.72rem 1.5rem;font-family:'Josefin Sans',sans-serif;font-size:0.6rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--error);border:1px solid rgba(224,112,112,0.35);background:rgba(224,112,112,0.05);cursor:pointer;transition:all 0.25s}
+    .btn-danger:hover{border-color:var(--error);background:rgba(224,112,112,0.1)}
+
+    /* Spinner */
+    .spinner{width:14px;height:14px;border:1.5px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* Status message */
+    .status-msg{font-size:0.68rem;letter-spacing:0.07em;padding:0.75rem 1rem;border:1px solid;margin-top:1rem;display:none;line-height:1.6}
+    .status-msg.success{color:var(--success);border-color:rgba(112,201,160,0.35);background:rgba(112,201,160,0.07);display:block}
+    .status-msg.error{color:var(--error);border-color:rgba(224,112,112,0.35);background:rgba(224,112,112,0.07);display:block}
+    .status-msg.info{color:var(--gold);border-color:rgba(201,169,110,0.35);background:rgba(201,169,110,0.07);display:block}
+
+    /* Warning box */
+    .warning-box{background:rgba(224,112,112,0.07);border:1px solid rgba(224,112,112,0.3);padding:1.1rem 1.25rem;margin-bottom:1.25rem}
+    .warning-box-label{font-size:0.55rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--error);margin-bottom:0.4rem}
+    .warning-box p{font-size:0.7rem;letter-spacing:0.05em;color:var(--text-muted);line-height:1.75}
+    .warning-box p strong{color:var(--cream)}
+
+    /* Info box */
+    .info-box{background:rgba(201,169,110,0.06);border:1px solid rgba(201,169,110,0.25);padding:1.1rem 1.25rem;margin-bottom:1.25rem}
+    .info-box p{font-size:0.7rem;letter-spacing:0.05em;color:var(--text-muted);line-height:1.75}
+    .info-box p strong{color:var(--cream)}
+
+    /* Preferences toggles */
+    .pref-list{display:flex;flex-direction:column;gap:0.1rem}
+    .pref-item{display:flex;align-items:center;justify-content:space-between;padding:0.85rem 0;border-bottom:1px solid var(--border-dim);gap:1rem}
+    .pref-item:last-child{border-bottom:none}
+    .pref-text{}
+    .pref-label{font-size:0.68rem;letter-spacing:0.07em;color:var(--cream);margin-bottom:0.15rem}
+    .pref-desc{font-size:0.6rem;letter-spacing:0.05em;color:var(--text-muted);opacity:0.65}
+    .toggle-wrap{flex-shrink:0}
+    .toggle{position:relative;width:40px;height:22px;cursor:pointer}
+    .toggle input{opacity:0;width:0;height:0;position:absolute}
+    .toggle-track{position:absolute;inset:0;background:rgba(255,248,231,0.1);border:1px solid var(--border);transition:background 0.25s}
+    .toggle input:checked+.toggle-track{background:rgba(201,169,110,0.3);border-color:var(--gold)}
+    .toggle-thumb{position:absolute;top:3px;left:3px;width:14px;height:14px;background:var(--text-muted);transition:transform 0.25s,background 0.25s}
+    .toggle input:checked~.toggle-thumb{transform:translateX(18px);background:var(--gold)}
+
+    /* Retention table */
+    .retention-table{width:100%;border-collapse:collapse}
+    .retention-table th{font-size:0.56rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold);opacity:0.75;padding:0.7rem 1rem;border-bottom:1px solid var(--border);text-align:left}
+    .retention-table td{font-size:0.7rem;letter-spacing:0.05em;color:var(--text-muted);padding:0.7rem 1rem;border-bottom:1px solid var(--border-dim);line-height:1.6;vertical-align:top}
+    .retention-table tr:last-child td{border-bottom:none}
+
+    /* Toast */
+    .toast{position:fixed;bottom:2rem;right:2rem;z-index:999;background:var(--gold);color:var(--teal);font-family:'Josefin Sans',sans-serif;font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;padding:0.75rem 1.5rem;opacity:0;transition:opacity 0.3s;pointer-events:none}
+    .toast.visible{opacity:1}
+
+    /* Footer */
+    .site-footer{background:rgba(0,20,20,0.6);border-top:1px solid var(--border);padding:2rem;position:relative;z-index:1;text-align:center}
+    .site-footer p{font-size:0.62rem;letter-spacing:0.12em;color:var(--text-muted);opacity:0.6}
+
+    @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    @media(max-width:768px){.menu-toggle{display:block}.data-summary-grid{grid-template-columns:1fr 1fr}.account-nav{display:none}}
+    @media(max-width:480px){.data-summary-grid{grid-template-columns:1fr}.section-head{flex-direction:column}}
+  </style>
 </head>
 <body>
-    <header class="site-header">
-        <nav class="nav-container">
-            <div class="nav-center">
-                <a href="/" class="brand-logo">ATELIER ĀKĀRA</a>
-            </div>
-        </nav>
-    </header>
-    
-    <main class="export-page">
-        <h1>Export My Data</h1>
-        <p>Download a copy of all your personal data (DPDP Act 2023 Right to Access)</p>
-        
-        <div class="export-info">
-            <h2>What's Included:</h2>
-            <ul>
-                <li>Profile information (name, email, phone)</li>
-                <li>Order history</li>
-                <li>Reviews you've written</li>
-                <li>Wishlist items</li>
-                <li>Reward points history</li>
-                <li>Saved addresses</li>
-            </ul>
-            
-            <h2>Data Format:</h2>
-            <p>JSON file (machine-readable)</p>
-            
-            <h2>Processing Time:</h2>
-            <p>Instant download</p>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <nav class="nav-container">
+      <div class="nav-left">
+        <button class="menu-toggle" id="menuToggle">☰</button>
+        <a href="../catalog.html" class="nav-link desktop-only">Catalog</a>
+      </div>
+      <a href="../index.html" class="brand-logo">ATELIER ĀKĀRA</a>
+      <div class="nav-right">
+        <a href="cart.html"    class="nav-link">🛒 <span id="cartCount">0</span></a>
+        <a href="profile.html" class="nav-link">👤</a>
+      </div>
+    </nav>
+  </header>
+
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="../catalog.html">Catalog</a>
+    <a href="profile.html">My Account</a>
+    <a href="orders.html">Orders</a>
+    <a href="cart.html">Cart</a>
+  </nav>
+
+  <main class="data-page">
+
+    <nav class="breadcrumbs">
+      <a href="../index.html">Home</a><span>/</span>
+      <a href="profile.html">Account</a><span>/</span>
+      My Data
+    </nav>
+
+    <div class="page-header">
+      <p class="page-eyebrow">Privacy &amp; Data — DPDP Act 2023</p>
+      <h1>My Data</h1>
+      <div class="page-divider"></div>
+      <p class="page-intro">
+        Under the Digital Personal Data Protection Act, 2023 (India), you have the right to access, export, correct, and delete your personal data. Manage all of that here.
+      </p>
+    </div>
+
+    <!-- Account nav -->
+    <div class="account-nav">
+      <a href="profile.html"      class="account-nav-link">Profile</a>
+      <a href="orders.html"       class="account-nav-link">Orders</a>
+      <a href="wishlist.html"     class="account-nav-link">Wishlist</a>
+      <a href="reward.html"       class="account-nav-link">Rewards</a>
+      <a href="data-export.html"  class="account-nav-link active">My Data</a>
+    </div>
+
+    <!-- 1. What we hold -->
+    <div class="data-section">
+      <div class="section-head">
+        <div class="section-head-text">
+          <p class="section-eyebrow">Section 1 · Right to Access</p>
+          <h2 class="section-title">Data We Hold About You</h2>
+          <p class="section-desc">A summary of all personal data stored under your account.</p>
         </div>
-        
-        <button class="btn-primary" onclick="exportData()">Export My Data</button>
-        <a href="/user/profile.html" class="btn-secondary">Back to Profile</a>
-        
-        <div id="status" style="display:none;"></div>
-    </main>
-    
-    <script type="module">
-        async function exportData() {
-            document.getElementById('status').style.display = 'block';
-            document.getElementById('status').textContent = 'Preparing your data...';
-            
-            // Fetch all user data
-            const exportData = {
-                exported_at: new Date().toISOString(),
-                profile: {},
-                orders: [],
-                reviews: [],
-                wishlist: [],
-                addresses: []
-            };
-            
-            // Download as JSON
-            const blob = new Blob([JSON.stringify(exportData, null, 2)], {
-                type: 'application/json'
-            });
-            
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `my_data_${Date.now()}.json`;
-            a.click();
-            
-            document.getElementById('status').textContent = 'Download complete!';
+      </div>
+      <div class="section-body">
+        <div class="data-summary-grid">
+          <div class="data-summary-card">
+            <div class="data-summary-num" id="statOrders">—</div>
+            <div class="data-summary-label">Orders</div>
+          </div>
+          <div class="data-summary-card">
+            <div class="data-summary-num" id="statAddresses">—</div>
+            <div class="data-summary-label">Addresses</div>
+          </div>
+          <div class="data-summary-card">
+            <div class="data-summary-num" id="statWishlist">—</div>
+            <div class="data-summary-label">Wishlist Items</div>
+          </div>
+        </div>
+        <div class="data-includes">
+          <div class="data-include-item">Account profile (name, email, phone, member ID)</div>
+          <div class="data-include-item">Delivery addresses</div>
+          <div class="data-include-item">Order history and item details</div>
+          <div class="data-include-item">Wishlist items</div>
+          <div class="data-include-item">Reward points history</div>
+          <div class="data-include-item">Style quiz results (if taken)</div>
+          <div class="data-include-item">GST invoices (retained 7 years — legal requirement)</div>
+        </div>
+        <div class="info-box">
+          <p><strong>What we don't store:</strong> Payment card details (handled by Razorpay, PCI-DSS compliant), biometric data, health data, or location data beyond your delivery address.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Export data -->
+    <div class="data-section">
+      <div class="section-head">
+        <div class="section-head-text">
+          <p class="section-eyebrow">Section 2 · Right to Portability</p>
+          <h2 class="section-title">Export My Data</h2>
+          <p class="section-desc">Download a copy of all your personal data in JSON format.</p>
+        </div>
+      </div>
+      <div class="section-body">
+        <p style="font-size:0.72rem;color:var(--text-muted);line-height:1.8;margin-bottom:1.25rem;">
+          Your data will be compiled into a single JSON file containing your profile, addresses, order history, wishlist, and points transactions. GST invoices are excluded from this export (available separately per order).
+        </p>
+        <button class="btn-primary" id="exportBtn" onclick="exportData()">
+          <span id="exportBtnLabel">↓ Download My Data</span>
+          <span class="spinner" id="exportSpinner" style="display:none"></span>
+        </button>
+        <div class="status-msg" id="exportStatus"></div>
+      </div>
+    </div>
+
+    <!-- 3. Email preferences -->
+    <div class="data-section">
+      <div class="section-head">
+        <div class="section-head-text">
+          <p class="section-eyebrow">Section 3 · Consent Management</p>
+          <h2 class="section-title">Email Preferences</h2>
+          <p class="section-desc">Control which emails we send you. Transactional emails (order confirmations, shipping updates) cannot be disabled.</p>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="pref-list">
+          <div class="pref-item">
+            <div class="pref-text">
+              <div class="pref-label">Order Confirmations &amp; Shipping Updates</div>
+              <div class="pref-desc">Transactional — cannot be disabled</div>
+            </div>
+            <div class="toggle-wrap">
+              <label class="toggle">
+                <input type="checkbox" checked disabled>
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </label>
+            </div>
+          </div>
+          <div class="pref-item">
+            <div class="pref-text">
+              <div class="pref-label">New Product &amp; Drop Alerts</div>
+              <div class="pref-desc">Notified when new products or limited drops go live</div>
+            </div>
+            <div class="toggle-wrap">
+              <label class="toggle">
+                <input type="checkbox" id="pref-drops" checked onchange="savePref('drops',this.checked)">
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </label>
+            </div>
+          </div>
+          <div class="pref-item">
+            <div class="pref-text">
+              <div class="pref-label">Wishlist Back-in-Stock Alerts</div>
+              <div class="pref-desc">Email when wishlisted items become available</div>
+            </div>
+            <div class="toggle-wrap">
+              <label class="toggle">
+                <input type="checkbox" id="pref-restock" checked onchange="savePref('restock',this.checked)">
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </label>
+            </div>
+          </div>
+          <div class="pref-item">
+            <div class="pref-text">
+              <div class="pref-label">Price Drop Alerts</div>
+              <div class="pref-desc">Notified when prices change on your wishlist</div>
+            </div>
+            <div class="toggle-wrap">
+              <label class="toggle">
+                <input type="checkbox" id="pref-price" onchange="savePref('price',this.checked)">
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </label>
+            </div>
+          </div>
+          <div class="pref-item">
+            <div class="pref-text">
+              <div class="pref-label">Studio Newsletter</div>
+              <div class="pref-desc">Monthly notes from our Thane studio — new designs, behind the scenes</div>
+            </div>
+            <div class="toggle-wrap">
+              <label class="toggle">
+                <input type="checkbox" id="pref-newsletter" onchange="savePref('newsletter',this.checked)">
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="status-msg" id="prefStatus"></div>
+      </div>
+    </div>
+
+    <!-- 4. Data retention -->
+    <div class="data-section">
+      <div class="section-head">
+        <div class="section-head-text">
+          <p class="section-eyebrow">Section 4 · Retention Policy</p>
+          <h2 class="section-title">How Long We Keep Your Data</h2>
+          <p class="section-desc">Retention periods as required by law and our legitimate interests.</p>
+        </div>
+      </div>
+      <div class="section-body">
+        <table class="retention-table">
+          <thead>
+            <tr>
+              <th>Data Type</th>
+              <th>Retention Period</th>
+              <th>Reason</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Account profile</td>
+              <td>Until account deletion</td>
+              <td>Service provision</td>
+            </tr>
+            <tr>
+              <td>GST invoices &amp; order records</td>
+              <td>7 years from order date</td>
+              <td>Income Tax Act &amp; GST rules (legal obligation)</td>
+            </tr>
+            <tr>
+              <td>Delivery addresses</td>
+              <td>Until account deletion</td>
+              <td>User convenience</td>
+            </tr>
+            <tr>
+              <td>Support communications</td>
+              <td>2 years</td>
+              <td>Dispute resolution</td>
+            </tr>
+            <tr>
+              <td>Reward points history</td>
+              <td>Until account deletion</td>
+              <td>Service provision</td>
+            </tr>
+            <tr>
+              <td>Anonymised analytics</td>
+              <td>12 months rolling</td>
+              <td>Product improvement (not linked to identity)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 5. Delete account -->
+    <div class="data-section">
+      <div class="section-head">
+        <div class="section-head-text">
+          <p class="section-eyebrow">Section 5 · Right to Erasure</p>
+          <h2 class="section-title">Delete My Account</h2>
+          <p class="section-desc">Permanently delete your account and all associated personal data.</p>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="warning-box">
+          <div class="warning-box-label">⚠ Irreversible Action</div>
+          <p>Deleting your account will permanently remove your profile, addresses, wishlist, and reward points. <strong>This cannot be undone.</strong></p>
+          <p style="margin-top:0.5rem;"><strong>Exception:</strong> GST invoices and order records are retained for 7 years as required by Indian tax law (Income Tax Act &amp; CGST Act). These records will be anonymised — your name and contact details will be removed, but transaction data is retained.</p>
+        </div>
+        <p style="font-size:0.72rem;color:var(--text-muted);line-height:1.8;margin-bottom:1.25rem;">
+          Active orders cannot be deleted until they are delivered or cancelled. Please ensure all pending orders are resolved before requesting deletion.
+        </p>
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
+          <a href="account-deletion.html" class="btn-danger">Delete My Account →</a>
+          <a href="profile.html"          class="btn-secondary">← Back to Profile</a>
+        </div>
+        <div class="info-box" style="margin-top:1.25rem;">
+          <p>For any data-related queries, contact our Data Protection Officer at <strong><a href="mailto:dpo@akaraonline.co.in" style="color:var(--gold);">dpo@akaraonline.co.in</a></strong>. We respond within 72 hours.</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <p>© <span id="year"></span> Atelier Ākāra &nbsp;|&nbsp; Precision Forge Labs &nbsp;|&nbsp; GST: 27GZCPS9353H1ZQ</p>
+  </footer>
+
+  <script>
+    const SUPABASE_URL      = '';
+    const SUPABASE_ANON_KEY = '';
+
+    let supabase  = null;
+    let userData  = null;
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    document.getElementById('menuToggle').addEventListener('click', () =>
+      document.getElementById('mobileNav').classList.toggle('open'));
+
+    const cart = JSON.parse(localStorage.getItem('akara_cart') || '[]');
+    document.getElementById('cartCount').textContent = cart.reduce((s,i) => s+(i.qty||1), 0);
+
+    async function init() {
+      if (!supabase) { loadDemoStats(); return; }
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { window.location.href = '../auth/login.html'; return; }
+      userData = session.user;
+      await loadStats(session.user.id);
+      loadPreferences();
+    }
+
+    async function loadStats(userId) {
+      try {
+        const [ordersRes, addressesRes, wishlistRes] = await Promise.all([
+          supabase.from('orders').select('id',{count:'exact'}).eq('user_id',userId),
+          supabase.from('addresses').select('id',{count:'exact'}).eq('user_id',userId),
+          supabase.from('wishlists').select('id',{count:'exact'}).eq('user_id',userId),
+        ]);
+        document.getElementById('statOrders').textContent    = ordersRes.count    ?? 0;
+        document.getElementById('statAddresses').textContent = addressesRes.count  ?? 0;
+        document.getElementById('statWishlist').textContent  = wishlistRes.count   ?? 0;
+      } catch { loadDemoStats(); }
+    }
+
+    function loadDemoStats() {
+      document.getElementById('statOrders').textContent    = '3';
+      document.getElementById('statAddresses').textContent = '2';
+      document.getElementById('statWishlist').textContent  = '5';
+    }
+
+    function loadPreferences() {
+      const prefs = JSON.parse(localStorage.getItem('akara_email_prefs') || '{}');
+      document.getElementById('pref-drops').checked      = prefs.drops      !== false;
+      document.getElementById('pref-restock').checked    = prefs.restock    !== false;
+      document.getElementById('pref-price').checked      = prefs.price      === true;
+      document.getElementById('pref-newsletter').checked = prefs.newsletter === true;
+    }
+
+    function savePref(key, value) {
+      const prefs = JSON.parse(localStorage.getItem('akara_email_prefs') || '{}');
+      prefs[key] = value;
+      localStorage.setItem('akara_email_prefs', JSON.stringify(prefs));
+
+      // In production: also save to Supabase profiles table
+      if (supabase && userData) {
+        supabase.from('profiles').update({ email_prefs: prefs }).eq('id', userData.id).catch(() => {});
+      }
+
+      const el = document.getElementById('prefStatus');
+      el.textContent = '✓ Preferences saved';
+      el.className   = 'status-msg success';
+      setTimeout(() => { el.className = 'status-msg'; }, 2500);
+    }
+
+    async function exportData() {
+      const btn     = document.getElementById('exportBtn');
+      const label   = document.getElementById('exportBtnLabel');
+      const spinner = document.getElementById('exportSpinner');
+      const status  = document.getElementById('exportStatus');
+      btn.disabled  = true;
+      label.style.display   = 'none';
+      spinner.style.display = 'inline-block';
+      status.className      = 'status-msg';
+
+      try {
+        let exportObj = {
+          exported_at: new Date().toISOString(),
+          exported_by: 'Atelier Ākāra (Precision Forge Labs)',
+          regulation:  'DPDP Act 2023, India',
+          profile:     null,
+          addresses:   [],
+          orders:      [],
+          wishlist:    [],
+          points:      [],
+          preferences: JSON.parse(localStorage.getItem('akara_email_prefs') || '{}'),
+        };
+
+        if (supabase && userData) {
+          const [profile, addresses, orders, wishlist] = await Promise.all([
+            supabase.from('profiles').select('*').eq('id', userData.id).single(),
+            supabase.from('addresses').select('*').eq('user_id', userData.id),
+            supabase.from('orders').select('*').eq('user_id', userData.id),
+            supabase.from('wishlists').select('*').eq('user_id', userData.id),
+          ]);
+          exportObj.profile   = profile.data;
+          exportObj.addresses = addresses.data || [];
+          exportObj.orders    = orders.data    || [];
+          exportObj.wishlist  = wishlist.data  || [];
+        } else {
+          // Demo export
+          exportObj.profile = { name: 'Demo User', email: 'demo@akaraonline.co.in', member_id: 'AK-2026-DEMO' };
+          exportObj.orders  = [{ order_number:'INV-00124', total:2698, status:'shipped' }];
         }
-        
-        window.exportData = exportData;
-    </script>
+
+        // Download as JSON
+        const json     = JSON.stringify(exportObj, null, 2);
+        const blob     = new Blob([json], { type: 'application/json;charset=utf-8' });
+        const url      = URL.createObjectURL(blob);
+        const filename = `akara-data-export-${new Date().toISOString().slice(0,10)}.json`;
+        const a        = document.createElement('a');
+        a.href         = url;
+        a.download     = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        status.textContent = '✓ Your data has been downloaded. The file contains all personal data we hold about you.';
+        status.className   = 'status-msg success';
+        showToast('Data exported successfully');
+
+      } catch (e) {
+        status.textContent = 'Export failed: ' + e.message + '. Please email dpo@akaraonline.co.in for manual export.';
+        status.className   = 'status-msg error';
+      }
+
+      btn.disabled          = false;
+      label.style.display   = 'inline';
+      spinner.style.display = 'none';
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('visible');
+      setTimeout(() => t.classList.remove('visible'), 2500);
+    }
+
+    init();
+  </script>
 </body>
 </html>

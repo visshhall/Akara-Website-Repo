@@ -1,12 +1,77 @@
+# robots.txt — Atelier Ākāra
+# Precision Forge Labs | akaraonline.co.in
+# Last updated: May 2026
+
+# ── All crawlers ──────────────────────────────────────────────────
 User-agent: *
+
+# Block private / auth areas
 Disallow: /admin/
 Disallow: /user/
-Disallow: /auth/callback.html
-Disallow: /netlify/
+Disallow: /auth/
+Disallow: /security/
+Disallow: /utils/
+Disallow: /config/
 
+# Block specific auth pages at root level (none currently, but future-proof)
+Disallow: /auth/callback.html
+Disallow: /auth/login.html
+Disallow: /auth/signup.html
+Disallow: /auth/reset-password.html
+Disallow: /auth/update-password.html
+
+# Block components (internal partials)
+Disallow: /components/
+
+# Block offline / PWA internals
+Disallow: /offline.html
+Disallow: /sw.js
+
+# ── Explicitly allow public pages ─────────────────────────────────
 Allow: /
+Allow: /index.html
 Allow: /catalog.html
 Allow: /about.html
 Allow: /contact.html
+Allow: /bundles.html
+Allow: /limited-drops.html
+Allow: /style-quiz.html
+Allow: /privacy.html
+Allow: /terms.html
+Allow: /refund-policy.html
+Allow: /shipping-policy.html
+Allow: /404.html
+Allow: /product/
+Allow: /assets/images/
 
+# ── Sitemap ───────────────────────────────────────────────────────
 Sitemap: https://akaraonline.co.in/sitemap.xml
+
+# ── Crawl delay (optional, be kind to small servers) ─────────────
+Crawl-delay: 2
+
+# ── Google-specific ───────────────────────────────────────────────
+User-agent: Googlebot
+Disallow: /admin/
+Disallow: /user/
+Disallow: /auth/
+Disallow: /security/
+Disallow: /utils/
+Allow: /assets/images/
+Sitemap: https://akaraonline.co.in/sitemap.xml
+
+# ── Block bad bots ────────────────────────────────────────────────
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /

@@ -3,1382 +3,811 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Product Detail — Atelier Ākāra">
-  <link rel="icon" type="image/png" href="../assets/images/favicon.png">
-  <title id="pageTitle">Product — Atelier Ākāra</title>
-
+  <title>Products — Studio Control</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <style>
     :root {
-      --teal:       #002b2b;
-      --teal-mid:   #004040;
-      --teal-light: #005f5f;
-      --cream:      #fff8e7;
-      --gold:       #c9a96e;
-      --gold-light: #e2c99a;
-      --text-main:  #fff8e7;
-      --text-muted: rgba(255,248,231,0.55);
-      --border:     rgba(201,169,110,0.25);
-      --border-dim: rgba(201,169,110,0.12);
-      --card-bg:    rgba(255,248,231,0.03);
-      --input-bg:   rgba(255,248,231,0.05);
-      --error:      #e07070;
-      --success:    #70c9a0;
+      --teal:#002b2b;--teal-mid:#004040;--cream:#fff8e7;--gold:#c9a96e;--gold-light:#e2c99a;
+      --text-main:#fff8e7;--text-muted:rgba(255,248,231,0.55);--border:rgba(201,169,110,0.25);
+      --border-dim:rgba(201,169,110,0.12);--card-bg:rgba(255,248,231,0.03);
+      --input-bg:rgba(255,248,231,0.05);--error:#e07070;--success:#70c9a0;--warning:#e2a96e;
+      --sidebar-w:240px;
     }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{font-family:'Josefin Sans',sans-serif;background:var(--teal);color:var(--text-main);min-height:100vh;overflow-x:hidden}
+    a{text-decoration:none;color:inherit}
+    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 5% 0%,rgba(0,95,95,0.22) 0%,transparent 55%),radial-gradient(ellipse 50% 50% at 95% 100%,rgba(0,64,64,0.28) 0%,transparent 55%);pointer-events:none;z-index:0}
+    body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(201,169,110,0.028) 1px,transparent 1px),linear-gradient(90deg,rgba(201,169,110,0.028) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0}
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-    body {
-      font-family: 'Josefin Sans', sans-serif;
-      background: var(--teal);
-      color: var(--text-main);
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-    a { text-decoration: none; color: inherit; }
+    /* Auth Gate */
+    .auth-gate{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:var(--teal)}
+    .auth-gate.hidden{display:none}
+    .auth-box{width:100%;max-width:360px;padding:3rem 2.5rem;background:var(--card-bg);border:1px solid var(--border);animation:fadeUp 0.6s ease both;text-align:center}
+    .auth-box-logo{font-family:'Cormorant Garamond',serif;font-size:0.9rem;letter-spacing:0.35em;text-transform:uppercase;color:var(--cream);margin-bottom:0.2rem}
+    .auth-box-sub{font-size:0.55rem;letter-spacing:0.4em;text-transform:uppercase;color:var(--gold);opacity:0.7;margin-bottom:2rem}
+    .auth-divider{width:32px;height:1px;background:var(--gold);opacity:0.3;margin:0 auto 1.75rem}
+    .auth-field{display:flex;flex-direction:column;gap:0.3rem;margin-bottom:1rem;text-align:left}
+    .auth-field label{font-size:0.56rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);opacity:0.8}
+    .auth-field input{background:var(--input-bg);border:1px solid var(--border);color:var(--text-main);font-family:'Josefin Sans',sans-serif;font-size:0.75rem;letter-spacing:0.08em;padding:0.72rem 1rem;outline:none;width:100%;transition:border-color 0.2s}
+    .auth-field input:focus{border-color:rgba(201,169,110,0.55)}
+    .btn-auth{display:block;width:100%;padding:0.82rem;font-family:'Josefin Sans',sans-serif;font-size:0.63rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--teal);background:var(--gold);border:1px solid var(--gold);cursor:pointer;transition:all 0.25s;margin-top:0.25rem}
+    .btn-auth:hover{background:transparent;color:var(--gold)}
+    .auth-err{font-size:0.62rem;color:var(--error);margin-top:0.6rem;display:none}
+    .auth-err.visible{display:block}
 
-    /* ─── Background ──────────────────────────────── */
-    body::before {
-      content: '';
-      position: fixed; inset: 0;
-      background:
-        radial-gradient(ellipse 80% 60% at 15% 5%,  rgba(0,95,95,0.28) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 50% at 85% 90%,  rgba(0,64,64,0.32) 0%, transparent 55%);
-      pointer-events: none; z-index: 0;
-    }
-    body::after {
-      content: '';
-      position: fixed; inset: 0;
-      background-image:
-        linear-gradient(rgba(201,169,110,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(201,169,110,0.03) 1px, transparent 1px);
-      background-size: 60px 60px;
-      pointer-events: none; z-index: 0;
-    }
+    /* Sidebar */
+    .sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);z-index:100;background:rgba(0,30,30,0.88);backdrop-filter:blur(20px);border-right:1px solid var(--border);display:flex;flex-direction:column;transition:transform 0.3s ease}
+    .sidebar-brand{padding:1.5rem 1.75rem;border-bottom:1px solid var(--border-dim)}
+    .sidebar-brand-name{font-family:'Cormorant Garamond',serif;font-size:0.95rem;font-weight:300;letter-spacing:0.28em;text-transform:uppercase;color:var(--cream)}
+    .sidebar-brand-tag{font-size:0.5rem;letter-spacing:0.35em;text-transform:uppercase;color:var(--gold);opacity:0.6;margin-top:0.2rem}
+    .sidebar-nav{flex:1;padding:1.25rem 0;overflow-y:auto}
+    .nav-section-label{font-size:0.5rem;letter-spacing:0.4em;text-transform:uppercase;color:var(--gold);opacity:0.5;padding:0.5rem 1.75rem 0.3rem}
+    .sidebar-link{display:flex;align-items:center;gap:0.7rem;padding:0.65rem 1.75rem;font-size:0.63rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-muted);cursor:pointer;border-left:2px solid transparent;transition:all 0.2s;background:none;border-top:none;border-right:none;border-bottom:none;width:100%;text-align:left;font-family:'Josefin Sans',sans-serif;text-decoration:none}
+    .sidebar-link:hover{color:var(--gold-light);border-left-color:rgba(201,169,110,0.3)}
+    .sidebar-link.active{color:var(--gold);border-left-color:var(--gold)}
+    .link-icon{font-size:0.82rem;opacity:0.7;flex-shrink:0}
+    .sidebar-footer{padding:1.25rem 1.75rem;border-top:1px solid var(--border-dim)}
+    .sidebar-user-email{font-size:0.58rem;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.6rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .btn-signout{background:none;border:1px solid var(--border);color:var(--text-muted);font-family:'Josefin Sans',sans-serif;font-size:0.56rem;letter-spacing:0.2em;text-transform:uppercase;padding:0.42rem 0.85rem;cursor:pointer;transition:all 0.2s;width:100%}
+    .btn-signout:hover{border-color:var(--error);color:var(--error)}
 
-    /* ─── Header ──────────────────────────────────── */
-    .site-header {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      background: rgba(0,43,43,0.88);
-      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border);
-    }
-    .nav-container {
-      display: flex; align-items: center; justify-content: space-between;
-      max-width: 1280px; margin: 0 auto; padding: 0 2rem; height: 64px;
-    }
-    .nav-left, .nav-right {
-      display: flex; align-items: center; gap: 2rem; min-width: 180px;
-    }
-    .nav-right { justify-content: flex-end; }
-    .nav-links { display: flex; gap: 2rem; }
-    .nav-links a, .nav-link {
-      font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase;
-      color: var(--text-muted); transition: color 0.2s;
-    }
-    .nav-links a:hover, .nav-link:hover { color: var(--gold); }
-    .brand-logo {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 1.1rem; font-weight: 300;
-      letter-spacing: 0.3em; text-transform: uppercase;
-      color: var(--cream); white-space: nowrap;
-    }
-    .cart-link {
-      font-size: 0.75rem; color: var(--text-muted); transition: color 0.2s;
-    }
-    .cart-link:hover { color: var(--gold); }
-    .menu-toggle {
-      display: none; background: none; border: none;
-      color: var(--text-main); font-size: 1.2rem; cursor: pointer;
-    }
-    .mobile-nav {
-      display: none; position: fixed; top: 64px; left: 0; right: 0;
-      background: rgba(0,43,43,0.97); backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border); padding: 1.5rem 2rem;
-      z-index: 99; flex-direction: column; gap: 1.2rem;
-    }
-    .mobile-nav.open { display: flex; }
-    .mobile-nav a {
-      font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase;
-      color: var(--text-muted); padding: 0.4rem 0;
-      border-bottom: 1px solid rgba(201,169,110,0.1);
-    }
-    .mobile-nav a:hover { color: var(--gold); }
+    /* Main */
+    .admin-main{margin-left:var(--sidebar-w);position:relative;z-index:1;min-height:100vh}
+    .top-bar{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 2.5rem;border-bottom:1px solid var(--border);background:rgba(0,30,30,0.6);backdrop-filter:blur(10px);position:sticky;top:0;z-index:50;gap:1rem;flex-wrap:wrap}
+    .top-bar-left{display:flex;align-items:center;gap:1rem}
+    .sidebar-toggle{background:none;border:none;color:var(--text-muted);font-size:1rem;cursor:pointer;transition:color 0.2s;display:none}
+    .sidebar-toggle:hover{color:var(--gold)}
+    .top-bar-title{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:300;letter-spacing:0.1em;color:var(--cream)}
+    .breadcrumb{font-size:0.58rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-muted);display:flex;align-items:center;gap:0.5rem}
+    .breadcrumb a{color:var(--gold);opacity:0.65;transition:opacity 0.2s}
+    .breadcrumb a:hover{opacity:1}
+    .breadcrumb span{opacity:0.3}
+    .top-bar-right{display:flex;align-items:center;gap:1.25rem}
+    .live-dot{width:6px;height:6px;border-radius:50%;background:var(--success);opacity:0.8;animation:pulse 2s ease infinite}
+    @keyframes pulse{0%,100%{opacity:0.8}50%{opacity:0.3}}
+    .top-bar-time{font-size:0.6rem;letter-spacing:0.15em;color:var(--text-muted);opacity:0.55}
 
-    /* ─── Page ────────────────────────────────────── */
-    .product-page {
-      position: relative; z-index: 1;
-      max-width: 1280px; margin: 0 auto;
-      padding: 84px 2rem 6rem;
-    }
+    /* Page Content */
+    .page-content{padding:2.5rem;max-width:1400px}
 
-    /* ─── Breadcrumb ──────────────────────────────── */
-    .breadcrumbs {
-      font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase;
-      color: var(--text-muted); padding: 1.5rem 0;
-      display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
-    }
-    .breadcrumbs a { color: var(--gold); opacity: 0.7; transition: opacity 0.2s; }
-    .breadcrumbs a:hover { opacity: 1; }
-    .breadcrumbs .sep { opacity: 0.3; }
+    /* Stats */
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem;margin-bottom:2.5rem}
+    .stat-card{background:var(--card-bg);border:1px solid var(--border);padding:1.5rem;text-align:center;transition:border-color 0.3s;animation:fadeUp 0.5s ease both}
+    .stat-card:hover{border-color:rgba(201,169,110,0.4)}
+    .stat-icon{font-size:0.95rem;opacity:0.35;margin-bottom:0.55rem}
+    .stat-value{font-family:'Cormorant Garamond',serif;font-size:clamp(1.6rem,2.5vw,2.4rem);font-weight:300;color:var(--gold);letter-spacing:0.05em;line-height:1;margin-bottom:0.35rem}
+    .stat-label{font-size:0.55rem;letter-spacing:0.28em;text-transform:uppercase;color:var(--text-muted)}
 
-    /* ─── Loading skeleton ────────────────────────── */
-    .skeleton {
-      background: linear-gradient(90deg, rgba(255,248,231,0.04) 25%, rgba(255,248,231,0.08) 50%, rgba(255,248,231,0.04) 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-    }
-    @keyframes shimmer { to { background-position: -200% 0; } }
+    /* Section Card */
+    .section-card{background:var(--card-bg);border:1px solid var(--border);margin-bottom:2rem;animation:fadeUp 0.5s ease 0.2s both}
+    .section-header{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 1.75rem;border-bottom:1px solid var(--border-dim);flex-wrap:wrap;gap:0.75rem}
+    .section-header h2{font-size:0.6rem;letter-spacing:0.35em;text-transform:uppercase;color:var(--gold);opacity:0.8}
+    .section-header-right{display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap}
 
-    /* ─── Product Detail Grid ─────────────────────── */
-    .product-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 5rem;
-      align-items: start;
-      margin-bottom: 6rem;
-    }
+    /* Toolbar */
+    .toolbar{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.75rem;border-bottom:1px solid var(--border-dim);flex-wrap:wrap;gap:0.75rem}
+    .toolbar-left{display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap}
+    .search-wrap{position:relative}
+    .search-icon{position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:0.8rem;pointer-events:none}
+    .search-input{background:var(--input-bg);border:1px solid var(--border);color:var(--text-main);font-family:'Josefin Sans',sans-serif;font-size:0.68rem;letter-spacing:0.08em;padding:0.55rem 1rem 0.55rem 2.2rem;outline:none;width:220px;transition:border-color 0.2s}
+    .search-input:focus{border-color:rgba(201,169,110,0.5)}
+    .filter-select{background:var(--input-bg);border:1px solid var(--border);color:var(--text-muted);font-family:'Josefin Sans',sans-serif;font-size:0.62rem;letter-spacing:0.1em;padding:0.5rem 0.8rem;outline:none;cursor:pointer;-webkit-appearance:none}
+    .filter-select option{background:var(--teal)}
 
-    /* ─── Image Gallery ───────────────────────────── */
-    .product-gallery { position: sticky; top: 84px; }
+    /* Filter tabs */
+    .filter-tabs-wrap{border-bottom:1px solid var(--border-dim);padding:0 1.75rem}
+    .filter-tabs{display:flex;flex-wrap:wrap}
+    .filter-tab{background:none;border:none;border-bottom:2px solid transparent;font-family:'Josefin Sans',sans-serif;font-size:0.58rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--text-muted);padding:0.65rem 1.1rem;cursor:pointer;transition:all 0.2s;margin-bottom:-1px}
+    .filter-tab:hover{color:var(--gold-light)}
+    .filter-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
 
-    .main-image-wrap {
-      position: relative;
-      aspect-ratio: 1;
-      background: rgba(0,64,64,0.3);
-      border: 1px solid var(--border);
-      overflow: hidden;
-      margin-bottom: 0.75rem;
-      cursor: zoom-in;
-    }
-    .main-image-wrap img {
-      width: 100%; height: 100%; object-fit: cover;
-      transition: transform 0.5s ease;
-    }
-    .main-image-wrap:hover img { transform: scale(1.04); }
+    /* Product Grid */
+    .product-grid-admin{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem;padding:1.75rem}
 
-    /* Image placeholder */
-    .img-placeholder {
-      width: 100%; height: 100%;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 1rem;
-    }
-    .img-placeholder-geo {
-      opacity: 0.15;
-    }
-    .img-placeholder-label {
-      font-size: 0.6rem; letter-spacing: 0.3em; text-transform: uppercase;
-      color: var(--gold); opacity: 0.4;
-    }
+    /* Product Card */
+    .product-card-admin{background:rgba(255,248,231,0.03);border:1px solid var(--border-dim);transition:border-color 0.25s,transform 0.25s;animation:fadeUp 0.4s ease both;position:relative}
+    .product-card-admin:hover{border-color:rgba(201,169,110,0.4);transform:translateY(-2px)}
+    .product-card-admin.inactive{opacity:0.45}
+    .card-img-wrap{aspect-ratio:1;background:rgba(0,64,64,0.35);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+    .card-img-wrap img{width:100%;height:100%;object-fit:cover}
+    .card-status-badge{position:absolute;top:0.6rem;right:0.6rem;font-size:0.52rem;letter-spacing:0.18em;text-transform:uppercase;padding:0.2rem 0.55rem;border:1px solid}
+    .badge-active{color:var(--success);border-color:rgba(112,201,160,0.4);background:rgba(112,201,160,0.08)}
+    .badge-inactive{color:var(--text-muted);border-color:var(--border);background:rgba(255,248,231,0.05)}
+    .card-body-admin{padding:1rem}
+    .card-category{font-size:0.54rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);opacity:0.7;margin-bottom:0.25rem}
+    .card-name-admin{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:400;color:var(--cream);margin-bottom:0.3rem}
+    .card-price-row{display:flex;align-items:baseline;gap:0.6rem;margin-bottom:0.5rem}
+    .card-price-retail{font-size:0.75rem;color:var(--gold-light)}
+    .card-price-trade{font-size:0.65rem;color:var(--text-muted);opacity:0.6}
+    .card-stock{font-size:0.6rem;letter-spacing:0.1em;color:var(--text-muted);margin-bottom:0.75rem}
+    .card-stock.low{color:var(--warning)}
+    .card-stock.out{color:var(--error)}
+    .card-actions-admin{display:flex;gap:0.5rem}
+    .btn-card-action{flex:1;background:none;border:1px solid var(--border);color:var(--text-muted);font-family:'Josefin Sans',sans-serif;font-size:0.55rem;letter-spacing:0.18em;text-transform:uppercase;padding:0.4rem 0;cursor:pointer;transition:all 0.2s}
+    .btn-card-action:hover{border-color:var(--gold);color:var(--gold)}
+    .btn-card-action.danger:hover{border-color:var(--error);color:var(--error)}
+    .btn-card-action.primary{color:var(--gold);border-color:rgba(201,169,110,0.4)}
 
-    /* Image zoom overlay */
-    .zoom-badge {
-      position: absolute; bottom: 1rem; right: 1rem;
-      font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase;
-      color: var(--text-muted); opacity: 0; transition: opacity 0.2s;
-      background: rgba(0,43,43,0.7); padding: 0.3rem 0.6rem;
-      border: 1px solid var(--border);
-    }
-    .main-image-wrap:hover .zoom-badge { opacity: 1; }
+    /* Modal */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:200;display:none;align-items:flex-start;justify-content:center;padding:2rem;overflow-y:auto}
+    .modal-overlay.open{display:flex}
+    .modal{background:rgba(0,30,30,0.98);backdrop-filter:blur(20px);border:1px solid var(--border);padding:2.5rem;width:100%;max-width:680px;animation:fadeUp 0.35s ease both;margin:auto}
+    .modal-title{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:300;letter-spacing:0.1em;color:var(--cream);margin-bottom:0.3rem}
+    .modal-sub{font-size:0.65rem;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:2rem}
+    .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+    .modal-field{display:flex;flex-direction:column;gap:0.35rem;margin-bottom:0.75rem}
+    .modal-field.full{grid-column:1/-1}
+    .modal-field label{font-size:0.57rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);opacity:0.82}
+    .modal-field input,.modal-field select,.modal-field textarea{background:var(--input-bg);border:1px solid var(--border);color:var(--text-main);font-family:'Josefin Sans',sans-serif;font-size:0.73rem;letter-spacing:0.07em;padding:0.72rem 1rem;outline:none;width:100%;transition:border-color 0.2s;-webkit-appearance:none}
+    .modal-field select option{background:var(--teal)}
+    .modal-field input:focus,.modal-field select:focus,.modal-field textarea:focus{border-color:rgba(201,169,110,0.55)}
+    .modal-field textarea{min-height:90px;resize:vertical;line-height:1.6}
+    .modal-divider{border:none;border-top:1px solid var(--border-dim);margin:1.25rem 0;grid-column:1/-1}
+    .modal-section-label{font-size:0.56rem;letter-spacing:0.35em;text-transform:uppercase;color:var(--gold);opacity:0.65;margin-bottom:0.5rem;grid-column:1/-1}
+    .modal-actions{display:flex;gap:0.75rem;margin-top:1.75rem}
+    .btn-modal-save{flex:1;padding:0.82rem;font-family:'Josefin Sans',sans-serif;font-size:0.63rem;letter-spacing:0.28em;text-transform:uppercase;color:var(--teal);background:var(--gold);border:1px solid var(--gold);cursor:pointer;transition:all 0.25s}
+    .btn-modal-save:hover{background:transparent;color:var(--gold)}
+    .btn-modal-save:disabled{opacity:0.4;cursor:not-allowed;background:var(--gold);color:var(--teal)}
+    .btn-modal-cancel{flex:1;padding:0.82rem;font-family:'Josefin Sans',sans-serif;font-size:0.62rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--text-muted);border:1px solid var(--border);background:none;cursor:pointer;transition:all 0.25s}
+    .btn-modal-cancel:hover{border-color:var(--gold);color:var(--gold)}
 
-    /* Tag badges on image */
-    .image-tags {
-      position: absolute; top: 1rem; left: 1rem;
-      display: flex; flex-direction: column; gap: 0.4rem;
-    }
-    .image-tag {
-      font-size: 0.52rem; letter-spacing: 0.2em; text-transform: uppercase;
-      padding: 0.22rem 0.55rem; border: 1px solid;
-    }
-    .image-tag.new       { color: var(--gold);    border-color: rgba(201,169,110,0.5); background: rgba(201,169,110,0.1); }
-    .image-tag.low-stock { color: var(--error);   border-color: rgba(224,112,112,0.4); background: rgba(224,112,112,0.08); }
-    .image-tag.bestseller{ color: var(--success); border-color: rgba(112,201,160,0.4); background: rgba(112,201,160,0.08); }
+    /* Colors tag input */
+    .tags-wrap{display:flex;flex-wrap:wrap;gap:0.4rem;background:var(--input-bg);border:1px solid var(--border);padding:0.5rem;min-height:42px;cursor:text}
+    .tag{display:inline-flex;align-items:center;gap:0.3rem;font-size:0.62rem;letter-spacing:0.08em;color:var(--cream);background:rgba(201,169,110,0.15);border:1px solid rgba(201,169,110,0.3);padding:0.15rem 0.45rem}
+    .tag-remove{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:0.7rem;padding:0;line-height:1;transition:color 0.2s}
+    .tag-remove:hover{color:var(--error)}
+    .tag-input{background:none;border:none;outline:none;color:var(--text-main);font-family:'Josefin Sans',sans-serif;font-size:0.72rem;letter-spacing:0.07em;min-width:80px;flex:1}
 
-    /* Thumbnails */
-    .thumbnails {
-      display: flex; gap: 0.6rem;
-    }
-    .thumb {
-      width: 72px; height: 72px; flex-shrink: 0;
-      border: 1px solid var(--border-dim);
-      overflow: hidden; cursor: pointer;
-      transition: border-color 0.2s;
-      background: rgba(0,64,64,0.3);
-    }
-    .thumb:hover, .thumb.active { border-color: var(--gold); }
-    .thumb img { width: 100%; height: 100%; object-fit: cover; }
-    .thumb-placeholder {
-      width: 100%; height: 100%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.55rem; letter-spacing: 0.15em; color: var(--gold); opacity: 0.3;
-      text-transform: uppercase;
-    }
+    /* Image upload */
+    .img-upload-zone{border:1px dashed rgba(201,169,110,0.3);padding:1.5rem;text-align:center;cursor:pointer;transition:border-color 0.2s;background:var(--input-bg)}
+    .img-upload-zone:hover,.img-upload-zone.drag-over{border-color:var(--gold)}
+    .img-upload-label{font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted)}
+    .img-upload-hint{font-size:0.58rem;letter-spacing:0.08em;color:var(--text-muted);opacity:0.5;margin-top:0.3rem}
+    .img-previews{display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.75rem}
+    .img-preview-item{position:relative;width:64px;height:64px}
+    .img-preview-item img{width:100%;height:100%;object-fit:cover}
+    .img-preview-remove{position:absolute;top:-4px;right:-4px;width:18px;height:18px;background:var(--error);border:none;color:#fff;font-size:0.65rem;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:50%}
 
-    /* ─── Product Info ────────────────────────────── */
-    .product-info { animation: fadeUp 0.6s ease both; }
+    /* Confirm modal */
+    .confirm-modal{max-width:400px}
+    .confirm-modal .modal-title{font-size:1.2rem}
+    .confirm-modal p{font-size:0.72rem;letter-spacing:0.06em;color:var(--text-muted);line-height:1.75;margin-bottom:1.5rem}
 
-    .product-category {
-      font-size: 0.6rem; letter-spacing: 0.38em; text-transform: uppercase;
-      color: var(--gold); opacity: 0.75; margin-bottom: 0.75rem;
-    }
-    .product-title {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: clamp(2rem, 4vw, 3.2rem);
-      font-weight: 300; letter-spacing: 0.08em;
-      color: var(--cream); line-height: 1.05;
-      margin-bottom: 0.75rem;
-    }
-
-    /* Rating */
-    .product-rating {
-      display: flex; align-items: center; gap: 0.75rem;
-      margin-bottom: 1.25rem;
-    }
-    .stars { color: var(--gold); font-size: 0.8rem; letter-spacing: 0.1em; }
-    .stars.empty { color: var(--border); }
-    .review-count {
-      font-size: 0.62rem; letter-spacing: 0.1em;
-      color: var(--text-muted); cursor: pointer; transition: color 0.2s;
-    }
-    .review-count:hover { color: var(--gold); }
-
-    .info-divider { height: 1px; background: var(--border-dim); margin: 1.5rem 0; }
-
-    /* Price */
-    .price-row { display: flex; align-items: baseline; gap: 0.75rem; margin-bottom: 0.5rem; }
-    .product-price {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 2.2rem; font-weight: 300;
-      color: var(--cream); letter-spacing: 0.05em;
-    }
-    .product-price-original {
-      font-size: 1rem; color: var(--text-muted); text-decoration: line-through;
-      opacity: 0.55;
-    }
-    .price-gst-note {
-      font-size: 0.58rem; letter-spacing: 0.12em;
-      color: var(--text-muted); opacity: 0.55; margin-bottom: 1.5rem;
-    }
-
-    /* ─── Variants ────────────────────────────────── */
-    .variant-group { margin-bottom: 1.25rem; }
-    .variant-label {
-      font-size: 0.58rem; letter-spacing: 0.3em; text-transform: uppercase;
-      color: var(--gold); opacity: 0.8; margin-bottom: 0.65rem;
-      display: flex; align-items: center; gap: 0.5rem;
-    }
-    .variant-selected {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 0.85rem; font-weight: 300;
-      color: var(--cream); letter-spacing: 0.05em; margin-left: auto;
-      font-style: italic;
-    }
-    .variant-options { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-
-    .variant-btn {
-      background: none; border: 1px solid var(--border);
-      color: var(--text-muted); font-family: 'Josefin Sans', sans-serif;
-      font-size: 0.62rem; letter-spacing: 0.15em;
-      padding: 0.5rem 1rem; cursor: pointer; transition: all 0.2s;
-    }
-    .variant-btn:hover { border-color: rgba(201,169,110,0.5); color: var(--cream); }
-    .variant-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(201,169,110,0.06); }
-    .variant-btn.unavailable {
-      opacity: 0.3; cursor: not-allowed;
-      background: repeating-linear-gradient(
-        45deg, transparent, transparent 4px,
-        rgba(255,255,255,0.03) 4px, rgba(255,255,255,0.03) 8px
-      );
-    }
-
-    /* Color swatches */
-    .color-swatch {
-      width: 28px; height: 28px;
-      border: 1px solid var(--border-dim);
-      cursor: pointer; transition: all 0.2s;
-      position: relative;
-    }
-    .color-swatch:hover { border-color: var(--gold); }
-    .color-swatch.active {
-      border-color: var(--gold);
-      box-shadow: 0 0 0 2px rgba(0,43,43,1), 0 0 0 3px var(--gold);
-    }
-    .color-swatch.unavailable { opacity: 0.3; cursor: not-allowed; }
-    .color-swatch.unavailable::after {
-      content: ''; position: absolute; inset: 0;
-      background: repeating-linear-gradient(
-        45deg, transparent, transparent 3px,
-        rgba(0,0,0,0.4) 3px, rgba(0,0,0,0.4) 4px
-      );
-    }
-
-    /* ─── Stock status ────────────────────────────── */
-    .stock-row {
-      display: flex; align-items: center; gap: 0.6rem;
-      margin-bottom: 1.75rem;
-    }
-    .stock-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-    .stock-dot.in-stock  { background: var(--success); }
-    .stock-dot.low-stock { background: var(--gold); animation: pulse 1.5s infinite; }
-    .stock-dot.out-stock { background: var(--error); }
-    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
-    .stock-text {
-      font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase;
-    }
-    .stock-text.in-stock  { color: var(--success); }
-    .stock-text.low-stock { color: var(--gold); }
-    .stock-text.out-stock { color: var(--error); }
-
-    /* ─── Quantity ────────────────────────────────── */
-    .qty-row {
-      display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1.5rem;
-    }
-    .qty-label {
-      font-size: 0.58rem; letter-spacing: 0.3em; text-transform: uppercase;
-      color: var(--gold); opacity: 0.8;
-    }
-    .qty-stepper {
-      display: flex; align-items: center;
-      border: 1px solid var(--border);
-    }
-    .qty-btn {
-      background: none; border: none;
-      color: var(--text-muted); width: 36px; height: 36px;
-      font-size: 1rem; cursor: pointer; display: flex;
-      align-items: center; justify-content: center;
-      transition: color 0.2s, background 0.2s;
-    }
-    .qty-btn:hover { color: var(--gold); background: rgba(201,169,110,0.06); }
-    .qty-btn:disabled { opacity: 0.25; cursor: not-allowed; }
-    .qty-value {
-      width: 44px; text-align: center;
-      font-size: 0.8rem; letter-spacing: 0.1em; color: var(--cream);
-      border-left: 1px solid var(--border); border-right: 1px solid var(--border);
-      padding: 0.5rem 0;
-      background: none; outline: none;
-      font-family: 'Josefin Sans', sans-serif;
-      -moz-appearance: textfield;
-    }
-    .qty-value::-webkit-inner-spin-button,
-    .qty-value::-webkit-outer-spin-button { -webkit-appearance: none; }
-
-    /* ─── CTA Buttons ─────────────────────────────── */
-    .product-actions { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.75rem; }
-
-    .btn-add-cart {
-      display: flex; align-items: center; justify-content: center; gap: 0.6rem;
-      width: 100%; padding: 1rem;
-      font-family: 'Josefin Sans', sans-serif;
-      font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase;
-      color: var(--teal); background: var(--gold);
-      border: 1px solid var(--gold); cursor: pointer;
-      transition: all 0.25s;
-    }
-    .btn-add-cart:hover:not(:disabled) { background: transparent; color: var(--gold); }
-    .btn-add-cart:disabled { opacity: 0.4; cursor: not-allowed; background: var(--gold); color: var(--teal); }
-    .btn-add-cart.added { background: var(--success); border-color: var(--success); color: var(--teal); }
-
-    .btn-buy-now {
-      display: flex; align-items: center; justify-content: center;
-      width: 100%; padding: 0.85rem;
-      font-family: 'Josefin Sans', sans-serif;
-      font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase;
-      color: var(--gold); background: none; border: 1px solid var(--border);
-      cursor: pointer; transition: all 0.25s;
-    }
-    .btn-buy-now:hover { border-color: var(--gold); background: rgba(201,169,110,0.05); }
-
-    .btn-wishlist {
-      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-      width: 100%; padding: 0.6rem;
-      font-family: 'Josefin Sans', sans-serif;
-      font-size: 0.58rem; letter-spacing: 0.2em; text-transform: uppercase;
-      color: var(--text-muted); background: none; border: none;
-      cursor: pointer; transition: color 0.2s;
-    }
-    .btn-wishlist:hover { color: var(--gold); }
-    .btn-wishlist.wishlisted { color: var(--gold); }
-
-    /* ─── Trust badges ────────────────────────────── */
-    .trust-row {
-      display: flex; gap: 0; border: 1px solid var(--border-dim);
-      margin-bottom: 1.75rem;
-    }
-    .trust-item {
-      flex: 1; text-align: center; padding: 0.75rem 0.5rem;
-      border-right: 1px solid var(--border-dim);
-      font-size: 0.55rem; letter-spacing: 0.15em; text-transform: uppercase;
-      color: var(--text-muted); opacity: 0.65;
-    }
-    .trust-item:last-child { border-right: none; }
-    .trust-item-icon { font-size: 0.9rem; margin-bottom: 0.3rem; opacity: 0.5; }
-
-    /* ─── Accordion (description, features, shipping) ─ */
-    .accordion { border-top: 1px solid var(--border-dim); }
-    .accordion-item { border-bottom: 1px solid var(--border-dim); }
-    .accordion-trigger {
-      display: flex; align-items: center; justify-content: space-between;
-      width: 100%; padding: 1.1rem 0;
-      background: none; border: none; cursor: pointer;
-      font-family: 'Josefin Sans', sans-serif;
-      font-size: 0.62rem; letter-spacing: 0.25em; text-transform: uppercase;
-      color: var(--cream); transition: color 0.2s;
-    }
-    .accordion-trigger:hover { color: var(--gold); }
-    .accordion-icon {
-      font-size: 0.7rem; transition: transform 0.3s;
-      color: var(--gold); opacity: 0.6;
-    }
-    .accordion-item.open .accordion-icon { transform: rotate(45deg); }
-
-    .accordion-body {
-      max-height: 0; overflow: hidden;
-      transition: max-height 0.35s ease, padding 0.35s ease;
-      padding: 0;
-    }
-    .accordion-item.open .accordion-body {
-      max-height: 600px;
-      padding-bottom: 1.25rem;
-    }
-    .accordion-body p,
-    .accordion-body li {
-      font-size: 0.75rem; letter-spacing: 0.05em;
-      color: var(--text-muted); line-height: 1.85;
-    }
-    .accordion-body ul { padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 0.4rem; }
-    .accordion-body li::before { content: '→ '; color: var(--gold); opacity: 0.6; }
-    .accordion-body .spec-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem 2rem; margin-top: 0.25rem;
-    }
-    .spec-row { display: flex; flex-direction: column; gap: 0.15rem; }
-    .spec-key {
-      font-size: 0.55rem; letter-spacing: 0.25em; text-transform: uppercase;
-      color: var(--gold); opacity: 0.65;
-    }
-    .spec-val { font-size: 0.7rem; color: var(--cream); letter-spacing: 0.05em; }
-
-    /* ─── Related Products ────────────────────────── */
-    .related-section {
-      margin-bottom: 4rem; animation: fadeUp 0.6s ease 0.3s both;
-    }
-    .related-header {
-      display: flex; align-items: baseline; justify-content: space-between;
-      margin-bottom: 2rem;
-    }
-    .section-label {
-      font-size: 0.6rem; letter-spacing: 0.4em; text-transform: uppercase;
-      color: var(--gold); opacity: 0.7; margin-bottom: 0.5rem;
-    }
-    .related-header h2 {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: clamp(1.5rem, 3vw, 2.2rem);
-      font-weight: 300; letter-spacing: 0.1em; color: var(--cream);
-    }
-    .related-grid {
-      display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem;
-    }
-    .related-card {
-      border: 1px solid var(--border); background: var(--card-bg);
-      cursor: pointer; transition: transform 0.3s, border-color 0.3s;
-      animation: fadeUp 0.5s ease both;
-    }
-    .related-card:hover { transform: translateY(-4px); border-color: rgba(201,169,110,0.5); }
-    .related-img {
-      aspect-ratio: 1; background: rgba(0,64,64,0.35);
-      overflow: hidden; display: flex; align-items: center; justify-content: center;
-    }
-    .related-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s; }
-    .related-card:hover .related-img img { transform: scale(1.04); }
-    .related-img-placeholder {
-      font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase;
-      color: var(--gold); opacity: 0.25;
-    }
-    .related-body { padding: 1rem; }
-    .related-cat  { font-size: 0.56rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); opacity: 0.65; margin-bottom: 0.3rem; }
-    .related-name { font-family: 'Cormorant Garamond', serif; font-size: 1rem; font-weight: 400; color: var(--cream); margin-bottom: 0.4rem; }
-    .related-price { font-size: 0.72rem; color: var(--gold-light); }
-
-    /* ─── Reviews ─────────────────────────────────── */
-    .reviews-section { animation: fadeUp 0.6s ease 0.4s both; }
-    .reviews-header { margin-bottom: 2.5rem; }
-    .reviews-header h2 {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: clamp(1.5rem, 3vw, 2.2rem);
-      font-weight: 300; letter-spacing: 0.1em; color: var(--cream);
-    }
-
-    /* Rating summary */
-    .rating-summary {
-      display: flex; gap: 3rem; align-items: center;
-      background: var(--card-bg); border: 1px solid var(--border);
-      padding: 2rem; margin-bottom: 2rem;
-    }
-    .rating-big {
-      text-align: center; flex-shrink: 0;
-    }
-    .rating-number {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 3.5rem; font-weight: 300;
-      color: var(--gold); line-height: 1;
-    }
-    .rating-stars-big { font-size: 0.85rem; color: var(--gold); letter-spacing: 0.15em; margin: 0.25rem 0; }
-    .rating-count-label { font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); opacity: 0.55; }
-
-    .rating-bars { flex: 1; display: flex; flex-direction: column; gap: 0.4rem; }
-    .rating-bar-row { display: flex; align-items: center; gap: 0.75rem; }
-    .rating-bar-label { font-size: 0.6rem; letter-spacing: 0.1em; color: var(--text-muted); width: 12px; text-align: right; flex-shrink: 0; }
-    .rating-bar-track { flex: 1; height: 3px; background: rgba(255,248,231,0.08); }
-    .rating-bar-fill  { height: 100%; background: var(--gold); transition: width 0.8s ease; }
-    .rating-bar-count { font-size: 0.58rem; color: var(--text-muted); opacity: 0.5; width: 16px; flex-shrink: 0; }
-
-    /* Review cards */
-    .reviews-list { display: flex; flex-direction: column; gap: 0; }
-    .review-card {
-      border-bottom: 1px solid var(--border-dim); padding: 1.75rem 0;
-      animation: fadeUp 0.4s ease both;
-    }
-    .review-header {
-      display: flex; align-items: flex-start; justify-content: space-between;
-      gap: 1rem; margin-bottom: 0.75rem; flex-wrap: wrap;
-    }
-    .reviewer-name { font-size: 0.72rem; letter-spacing: 0.08em; color: var(--cream); }
-    .reviewer-date { font-size: 0.6rem; letter-spacing: 0.08em; color: var(--text-muted); opacity: 0.5; margin-top: 0.15rem; }
-    .review-stars  { font-size: 0.7rem; color: var(--gold); letter-spacing: 0.1em; }
-    .review-title  { font-family: 'Cormorant Garamond', serif; font-size: 1rem; font-weight: 400; color: var(--cream); margin-bottom: 0.4rem; }
-    .review-body   { font-size: 0.72rem; letter-spacing: 0.05em; color: var(--text-muted); line-height: 1.85; }
-    .verified-purchase {
-      font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase;
-      color: var(--success); border: 1px solid rgba(112,201,160,0.3);
-      padding: 0.18rem 0.5rem; display: inline-block; margin-top: 0.75rem;
-    }
-
-    /* Write review CTA */
-    .write-review {
-      text-align: center; padding: 3rem 2rem;
-      border: 1px solid var(--border-dim); background: var(--card-bg);
-      margin-top: 2rem;
-    }
-    .write-review p { font-size: 0.72rem; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 1.25rem; }
-    .btn-write-review {
-      display: inline-block; padding: 0.75rem 2.2rem;
-      font-family: 'Josefin Sans', sans-serif;
-      font-size: 0.62rem; letter-spacing: 0.28em; text-transform: uppercase;
-      color: var(--gold); border: 1px solid var(--border);
-      background: none; cursor: pointer; transition: all 0.25s;
-    }
-    .btn-write-review:hover { border-color: var(--gold); background: rgba(201,169,110,0.05); }
-
-    /* ─── Toast ───────────────────────────────────── */
-    .toast {
-      position: fixed; bottom: 2rem; right: 2rem; z-index: 999;
-      background: var(--gold); color: var(--teal);
-      font-family: 'Josefin Sans', sans-serif;
-      font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase;
-      padding: 0.75rem 1.5rem; opacity: 0; transition: opacity 0.3s;
-      pointer-events: none;
-    }
-    .toast.visible { opacity: 1; }
-
-    /* ─── Footer ──────────────────────────────────── */
-    .site-footer {
-      background: rgba(0,20,20,0.6); border-top: 1px solid var(--border);
-      padding: 4rem 2rem 2rem; position: relative; z-index: 1;
-    }
-    .footer-content { max-width: 1280px; margin: 0 auto; }
-    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
-    .footer-section h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 400; letter-spacing: 0.2em; color: var(--cream); margin-bottom: 0.5rem; }
-    .footer-section > p { font-size: 0.7rem; letter-spacing: 0.12em; color: var(--text-muted); }
-    .footer-section h4 { font-size: 0.6rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); opacity: 0.75; margin-bottom: 1.2rem; }
-    .footer-section a { display: block; font-size: 0.72rem; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.6rem; transition: color 0.2s; }
-    .footer-section a:hover { color: var(--gold); }
-    .footer-bottom { border-top: 1px solid var(--border); padding-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
-    .footer-bottom p { font-size: 0.62rem; letter-spacing: 0.12em; color: var(--text-muted); opacity: 0.6; }
-
-    /* ─── Animations ──────────────────────────────── */
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ─── Responsive ──────────────────────────────── */
-    @media (max-width: 1024px) {
-      .product-grid  { grid-template-columns: 1fr; gap: 3rem; }
-      .product-gallery { position: static; }
-      .related-grid  { grid-template-columns: repeat(2, 1fr); }
-      .footer-grid   { grid-template-columns: 1fr 1fr; gap: 2rem; }
-    }
-    @media (max-width: 768px) {
-      .desktop-only  { display: none; }
-      .menu-toggle   { display: block; }
-      .nav-left, .nav-right { min-width: auto; }
-      .trust-row     { flex-wrap: wrap; }
-      .trust-item    { min-width: calc(50% - 1px); }
-      .rating-summary { flex-direction: column; gap: 1.5rem; }
-    }
-    @media (max-width: 480px) {
-      .related-grid  { grid-template-columns: 1fr 1fr; }
-      .thumbnails    { gap: 0.4rem; }
-      .thumb         { width: 58px; height: 58px; }
-      .footer-grid   { grid-template-columns: 1fr; }
-      .footer-bottom { flex-direction: column; text-align: center; }
-    }
+    /* Utilities */
+    .result-count{font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted);opacity:0.55}
+    .btn-add{display:inline-flex;align-items:center;gap:0.4rem;padding:0.55rem 1.25rem;font-family:'Josefin Sans',sans-serif;font-size:0.6rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--teal);background:var(--gold);border:1px solid var(--gold);cursor:pointer;transition:all 0.25s}
+    .btn-add:hover{background:transparent;color:var(--gold)}
+    .btn-export{display:inline-flex;align-items:center;gap:0.4rem;padding:0.52rem 1.1rem;font-family:'Josefin Sans',sans-serif;font-size:0.58rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--text-muted);border:1px solid var(--border);background:none;cursor:pointer;transition:all 0.2s}
+    .btn-export:hover{border-color:var(--gold);color:var(--gold)}
+    .state-msg{text-align:center;padding:4rem 2rem;font-size:0.68rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-muted)}
+    .toast{position:fixed;bottom:2rem;right:2rem;z-index:300;background:var(--gold);color:var(--teal);font-family:'Josefin Sans',sans-serif;font-size:0.62rem;letter-spacing:0.2em;text-transform:uppercase;padding:0.75rem 1.5rem;opacity:0;transition:opacity 0.3s;pointer-events:none}
+    .toast.visible{opacity:1}
+    .admin-footer{padding:1.25rem 2.5rem;border-top:1px solid var(--border-dim);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem}
+    .admin-footer p{font-size:0.56rem;letter-spacing:0.12em;color:var(--text-muted);opacity:0.4}
+    .img-placeholder{opacity:0.1}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+    @media(max-width:1100px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:900px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.admin-main{margin-left:0}.sidebar-toggle{display:block}}
+    @media(max-width:600px){.page-content{padding:1.5rem}.modal-grid{grid-template-columns:1fr}}
   </style>
 </head>
-
 <body>
-
-  <!-- Toast -->
   <div class="toast" id="toast"></div>
 
-  <!-- Header -->
-  <header class="site-header">
-    <nav class="nav-container">
-      <div class="nav-left">
-        <button class="menu-toggle" id="menuToggle">☰</button>
-        <div class="nav-links desktop-only">
-          <a href="../catalog.html">Catalog</a>
-          <a href="../about.html">About</a>
+  <!-- Auth Gate -->
+  <div class="auth-gate" id="authGate">
+    <div class="auth-box">
+      <div class="auth-box-logo">ATELIER ĀKĀRA</div>
+      <div class="auth-box-sub">Studio Control</div>
+      <div class="auth-divider"></div>
+      <div class="auth-field"><label>Email</label><input type="email" id="adminEmail" placeholder="admin@akaraonline.co.in" autocomplete="email"></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="adminPassword" placeholder="••••••••" autocomplete="current-password"></div>
+      <button class="btn-auth" id="adminLoginBtn" onclick="handleAdminLogin()">Enter Studio</button>
+      <p class="auth-err" id="authErr"></p>
+    </div>
+  </div>
+
+  <!-- Add/Edit Product Modal -->
+  <div class="modal-overlay" id="productModal">
+    <div class="modal">
+      <h2 class="modal-title" id="modalTitle">Add Product</h2>
+      <p class="modal-sub" id="modalSub">Fill in the product details below</p>
+      <div class="modal-grid">
+        <div class="modal-field full">
+          <label>Product Name</label>
+          <input type="text" id="pName" placeholder="e.g. Vetra Planter" maxlength="120">
+        </div>
+        <div class="modal-field">
+          <label>Category</label>
+          <select id="pCategory">
+            <option value="Planter">Planter</option>
+            <option value="Vase">Vase</option>
+            <option value="Lighting">Lighting</option>
+          </select>
+        </div>
+        <div class="modal-field">
+          <label>Status</label>
+          <select id="pStatus">
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
+          </select>
+        </div>
+        <div class="modal-field">
+          <label>Retail Price (₹, GST-inclusive)</label>
+          <input type="number" id="pPrice" placeholder="649" min="0" step="1">
+        </div>
+        <div class="modal-field">
+          <label>Trade Price (₹, wholesale)</label>
+          <input type="number" id="pTradePrice" placeholder="455" min="0" step="1">
+        </div>
+        <div class="modal-field">
+          <label>Dimensions</label>
+          <input type="text" id="pDimensions" placeholder="23 × 13 × 8 cm" maxlength="100">
+        </div>
+        <div class="modal-field">
+          <label>Weight</label>
+          <input type="text" id="pWeight" placeholder="300g" maxlength="50">
+        </div>
+        <div class="modal-field full">
+          <label>Description</label>
+          <textarea id="pDescription" placeholder="Describe the product in 2–3 sentences..." maxlength="1000"></textarea>
+        </div>
+        <div class="modal-field full">
+          <label>Available Colours (press Enter to add)</label>
+          <div class="tags-wrap" id="colourTags" onclick="document.getElementById('colourInput').focus()">
+            <input type="text" class="tag-input" id="colourInput" placeholder="e.g. Beige, Black...">
+          </div>
+        </div>
+        <div class="modal-field full">
+          <label>Amazon URL (optional)</label>
+          <input type="url" id="pAmazonUrl" placeholder="https://amazon.in/..." maxlength="500">
+        </div>
+        <div class="modal-field full">
+          <label>SKU / Product ID</label>
+          <input type="text" id="pSku" placeholder="PFL-AKR-00001" maxlength="50">
+        </div>
+        <hr class="modal-divider">
+        <p class="modal-section-label">Product Images</p>
+        <div class="modal-field full">
+          <div class="img-upload-zone" id="imgUploadZone" onclick="document.getElementById('imgFileInput').click()">
+            <div class="img-upload-label">Click to upload images</div>
+            <div class="img-upload-hint">JPEG, PNG, WebP · Max 5MB each · Up to 6 images</div>
+          </div>
+          <input type="file" id="imgFileInput" accept="image/jpeg,image/png,image/webp" multiple style="display:none" onchange="handleImageUpload(this.files)">
+          <div class="img-previews" id="imgPreviews"></div>
+        </div>
+        <hr class="modal-divider">
+        <p class="modal-section-label">Stock</p>
+        <div class="modal-field">
+          <label>Current Stock</label>
+          <input type="number" id="pStock" placeholder="0" min="0" step="1">
+        </div>
+        <div class="modal-field">
+          <label>Low Stock Alert at</label>
+          <input type="number" id="pLowStock" placeholder="5" min="0" step="1" value="5">
         </div>
       </div>
-      <a href="../index.html" class="brand-logo">ATELIER ĀKĀRA</a>
-      <div class="nav-right">
-        <a href="../contact.html" class="nav-link desktop-only">Contact</a>
-        <a href="../user/cart.html" class="cart-link">🛒 <span id="cartCount">0</span></a>
-        <a href="../user/profile.html" style="font-size:0.75rem;color:var(--text-muted);">👤</a>
-      </div>
-    </nav>
-  </header>
-
-  <nav class="mobile-nav" id="mobileNav">
-    <a href="../catalog.html">Catalog</a>
-    <a href="../about.html">About</a>
-    <a href="../contact.html">Contact</a>
-    <a href="../user/cart.html">Cart</a>
-    <a href="../user/profile.html">My Account</a>
-  </nav>
-
-  <!-- Page -->
-  <main class="product-page">
-
-    <!-- Breadcrumbs -->
-    <nav class="breadcrumbs">
-      <a href="../index.html">Home</a>
-      <span class="sep">/</span>
-      <a href="../catalog.html">Catalog</a>
-      <span class="sep">/</span>
-      <span id="breadcrumbName">Loading…</span>
-    </nav>
-
-    <!-- Product Detail -->
-    <div class="product-grid" id="productGrid">
-
-      <!-- Gallery -->
-      <div class="product-gallery">
-        <div class="main-image-wrap" id="mainImageWrap" onclick="openZoom()">
-          <div class="img-placeholder" id="imgPlaceholder">
-            <svg class="img-placeholder-geo" width="120" height="120" viewBox="0 0 120 120" fill="none">
-              <polygon points="60,6 114,33 114,87 60,114 6,87 6,33" stroke="#c9a96e" stroke-width="1"/>
-              <polygon points="60,22 98,43 98,77 60,98 22,77 22,43" stroke="#c9a96e" stroke-width="0.7" opacity="0.6"/>
-              <polygon points="60,38 82,51 82,69 60,82 38,69 38,51" stroke="#c9a96e" stroke-width="0.5" opacity="0.4"/>
-              <circle cx="60" cy="60" r="4" fill="#c9a96e" opacity="0.35"/>
-            </svg>
-            <span class="img-placeholder-label">Image</span>
-          </div>
-          <img id="mainImage" src="" alt="" style="display:none;" loading="eager">
-          <div class="image-tags" id="imageTags"></div>
-          <span class="zoom-badge">⊕ Zoom</span>
-        </div>
-        <div class="thumbnails" id="thumbnails"></div>
-      </div>
-
-      <!-- Info -->
-      <div class="product-info" id="productInfo">
-
-        <p class="product-category" id="productCategory">Loading</p>
-        <h1 class="product-title" id="productTitle">—</h1>
-
-        <div class="product-rating">
-          <span class="stars" id="starsDisplay">☆☆☆☆☆</span>
-          <span class="review-count" id="reviewCountLabel" onclick="scrollToReviews()">0 reviews</span>
-        </div>
-
-        <div class="info-divider"></div>
-
-        <div class="price-row">
-          <span class="product-price" id="productPrice">—</span>
-          <span class="product-price-original" id="productOriginalPrice" style="display:none;"></span>
-        </div>
-        <p class="price-gst-note">GST included (18%) &nbsp;·&nbsp; Free shipping above ₹2,500</p>
-
-        <!-- Variants: Size -->
-        <div class="variant-group" id="sizeGroup" style="display:none;">
-          <div class="variant-label">
-            Size
-            <span class="variant-selected" id="selectedSize"></span>
-          </div>
-          <div class="variant-options" id="sizeOptions"></div>
-        </div>
-
-        <!-- Variants: Color -->
-        <div class="variant-group" id="colorGroup" style="display:none;">
-          <div class="variant-label">
-            Colour
-            <span class="variant-selected" id="selectedColor"></span>
-          </div>
-          <div class="variant-options" id="colorOptions"></div>
-        </div>
-
-        <!-- Stock -->
-        <div class="stock-row" id="stockRow">
-          <div class="stock-dot in-stock"></div>
-          <span class="stock-text in-stock" id="stockText">In Stock</span>
-        </div>
-
-        <!-- Quantity -->
-        <div class="qty-row">
-          <span class="qty-label">Quantity</span>
-          <div class="qty-stepper">
-            <button class="qty-btn" id="qtyMinus" onclick="changeQty(-1)">−</button>
-            <input class="qty-value" type="number" id="qtyInput" value="1" min="1" max="99" onchange="clampQty()">
-            <button class="qty-btn" id="qtyPlus" onclick="changeQty(1)">+</button>
-          </div>
-        </div>
-
-        <!-- CTAs -->
-        <div class="product-actions">
-          <button class="btn-add-cart" id="addCartBtn" onclick="addToCart()">
-            <span id="addCartLabel">Add to Cart</span>
-          </button>
-          <button class="btn-buy-now" onclick="buyNow()">Buy Now</button>
-          <button class="btn-wishlist" id="wishlistBtn" onclick="toggleWishlist()">
-            <span id="wishlistIcon">♡</span> Add to Wishlist
-          </button>
-        </div>
-
-        <!-- Trust -->
-        <div class="trust-row">
-          <div class="trust-item">
-            <div class="trust-item-icon">🔒</div>Secure Checkout
-          </div>
-          <div class="trust-item">
-            <div class="trust-item-icon">↩</div>7-Day Returns
-          </div>
-          <div class="trust-item">
-            <div class="trust-item-icon">✓</div>GST Invoice
-          </div>
-          <div class="trust-item">
-            <div class="trust-item-icon">🇮🇳</div>Made in India
-          </div>
-        </div>
-
-        <!-- Accordion -->
-        <div class="accordion" id="accordion">
-
-          <div class="accordion-item open" data-key="description">
-            <button class="accordion-trigger" onclick="toggleAccordion(this)">
-              Description <span class="accordion-icon">+</span>
-            </button>
-            <div class="accordion-body">
-              <p id="productDescription">Loading product information…</p>
-            </div>
-          </div>
-
-          <div class="accordion-item" data-key="specs">
-            <button class="accordion-trigger" onclick="toggleAccordion(this)">
-              Specifications <span class="accordion-icon">+</span>
-            </button>
-            <div class="accordion-body">
-              <div class="spec-grid" id="specsGrid">
-                <div class="spec-row"><span class="spec-key">Material</span><span class="spec-val" id="specMaterial">—</span></div>
-                <div class="spec-row"><span class="spec-key">Dimensions</span><span class="spec-val" id="specDimensions">—</span></div>
-                <div class="spec-row"><span class="spec-key">Weight</span><span class="spec-val" id="specWeight">—</span></div>
-                <div class="spec-row"><span class="spec-key">Finish</span><span class="spec-val" id="specFinish">—</span></div>
-                <div class="spec-row"><span class="spec-key">Usage</span><span class="spec-val">Indoor use only</span></div>
-                <div class="spec-row"><span class="spec-key">Tolerance</span><span class="spec-val">±2–3mm</span></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="accordion-item" data-key="shipping">
-            <button class="accordion-trigger" onclick="toggleAccordion(this)">
-              Shipping & Returns <span class="accordion-icon">+</span>
-            </button>
-            <div class="accordion-body">
-              <ul>
-                <li>Standard delivery 5–8 business days across India</li>
-                <li>Express delivery 2–3 business days (₹199)</li>
-                <li>Free standard shipping on orders above ₹2,500</li>
-                <li>7-day return policy for damaged or defective items</li>
-                <li>Custom colour orders are final — no returns</li>
-                <li>GST invoice issued on all orders</li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="accordion-item" data-key="care">
-            <button class="accordion-trigger" onclick="toggleAccordion(this)">
-              Care Instructions <span class="accordion-icon">+</span>
-            </button>
-            <div class="accordion-body">
-              <ul>
-                <li>Wipe clean with a dry or lightly damp cloth</li>
-                <li>Avoid prolonged exposure to direct sunlight</li>
-                <li>Do not submerge in water</li>
-                <li>Indoor use only — not suitable for outdoor environments</li>
-                <li>Handle with care — decorative piece, not load-bearing</li>
-              </ul>
-            </div>
-          </div>
-
-        </div>
+      <div class="modal-actions">
+        <button class="btn-modal-save" id="saveProductBtn" onclick="saveProduct()">Save Product</button>
+        <button class="btn-modal-cancel" onclick="closeProductModal()">Cancel</button>
       </div>
     </div>
+  </div>
 
-    <!-- Related Products -->
-    <section class="related-section">
-      <div class="related-header">
+  <!-- Confirm Delete Modal -->
+  <div class="modal-overlay" id="confirmModal">
+    <div class="modal confirm-modal">
+      <h2 class="modal-title">Delete Product?</h2>
+      <p id="confirmText">This will permanently delete the product. Orders referencing it will retain the data. This cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="btn-modal-save" style="background:var(--error);border-color:var(--error);" onclick="confirmDelete()">Delete</button>
+        <button class="btn-modal-cancel" onclick="document.getElementById('confirmModal').classList.remove('open')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-name">ĀKĀRA</div>
+      <div class="sidebar-brand-tag">Studio Control</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="sidebar-link"><span class="link-icon">⬡</span> Dashboard</a>
+      <div class="nav-section-label">Manage</div>
+      <a href="admin-orders.html" class="sidebar-link"><span class="link-icon">↗</span> Orders</a>
+      <a href="products.html" class="sidebar-link active"><span class="link-icon">◈</span> Products</a>
+      <a href="inventory.html" class="sidebar-link"><span class="link-icon">⬡</span> Inventory</a>
+      <a href="customers.html" class="sidebar-link"><span class="link-icon">🛍</span> Customers</a>
+      <a href="users.html" class="sidebar-link"><span class="link-icon">👥</span> Members</a>
+      <div class="nav-section-label">Analytics</div>
+      <a href="reports.html" class="sidebar-link"><span class="link-icon">↑</span> Reports</a>
+      <div class="nav-section-label">System</div>
+      <a href="settings.html" class="sidebar-link"><span class="link-icon">⊙</span> Settings</a>
+      <a href="support.html" class="sidebar-link"><span class="link-icon">💬</span> Support</a>
+    </nav>
+    <div class="sidebar-footer">
+      <p class="sidebar-user-email" id="sidebarEmail">—</p>
+      <button class="btn-signout" onclick="handleSignOut()">Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="admin-main" id="adminMain">
+    <div class="top-bar">
+      <div class="top-bar-left">
+        <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
         <div>
-          <p class="section-label">Explore More</p>
-          <h2>You May Also Like</h2>
-        </div>
-        <a href="../catalog.html" style="font-size:0.62rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);opacity:0.7;transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7">View All →</a>
-      </div>
-      <div class="related-grid" id="relatedGrid">
-        <!-- Populated by JS -->
-      </div>
-    </section>
-
-    <!-- Reviews -->
-    <section class="reviews-section" id="reviewsSection">
-      <div class="reviews-header">
-        <p class="section-label">What Our Customers Say</p>
-        <h2>Customer Reviews</h2>
-      </div>
-
-      <div class="rating-summary" id="ratingSummary">
-        <div class="rating-big">
-          <div class="rating-number" id="avgRating">—</div>
-          <div class="rating-stars-big" id="avgStars">☆☆☆☆☆</div>
-          <div class="rating-count-label" id="ratingCountLabel">0 reviews</div>
-        </div>
-        <div class="rating-bars" id="ratingBars">
-          <!-- Populated by JS -->
+          <div class="top-bar-title">Products</div>
+          <nav class="breadcrumb"><a href="dashboard.html">Dashboard</a><span>/</span> Products</nav>
         </div>
       </div>
-
-      <div class="reviews-list" id="reviewsList">
-        <div style="text-align:center;padding:3rem;font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-muted);">Loading reviews…</div>
-      </div>
-
-      <div class="write-review">
-        <p>Purchased this product? Share your experience.</p>
-        <button class="btn-write-review" onclick="openWriteReview()">Write a Review</button>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- Footer -->
-  <footer class="site-footer">
-    <div class="footer-content">
-      <div class="footer-grid">
-        <div class="footer-section">
-          <h3>ATELIER ĀKĀRA</h3>
-          <p>Artifacts for the Modern Spaces</p>
-        </div>
-        <div class="footer-section">
-          <h4>Shop</h4>
-          <a href="../catalog.html">All Products</a>
-          <a href="../catalog.html?category=planters">Planters</a>
-          <a href="../catalog.html?category=vases">Vases</a>
-          <a href="../catalog.html?category=lighting">Lighting</a>
-        </div>
-        <div class="footer-section">
-          <h4>Information</h4>
-          <a href="../about.html">About Us</a>
-          <a href="../contact.html">Contact</a>
-          <a href="../privacy.html">Privacy Policy</a>
-          <a href="../terms.html">Terms of Service</a>
-        </div>
-        <div class="footer-section">
-          <h4>Connect</h4>
-          <a href="https://instagram.com/atelier.akara" target="_blank">Instagram</a>
-          <a href="mailto:support@akaraonline.co.in">Email Us</a>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <p>Precision Forge Labs &nbsp;|&nbsp; GST: 27GZCPS9353H1ZQ</p>
-        <p>© <span id="year"></span> Atelier Ākāra. All rights reserved.</p>
+      <div class="top-bar-right">
+        <div class="live-dot"></div>
+        <span class="top-bar-time" id="liveClock"></span>
+        <a href="../index.html" style="font-size:0.58rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-muted);transition:color 0.2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text-muted)'">← Store</a>
       </div>
     </div>
-  </footer>
+
+    <div class="page-content">
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-icon">◈</div><div class="stat-value" id="statTotal">—</div><div class="stat-label">Total Products</div></div>
+        <div class="stat-card"><div class="stat-icon">✓</div><div class="stat-value" id="statActive">—</div><div class="stat-label">Active</div></div>
+        <div class="stat-card"><div class="stat-icon">⚠</div><div class="stat-value" id="statLow">—</div><div class="stat-label">Low Stock</div></div>
+        <div class="stat-card"><div class="stat-icon">✕</div><div class="stat-value" id="statOut">—</div><div class="stat-label">Out of Stock</div></div>
+      </div>
+
+      <!-- Product Table -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2>All Products</h2>
+          <div class="section-header-right">
+            <span class="result-count" id="resultCount"></span>
+            <button class="btn-export" onclick="exportCSV()">↓ Export</button>
+            <button class="btn-add" onclick="openAddModal()">+ Add Product</button>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <div class="search-wrap">
+              <span class="search-icon">⌕</span>
+              <input type="text" class="search-input" id="searchInput" placeholder="Search products…" oninput="applyFilters()">
+            </div>
+            <select class="filter-select" id="sortSelect" onchange="applyFilters()">
+              <option value="name_az">Name A–Z</option>
+              <option value="name_za">Name Z–A</option>
+              <option value="price_asc">Price: Low to High</option>
+              <option value="price_desc">Price: High to Low</option>
+              <option value="stock_asc">Stock: Low to High</option>
+              <option value="newest">Newest First</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filter-tabs-wrap">
+          <div class="filter-tabs">
+            <button class="filter-tab active" onclick="setFilter('all',this)">All</button>
+            <button class="filter-tab" onclick="setFilter('Planter',this)">Planters</button>
+            <button class="filter-tab" onclick="setFilter('Vase',this)">Vases</button>
+            <button class="filter-tab" onclick="setFilter('Lighting',this)">Lighting</button>
+            <button class="filter-tab" onclick="setFilter('inactive',this)">Inactive</button>
+            <button class="filter-tab" onclick="setFilter('low_stock',this)">Low Stock</button>
+          </div>
+        </div>
+
+        <div class="product-grid-admin" id="productGrid">
+          <div class="state-msg" style="grid-column:1/-1">Loading products…</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-footer">
+      <p>Precision Forge Labs &nbsp;|&nbsp; GST: 27GZCPS9353H1ZQ</p>
+      <p>Studio Control v1.0 &nbsp;·&nbsp; Atelier Ākāra</p>
+    </div>
+  </div>
 
   <script>
-    // ─────────────────────────────────────────────────
-    // CREDENTIALS
-    // ─────────────────────────────────────────────────
     const SUPABASE_URL      = '';
     const SUPABASE_ANON_KEY = '';
+    const ADMIN_EMAIL       = 'support@akaraonline.co.in';
+    const LOW_STOCK_THRESHOLD = 5;
 
-    let supabase     = null;
-    let product      = null;
-    let selectedSize  = null;
-    let selectedColor = null;
-    let wishlisted    = false;
-
-    document.getElementById('year').textContent = new Date().getFullYear();
+    let supabase       = null;
+    let allProducts    = [];
+    let filteredProducts = [];
+    let activeFilter   = 'all';
+    let editingId      = null;
+    let deleteId       = null;
+    let colourTags     = [];
+    let uploadedImages = [];
 
     if (SUPABASE_URL && SUPABASE_ANON_KEY) {
       supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
-    // ── Mobile menu ────────────────────────────────────
-    document.getElementById('menuToggle').addEventListener('click', () =>
-      document.getElementById('mobileNav').classList.toggle('open'));
+    setInterval(() => {
+      document.getElementById('liveClock').textContent =
+        new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    }, 1000);
 
-    // ── Cart count ─────────────────────────────────────
-    function updateCartCount() {
-      const cart  = JSON.parse(localStorage.getItem('akara_cart') || '[]');
-      const total = cart.reduce((s, i) => s + (i.qty || 1), 0);
-      document.getElementById('cartCount').textContent = total;
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+    // Auth
+    async function handleAdminLogin() {
+      const email = document.getElementById('adminEmail').value.trim();
+      const pass  = document.getElementById('adminPassword').value;
+      const btn   = document.getElementById('adminLoginBtn');
+      const errEl = document.getElementById('authErr');
+      btn.disabled = true; btn.textContent = 'Verifying…';
+      errEl.classList.remove('visible');
+      if (!supabase) { await new Promise(r => setTimeout(r,700)); showDashboard('demo@akaraonline.co.in'); return; }
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
+      btn.disabled = false; btn.textContent = 'Enter Studio';
+      if (error) { errEl.textContent = error.message; errEl.classList.add('visible'); return; }
+      if (data.user.email !== ADMIN_EMAIL) { await supabase.auth.signOut(); errEl.textContent = 'Access denied.'; errEl.classList.add('visible'); return; }
+      showDashboard(data.user.email);
     }
-    updateCartCount();
 
-    // ── Get product ID from URL ─────────────────────────
-    // Expected URL: /product/[id].html  OR  /product.html?id=[id]
-    const pathMatch = window.location.pathname.match(/\/product\/([^/]+)\.html/);
-    const urlParams = new URLSearchParams(window.location.search);
-    const PRODUCT_ID = pathMatch?.[1] || urlParams.get('id') || null;
+    function showDashboard(email) {
+      document.getElementById('authGate').classList.add('hidden');
+      document.getElementById('sidebarEmail').textContent = email;
+      loadProducts();
+    }
 
-    // ── Load product ────────────────────────────────────
-    async function loadProduct() {
-      if (!supabase || !PRODUCT_ID) {
-        renderProduct(DEMO_PRODUCT);
-        return;
-      }
+    async function handleSignOut() {
+      if (supabase) await supabase.auth.signOut();
+      document.getElementById('authGate').classList.remove('hidden');
+    }
+
+    async function checkSession() {
+      if (!supabase) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session && session.user.email === ADMIN_EMAIL) showDashboard(session.user.email);
+    }
+    checkSession();
+
+    document.getElementById('adminPassword')?.addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleAdminLogin();
+    });
+
+    // Load products
+    async function loadProducts() {
+      if (!supabase) { allProducts = DEMO_PRODUCTS; computeStats(); applyFilters(); return; }
       try {
-        const { data, error } = await supabase
-          .from('products')
-          .select('*')
-          .eq('id', PRODUCT_ID)
-          .single();
-
-        if (error || !data) throw new Error('Not found');
-        renderProduct(data);
-
-        // Track product view
-        supabase.from('product_views').insert([{
-          product_id: PRODUCT_ID,
-          viewed_at: new Date().toISOString(),
-        }]).catch(() => {});
-
-      } catch (e) {
-        console.error(e);
-        renderProduct(DEMO_PRODUCT);
-      }
+        const { data, error } = await supabase.from('products').select('*').order('name');
+        if (error) throw error;
+        allProducts = data || [];
+      } catch { allProducts = DEMO_PRODUCTS; }
+      computeStats(); applyFilters();
     }
 
-    // ── Render product ──────────────────────────────────
-    function renderProduct(p) {
-      product = p;
-      document.title = `${p.name} — Atelier Ākāra`;
-      document.getElementById('pageTitle').textContent = `${p.name} — Atelier Ākāra`;
-
-      // Breadcrumb
-      document.getElementById('breadcrumbName').textContent = p.name;
-
-      // Category / title
-      document.getElementById('productCategory').textContent = p.category || 'Home Décor';
-      document.getElementById('productTitle').textContent    = p.name;
-
-      // Price
-      document.getElementById('productPrice').textContent = '₹' + Number(p.price).toLocaleString('en-IN');
-      if (p.original_price && p.original_price > p.price) {
-        const orig = document.getElementById('productOriginalPrice');
-        orig.textContent = '₹' + Number(p.original_price).toLocaleString('en-IN');
-        orig.style.display = 'inline';
-      }
-
-      // Description
-      document.getElementById('productDescription').textContent = p.description || DEMO_PRODUCT.description;
-
-      // Specs
-      document.getElementById('specMaterial').textContent   = p.material    || 'Plant-based PLA';
-      document.getElementById('specDimensions').textContent = p.dimensions  || '—';
-      document.getElementById('specWeight').textContent     = p.weight      || '—';
-      document.getElementById('specFinish').textContent     = p.finish      || 'Matte';
-
-      // Image
-      if (p.image_url) {
-        const img = document.getElementById('mainImage');
-        img.src = p.image_url; img.alt = p.name;
-        img.style.display = 'block';
-        document.getElementById('imgPlaceholder').style.display = 'none';
-        img.onload = () => document.getElementById('imgPlaceholder').style.display = 'none';
-      }
-
-      // Thumbnails
-      renderThumbnails(p.images || (p.image_url ? [p.image_url] : []));
-
-      // Tags
-      renderImageTags(p);
-
-      // Stock
-      renderStock(p.stock);
-
-      // Sizes
-      if (p.sizes?.length) {
-        document.getElementById('sizeGroup').style.display = 'block';
-        const opts = document.getElementById('sizeOptions');
-        opts.innerHTML = p.sizes.map(s => `
-          <button class="variant-btn${s.available === false ? ' unavailable' : ''}"
-            onclick="selectSize('${s.name}', this)"
-            ${s.available === false ? 'disabled' : ''}>
-            ${s.name}
-          </button>`).join('');
-        // Auto-select first available
-        const firstAvail = p.sizes.find(s => s.available !== false);
-        if (firstAvail) {
-          selectSize(firstAvail.name, opts.querySelector('.variant-btn:not(.unavailable)'));
-        }
-      }
-
-      // Colors
-      if (p.colors?.length) {
-        document.getElementById('colorGroup').style.display = 'block';
-        const opts = document.getElementById('colorOptions');
-        opts.innerHTML = p.colors.map(c => `
-          <div class="color-swatch${c.available === false ? ' unavailable' : ''}"
-            style="background:${c.hex}"
-            title="${c.name}"
-            onclick="selectColor('${c.name}', this)"></div>`).join('');
-        // Auto-select first available
-        const firstAvail = p.colors.find(c => c.available !== false);
-        if (firstAvail) {
-          selectColor(firstAvail.name, opts.querySelector('.color-swatch:not(.unavailable)'));
-        }
-      }
-
-      // Reviews
-      renderReviews(p.reviews || DEMO_REVIEWS);
-
-      // Related
-      loadRelated(p.category, p.id);
+    function computeStats() {
+      document.getElementById('statTotal').textContent  = allProducts.length;
+      document.getElementById('statActive').textContent = allProducts.filter(p => p.is_active !== false).length;
+      document.getElementById('statLow').textContent    = allProducts.filter(p => (p.stock||0) > 0 && (p.stock||0) <= LOW_STOCK_THRESHOLD).length;
+      document.getElementById('statOut').textContent    = allProducts.filter(p => (p.stock||0) === 0).length;
     }
 
-    // ── Thumbnails ─────────────────────────────────────
-    function renderThumbnails(images) {
-      const container = document.getElementById('thumbnails');
-      if (!images.length) return;
-      container.innerHTML = images.slice(0, 5).map((src, i) => `
-        <div class="thumb${i === 0 ? ' active' : ''}" onclick="setMainImage('${src}', this)">
-          <img src="${src}" alt="" loading="lazy"
-            onerror="this.parentElement.innerHTML='<div class=thumb-placeholder>Img</div>'">
-        </div>`).join('');
+    function setFilter(f, btn) {
+      activeFilter = f;
+      document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      applyFilters();
     }
 
-    function setMainImage(src, thumb) {
-      const img = document.getElementById('mainImage');
-      img.src = src; img.style.display = 'block';
-      document.getElementById('imgPlaceholder').style.display = 'none';
-      document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
-      thumb?.classList.add('active');
+    function applyFilters() {
+      const q    = document.getElementById('searchInput').value.toLowerCase().trim();
+      const sort = document.getElementById('sortSelect').value;
+
+      let result = allProducts.filter(p => {
+        const matchQ = !q || (p.name||'').toLowerCase().includes(q) || (p.sku||'').toLowerCase().includes(q);
+        const matchF =
+          activeFilter === 'all'       ? true :
+          activeFilter === 'inactive'  ? p.is_active === false :
+          activeFilter === 'low_stock' ? (p.stock||0) <= LOW_STOCK_THRESHOLD :
+          p.category === activeFilter;
+        return matchQ && matchF;
+      });
+
+      result.sort((a,b) => {
+        if (sort === 'name_za')    return (b.name||'').localeCompare(a.name||'');
+        if (sort === 'price_asc')  return (a.price||0)-(b.price||0);
+        if (sort === 'price_desc') return (b.price||0)-(a.price||0);
+        if (sort === 'stock_asc')  return (a.stock||0)-(b.stock||0);
+        if (sort === 'newest')     return new Date(b.created_at||0)-new Date(a.created_at||0);
+        return (a.name||'').localeCompare(b.name||'');
+      });
+
+      filteredProducts = result;
+      document.getElementById('resultCount').textContent = `${result.length} product${result.length!==1?'s':''}`;
+      renderProducts(result);
     }
 
-    // ── Image tags ─────────────────────────────────────
-    function renderImageTags(p) {
-      const tags   = [];
-      const now    = Date.now();
-      const joined = p.created_at ? now - new Date(p.created_at) : Infinity;
-      if (joined < 30 * 86400000) tags.push('<span class="image-tag new">New</span>');
-      if (p.stock != null && p.stock > 0 && p.stock <= 5) tags.push('<span class="image-tag low-stock">Only ' + p.stock + ' left</span>');
-      if (p.is_bestseller) tags.push('<span class="image-tag bestseller">Bestseller</span>');
-      document.getElementById('imageTags').innerHTML = tags.join('');
-    }
+    function renderProducts(products) {
+      const grid = document.getElementById('productGrid');
+      if (!products.length) { grid.innerHTML = '<div class="state-msg" style="grid-column:1/-1">No products found</div>'; return; }
 
-    // ── Stock ──────────────────────────────────────────
-    function renderStock(stock) {
-      const dot  = document.querySelector('.stock-dot');
-      const text = document.getElementById('stockText');
-      const btn  = document.getElementById('addCartBtn');
+      grid.innerHTML = products.map((p, i) => {
+        const stock     = p.stock || 0;
+        const stockClass = stock === 0 ? 'out' : stock <= LOW_STOCK_THRESHOLD ? 'low' : '';
+        const stockLabel = stock === 0 ? 'Out of stock' : stock <= LOW_STOCK_THRESHOLD ? `Low stock — ${stock} left` : `${stock} in stock`;
+        const colours   = Array.isArray(p.colors) ? p.colors.join(', ') : (p.colors || '—');
 
-      if (stock === 0) {
-        dot.className  = 'stock-dot out-stock';
-        text.className = 'stock-text out-stock'; text.textContent = 'Out of Stock';
-        btn.disabled   = true;
-      } else if (stock != null && stock <= 5) {
-        dot.className  = 'stock-dot low-stock';
-        text.className = 'stock-text low-stock'; text.textContent = `Only ${stock} left`;
-      } else {
-        dot.className  = 'stock-dot in-stock';
-        text.className = 'stock-text in-stock';  text.textContent = 'In Stock';
-      }
-    }
-
-    // ── Variants ───────────────────────────────────────
-    function selectSize(name, el) {
-      selectedSize = name;
-      document.querySelectorAll('#sizeOptions .variant-btn').forEach(b => b.classList.remove('active'));
-      el?.classList.add('active');
-      document.getElementById('selectedSize').textContent = name;
-    }
-
-    function selectColor(name, el) {
-      selectedColor = name;
-      document.querySelectorAll('#colorOptions .color-swatch').forEach(s => s.classList.remove('active'));
-      el?.classList.add('active');
-      document.getElementById('selectedColor').textContent = name;
-    }
-
-    // ── Quantity ───────────────────────────────────────
-    function changeQty(delta) {
-      const input = document.getElementById('qtyInput');
-      const val   = Math.max(1, Math.min(99, parseInt(input.value) + delta));
-      input.value = val;
-      document.getElementById('qtyMinus').disabled = val <= 1;
-    }
-    function clampQty() {
-      const input = document.getElementById('qtyInput');
-      input.value = Math.max(1, Math.min(99, parseInt(input.value) || 1));
-      document.getElementById('qtyMinus').disabled = parseInt(input.value) <= 1;
-    }
-
-    // ── Add to Cart ────────────────────────────────────
-    function addToCart() {
-      if (!product) return;
-      const qty  = parseInt(document.getElementById('qtyInput').value) || 1;
-      const cart = JSON.parse(localStorage.getItem('akara_cart') || '[]');
-      const key  = `${product.id}_${selectedSize || ''}_${selectedColor || ''}`;
-      const existing = cart.find(i => i.key === key);
-
-      if (existing) {
-        existing.qty = (existing.qty || 1) + qty;
-      } else {
-        cart.push({
-          id:       product.id,
-          key,
-          name:     product.name,
-          price:    product.price,
-          image_url:product.image_url || '',
-          category: product.category || '',
-          size:     selectedSize,
-          color:    selectedColor,
-          qty,
-        });
-      }
-      localStorage.setItem('akara_cart', JSON.stringify(cart));
-      updateCartCount();
-
-      // Button feedback
-      const btn   = document.getElementById('addCartBtn');
-      const label = document.getElementById('addCartLabel');
-      btn.classList.add('added');
-      label.textContent = '✓ Added to Cart';
-      setTimeout(() => { btn.classList.remove('added'); label.textContent = 'Add to Cart'; }, 2000);
-
-      showToast(`${product.name} added to cart`);
-    }
-
-    // ── Buy Now ────────────────────────────────────────
-    function buyNow() {
-      addToCart();
-      window.location.href = '../user/order.html';
-    }
-
-    // ── Wishlist ───────────────────────────────────────
-    function toggleWishlist() {
-      wishlisted = !wishlisted;
-      const btn  = document.getElementById('wishlistBtn');
-      const icon = document.getElementById('wishlistIcon');
-      btn.classList.toggle('wishlisted', wishlisted);
-      icon.textContent = wishlisted ? '♥' : '♡';
-      btn.querySelector('span + *') // update label
-      showToast(wishlisted ? 'Added to wishlist' : 'Removed from wishlist');
-    }
-
-    // ── Accordion ─────────────────────────────────────
-    function toggleAccordion(trigger) {
-      const item = trigger.closest('.accordion-item');
-      item.classList.toggle('open');
-    }
-
-    // ── Zoom ───────────────────────────────────────────
-    function openZoom() {
-      const src = document.getElementById('mainImage').src;
-      if (!src || src.endsWith('product.html') || src.endsWith('/')) return;
-      const overlay = document.createElement('div');
-      overlay.style.cssText = `position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;cursor:zoom-out;`;
-      overlay.innerHTML = `<img src="${src}" style="max-width:90vw;max-height:90vh;object-fit:contain;">`;
-      overlay.onclick = () => overlay.remove();
-      document.body.appendChild(overlay);
-    }
-
-    // ── Reviews ────────────────────────────────────────
-    function renderReviews(reviews) {
-      if (!reviews.length) {
-        document.getElementById('reviewsList').innerHTML =
-          '<div style="text-align:center;padding:2rem;font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-muted);">No reviews yet — be the first!</div>';
-        document.getElementById('avgRating').textContent = '—';
-        renderRatingBars([]);
-        return;
-      }
-
-      const avg = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length;
-      document.getElementById('avgRating').textContent   = avg.toFixed(1);
-      document.getElementById('avgStars').textContent    = renderStars(avg);
-      document.getElementById('ratingCountLabel').textContent = `${reviews.length} review${reviews.length !== 1 ? 's' : ''}`;
-      document.getElementById('reviewCountLabel').textContent = `${reviews.length} review${reviews.length !== 1 ? 's' : ''}`;
-      document.getElementById('starsDisplay').textContent    = renderStars(avg);
-
-      renderRatingBars(reviews);
-
-      document.getElementById('reviewsList').innerHTML = reviews.map((r, i) => `
-        <div class="review-card" style="animation-delay:${i * 0.06}s">
-          <div class="review-header">
-            <div>
-              <div class="reviewer-name">${r.name}</div>
-              <div class="reviewer-date">${new Date(r.date).toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' })}</div>
+        return `
+          <div class="product-card-admin${p.is_active===false?' inactive':''}" style="animation-delay:${i*0.04}s">
+            <div class="card-img-wrap">
+              ${p.image_url
+                ? `<img src="${p.image_url}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'">`
+                : geoSVG()}
+              <span class="card-status-badge ${p.is_active!==false?'badge-active':'badge-inactive'}">${p.is_active!==false?'Active':'Inactive'}</span>
             </div>
-            <span class="review-stars">${renderStars(r.rating)}</span>
-          </div>
-          ${r.title ? `<div class="review-title">${r.title}</div>` : ''}
-          <div class="review-body">${r.body}</div>
-          ${r.verified ? '<span class="verified-purchase">✓ Verified Purchase</span>' : ''}
-        </div>`).join('');
+            <div class="card-body-admin">
+              <p class="card-category">${p.category}</p>
+              <p class="card-name-admin">${p.name}</p>
+              <div class="card-price-row">
+                <span class="card-price-retail">₹${Number(p.price||0).toLocaleString('en-IN')}</span>
+                ${p.trade_price ? `<span class="card-price-trade">Trade ₹${Number(p.trade_price).toLocaleString('en-IN')}</span>` : ''}
+              </div>
+              <p class="card-stock ${stockClass}">${stockLabel}</p>
+              <p style="font-size:0.58rem;color:var(--text-muted);opacity:0.5;margin-bottom:0.75rem;">${colours}</p>
+              <div class="card-actions-admin">
+                <button class="btn-card-action primary" onclick="openEditModal('${p.id}')">Edit</button>
+                <button class="btn-card-action" onclick="toggleActive('${p.id}',${p.is_active!==false})">${p.is_active!==false?'Deactivate':'Activate'}</button>
+                <button class="btn-card-action danger" onclick="openDeleteConfirm('${p.id}','${p.name}')">Delete</button>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
     }
 
-    function renderStars(rating) {
-      const full  = Math.floor(rating);
-      const empty = 5 - full;
-      return '★'.repeat(full) + '☆'.repeat(empty);
-    }
-
-    function renderRatingBars(reviews) {
-      const counts = [0, 0, 0, 0, 0]; // index 0 = 1-star, 4 = 5-star
-      reviews.forEach(r => { if (r.rating >= 1 && r.rating <= 5) counts[r.rating - 1]++; });
-      const max = Math.max(...counts, 1);
-      document.getElementById('ratingBars').innerHTML = [5,4,3,2,1].map(star => `
-        <div class="rating-bar-row">
-          <span class="rating-bar-label">${star}</span>
-          <div class="rating-bar-track">
-            <div class="rating-bar-fill" style="width:${(counts[star-1]/max*100).toFixed(1)}%"></div>
-          </div>
-          <span class="rating-bar-count">${counts[star-1]}</span>
-        </div>`).join('');
-    }
-
-    function scrollToReviews() {
-      document.getElementById('reviewsSection').scrollIntoView({ behavior: 'smooth' });
-    }
-
-    function openWriteReview() {
-      if (supabase) {
-        // Check session then redirect
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          if (session) {
-            alert('Review form coming soon — wire up your review submission here.');
-          } else {
-            window.location.href = '../auth/login.html';
+    // Colour tags
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('colourInput')?.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ',') {
+          e.preventDefault();
+          const val = e.target.value.trim().replace(/,/g,'');
+          if (val && !colourTags.includes(val)) {
+            colourTags.push(val);
+            renderColourTags();
           }
-        });
-      } else {
-        alert('Review form coming soon — wire up your review submission here.');
-      }
+          e.target.value = '';
+        }
+      });
+    });
+
+    function renderColourTags() {
+      const wrap = document.getElementById('colourTags');
+      const input = document.getElementById('colourInput');
+      wrap.innerHTML = '';
+      colourTags.forEach((tag, i) => {
+        const span = document.createElement('span');
+        span.className = 'tag';
+        span.innerHTML = `${tag}<button class="tag-remove" onclick="removeTag(${i})">✕</button>`;
+        wrap.appendChild(span);
+      });
+      wrap.appendChild(input);
     }
 
-    // ── Related products ───────────────────────────────
-    async function loadRelated(category, currentId) {
-      const DEMO_RELATED = [
-        { id:'r1', name:'Geodesic Planter',  category:'Planters', price:2400 },
-        { id:'r2', name:'Prism Vase',        category:'Vases',    price:1800 },
-        { id:'r3', name:'Angular Bud Vase',  category:'Vases',    price:1200 },
-        { id:'r4', name:'Faceted Pendant',   category:'Lighting', price:4800 },
-      ];
+    function removeTag(i) { colourTags.splice(i, 1); renderColourTags(); }
 
-      let related = DEMO_RELATED;
+    // Image upload preview
+    function handleImageUpload(files) {
+      Array.from(files).slice(0, 6 - uploadedImages.length).forEach(file => {
+        if (!file.type.startsWith('image/')) return;
+        const url = URL.createObjectURL(file);
+        uploadedImages.push({ file, url });
+      });
+      renderImagePreviews();
+    }
 
-      if (supabase && category) {
-        try {
-          const { data } = await supabase
-            .from('products')
-            .select('id, name, category, price, image_url')
-            .eq('category', category)
-            .neq('id', currentId)
-            .limit(4);
-          if (data?.length) related = data;
-        } catch {}
-      }
-
-      document.getElementById('relatedGrid').innerHTML = related.map((p, i) => `
-        <div class="related-card" style="animation-delay:${i * 0.08}s"
-          onclick="window.location='${p.id}.html'">
-          <div class="related-img">
-            ${p.image_url
-              ? `<img src="${p.image_url}" alt="${p.name}" loading="lazy">`
-              : `<span class="related-img-placeholder">Image</span>`}
-          </div>
-          <div class="related-body">
-            <p class="related-cat">${p.category || ''}</p>
-            <p class="related-name">${p.name}</p>
-            <p class="related-price">₹${Number(p.price).toLocaleString('en-IN')}</p>
-          </div>
+    function renderImagePreviews() {
+      const wrap = document.getElementById('imgPreviews');
+      wrap.innerHTML = uploadedImages.map((img, i) => `
+        <div class="img-preview-item">
+          <img src="${img.url}" alt="preview ${i+1}">
+          <button class="img-preview-remove" onclick="removeImage(${i})">✕</button>
         </div>`).join('');
     }
 
-    // ── Toast ──────────────────────────────────────────
+    function removeImage(i) {
+      URL.revokeObjectURL(uploadedImages[i].url);
+      uploadedImages.splice(i, 1);
+      renderImagePreviews();
+    }
+
+    // Drag & drop
+    document.addEventListener('DOMContentLoaded', () => {
+      const zone = document.getElementById('imgUploadZone');
+      zone?.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+      zone?.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+      zone?.addEventListener('drop', e => {
+        e.preventDefault(); zone.classList.remove('drag-over');
+        handleImageUpload(e.dataTransfer.files);
+      });
+    });
+
+    // Modal helpers
+    function resetModal() {
+      document.getElementById('pName').value        = '';
+      document.getElementById('pCategory').value    = 'Planter';
+      document.getElementById('pStatus').value      = 'true';
+      document.getElementById('pPrice').value       = '';
+      document.getElementById('pTradePrice').value  = '';
+      document.getElementById('pDimensions').value  = '';
+      document.getElementById('pWeight').value      = '';
+      document.getElementById('pDescription').value = '';
+      document.getElementById('pAmazonUrl').value   = '';
+      document.getElementById('pSku').value         = '';
+      document.getElementById('pStock').value       = '0';
+      document.getElementById('pLowStock').value    = '5';
+      colourTags = [];
+      uploadedImages = [];
+      renderColourTags();
+      renderImagePreviews();
+    }
+
+    function openAddModal() {
+      editingId = null;
+      resetModal();
+      document.getElementById('modalTitle').textContent = 'Add Product';
+      document.getElementById('modalSub').textContent   = 'Fill in the product details below';
+      document.getElementById('productModal').classList.add('open');
+    }
+
+    function openEditModal(id) {
+      const p = allProducts.find(x => x.id === id);
+      if (!p) return;
+      editingId = id;
+      resetModal();
+      document.getElementById('modalTitle').textContent = 'Edit Product';
+      document.getElementById('modalSub').textContent   = `Editing: ${p.name}`;
+      document.getElementById('pName').value        = p.name || '';
+      document.getElementById('pCategory').value    = p.category || 'Planter';
+      document.getElementById('pStatus').value      = String(p.is_active !== false);
+      document.getElementById('pPrice').value       = p.price || '';
+      document.getElementById('pTradePrice').value  = p.trade_price || '';
+      document.getElementById('pDimensions').value  = p.dimensions || '';
+      document.getElementById('pWeight').value      = p.weight || '';
+      document.getElementById('pDescription').value = p.description || '';
+      document.getElementById('pAmazonUrl').value   = p.amazon_url || '';
+      document.getElementById('pSku').value         = p.sku || '';
+      document.getElementById('pStock').value       = p.stock || 0;
+      document.getElementById('pLowStock').value    = p.low_stock_alert || 5;
+      colourTags = Array.isArray(p.colors) ? [...p.colors] : [];
+      renderColourTags();
+      document.getElementById('productModal').classList.add('open');
+    }
+
+    function closeProductModal() {
+      document.getElementById('productModal').classList.remove('open');
+      editingId = null;
+    }
+
+    async function saveProduct() {
+      const name = document.getElementById('pName').value.trim();
+      if (!name) { showToast('Product name is required'); return; }
+      const price = parseFloat(document.getElementById('pPrice').value);
+      if (!price || price <= 0) { showToast('Please enter a valid price'); return; }
+
+      const payload = {
+        name,
+        category:     document.getElementById('pCategory').value,
+        is_active:    document.getElementById('pStatus').value === 'true',
+        price,
+        trade_price:  parseFloat(document.getElementById('pTradePrice').value) || null,
+        dimensions:   document.getElementById('pDimensions').value.trim() || null,
+        weight:       document.getElementById('pWeight').value.trim() || null,
+        description:  document.getElementById('pDescription').value.trim() || null,
+        amazon_url:   document.getElementById('pAmazonUrl').value.trim() || null,
+        sku:          document.getElementById('pSku').value.trim() || null,
+        stock:        parseInt(document.getElementById('pStock').value) || 0,
+        low_stock_alert: parseInt(document.getElementById('pLowStock').value) || 5,
+        colors:       colourTags,
+        updated_at:   new Date().toISOString(),
+      };
+
+      const btn = document.getElementById('saveProductBtn');
+      btn.disabled = true; btn.textContent = 'Saving…';
+
+      if (supabase) {
+        try {
+          if (editingId) {
+            const { error } = await supabase.from('products').update(payload).eq('id', editingId);
+            if (error) throw error;
+            const idx = allProducts.findIndex(p => p.id === editingId);
+            if (idx !== -1) allProducts[idx] = { ...allProducts[idx], ...payload };
+          } else {
+            const { data, error } = await supabase.from('products').insert([payload]).select().single();
+            if (error) throw error;
+            allProducts.unshift(data);
+          }
+        } catch (e) {
+          showToast('Save failed: ' + e.message);
+          btn.disabled = false; btn.textContent = 'Save Product';
+          return;
+        }
+      } else {
+        // Demo mode
+        if (editingId) {
+          const idx = allProducts.findIndex(p => p.id === editingId);
+          if (idx !== -1) allProducts[idx] = { ...allProducts[idx], ...payload };
+        } else {
+          allProducts.unshift({ id: Date.now().toString(), ...payload, created_at: new Date().toISOString() });
+        }
+      }
+
+      btn.disabled = false; btn.textContent = 'Save Product';
+      closeProductModal();
+      computeStats(); applyFilters();
+      showToast(editingId ? 'Product updated' : 'Product added');
+    }
+
+    async function toggleActive(id, isActive) {
+      if (supabase) await supabase.from('products').update({ is_active: !isActive }).eq('id', id).catch(()=>{});
+      const p = allProducts.find(x => x.id === id);
+      if (p) p.is_active = !isActive;
+      computeStats(); applyFilters();
+      showToast(isActive ? 'Product deactivated' : 'Product activated');
+    }
+
+    function openDeleteConfirm(id, name) {
+      deleteId = id;
+      document.getElementById('confirmText').textContent = `Are you sure you want to permanently delete "${name}"? This cannot be undone.`;
+      document.getElementById('confirmModal').classList.add('open');
+    }
+
+    async function confirmDelete() {
+      if (!deleteId) return;
+      if (supabase) await supabase.from('products').delete().eq('id', deleteId).catch(()=>{});
+      allProducts = allProducts.filter(p => p.id !== deleteId);
+      deleteId = null;
+      document.getElementById('confirmModal').classList.remove('open');
+      computeStats(); applyFilters();
+      showToast('Product deleted');
+    }
+
+    function exportCSV() {
+      const headers = ['Name','Category','Price','Trade Price','Stock','Status','SKU','Colours','Dimensions'];
+      const rows = filteredProducts.map(p => [
+        p.name||'', p.category||'', p.price||0, p.trade_price||0,
+        p.stock||0, p.is_active!==false?'Active':'Inactive',
+        p.sku||'', (p.colors||[]).join(';'), p.dimensions||''
+      ]);
+      const csv = [headers,...rows].map(r => r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+      const a = document.createElement('a');
+      a.href = 'data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+      a.download = `akara_products_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click(); showToast('CSV exported');
+    }
+
+    function geoSVG() {
+      return `<svg class="img-placeholder" width="72" height="72" viewBox="0 0 72 72" fill="none">
+        <polygon points="36,4 68,20 68,52 36,68 4,52 4,20" stroke="#c9a96e" stroke-width="1"/>
+        <polygon points="36,18 54,28 54,44 36,54 18,44 18,28" stroke="#c9a96e" stroke-width="0.7" opacity="0.5"/>
+        <circle cx="36" cy="36" r="4" fill="#c9a96e" opacity="0.3"/></svg>`;
+    }
+
     function showToast(msg) {
       const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.classList.add('visible');
-      setTimeout(() => t.classList.remove('visible'), 2500);
+      t.textContent = msg; t.classList.add('visible');
+      setTimeout(()=>t.classList.remove('visible'),2500);
     }
 
-    // ── Demo data ──────────────────────────────────────
-    const DEMO_PRODUCT = {
-      id:           'demo',
-      name:         'Geodesic Planter',
-      category:     'Planters',
-      price:        2400,
-      original_price: null,
-      description:  'The Geodesic Planter is a study in mathematical precision brought to life. Each facet is calculated to catch and redirect light across its surface, creating a dynamic visual experience that shifts with the time of day. Precision-crafted in Mumbai from plant-based PLA, it is as considered in its material as it is in its form.',
-      material:     'Plant-based PLA',
-      dimensions:   '180mm × 180mm × 200mm',
-      weight:       '420g',
-      finish:       'Matte Natural',
-      stock:        8,
-      is_bestseller: true,
-      created_at:   new Date(Date.now() - 10 * 86400000).toISOString(),
-      sizes: [
-        { name: 'Small',  available: true  },
-        { name: 'Medium', available: true  },
-        { name: 'Large',  available: false },
-      ],
-      colors: [
-        { name: 'Natural Teal',  hex: '#004040', available: true  },
-        { name: 'Warm Sand',     hex: '#c8a87a', available: true  },
-        { name: 'Charcoal',      hex: '#2a2a2a', available: true  },
-        { name: 'Terracotta',    hex: '#b5634a', available: false },
-      ],
-      reviews: [],
-      images: [],
-    };
-
-    const DEMO_REVIEWS = [
-      { name: 'Priya S.',  rating: 5, date: '2024-12-10', title: 'Stunning piece', body: 'The geometry is even more striking in person. Sits beautifully on my entry table and draws comments from every visitor. Quality is exceptional.', verified: true },
-      { name: 'Rahul M.',  rating: 4, date: '2024-11-28', title: 'Beautifully crafted', body: 'Very well made — the edges are clean and the finish is consistent. Arrived carefully packaged. Deducting one star only because the lead time was a little longer than expected.', verified: true },
-      { name: 'Ankita D.', rating: 5, date: '2024-11-15', title: 'Perfect gift',  body: 'Bought this as a housewarming gift and the recipient loved it. The packaging alone is thoughtful — you can tell a lot of care goes into every step.', verified: false },
+    const DEMO_PRODUCTS = [
+      { id:'1', name:'Vetra', category:'Planter', price:649, trade_price:455, stock:12, is_active:true, colors:['Beige'], dimensions:'23 × 13 × 8 cm', weight:'300g', created_at:new Date().toISOString() },
+      { id:'2', name:'Vāyu',  category:'Planter', price:699, trade_price:489, stock:3,  is_active:true, colors:['Beige','Black'], dimensions:'13 × 13 × 10 cm', weight:'250g', created_at:new Date().toISOString() },
+      { id:'3', name:'Sway',  category:'Planter', price:699, trade_price:489, stock:0,  is_active:true, colors:['Grey','Black'], dimensions:'13 × 13 × 10 cm', weight:'210g', created_at:new Date().toISOString() },
+      { id:'4', name:'Reva',  category:'Vase',    price:899, trade_price:629, stock:8,  is_active:true, colors:['Beige'], dimensions:'24cm H × 16.4cm base', created_at:new Date().toISOString() },
+      { id:'5', name:'Tattva',category:'Vase',    price:999, trade_price:699, stock:5,  is_active:true, colors:['Matte Black'], dimensions:'22cm H × 12cm base', weight:'200g', created_at:new Date().toISOString() },
     ];
-
-    // ── Init ──────────────────────────────────────────
-    loadProduct();
-    // Pre-load reviews into demo if product doesn't have them
-    if (!DEMO_PRODUCT.reviews.length) DEMO_PRODUCT.reviews = DEMO_REVIEWS;
   </script>
-
 </body>
 </html>
